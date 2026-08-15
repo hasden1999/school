@@ -1,0 +1,489 @@
+// Prisma Schema for Multi-Tenant Iraqi Private School Management System
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Tenant {
+  id                    String   @id @default(cuid())
+  name                  String   // e.g. ثانوية النخبة الأهلية للبنين
+  code                  String   @unique // e.g. nukhba-school
+  logo                  String?
+  stampUrl              String?  // صورة الختم الرسمي
+  phone                 String?
+  email                 String?
+  address               String?
+  schoolType            String   @default("ثانوية كاملة (بنين)") // "ثانوية (بنين)", "ثانوية (بنات)", "إعدادية", "متوسطة", "ابتدائية", "مختلط"
+  motto                 String?  // الشعار اللفظي أو الرؤية والرسالة
+  directorName          String?  // اسم مدير المدرسة المعتمد للشهادات والوصولات
+  currency              String   @default("د.ع")
+  leaveCutoffTime       String   @default("08:00") // 8:00 AM leave cutoff
+  attendanceAlertTime   String   @default("09:00") // 9:00 AM alert if attendance not taken
+  activeYear            String   @default("2024-2025")
+  plannedClosureDate    String?  // YYYY-MM-DD
+  printFooterText       String?  @default("وثيقة رسمية صادرة من إدارة المدرسة — أي كشط أو تحبير يعتبر لاغياً")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  users                 User[]
+  classRooms            ClassRoom[]
+  sections              Section[]
+  subjects              Subject[]
+  teacherAssignments    TeacherAssignment[]
+  timetableSlots        TimetableSlot[]
+  studentProfiles       StudentProfile[]
+  documentRequirements  DocumentRequirement[]
+  studentDocuments      StudentDocument[]
+  attendanceRecords     AttendanceRecord[]
+  leaveRequests         LeaveRequest[]
+  teacherLeaves         TeacherLeave[]
+  dailyReports          DailyReport[]
+  evaluationExams       TeacherEvaluationExam[]
+  evaluationSubmissions TeacherEvaluationSubmission[]
+  gradeRecords          GradeRecord[]
+  paymentReceipts       PaymentReceipt[]
+  whatsAppQueue         WhatsAppMessageQueue[]
+  backupRecords         BackupRecord[]
+  academicYearClosures  AcademicYearClosure[]
+  notifications         Notification[]
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  username           String
+  passwordHash       String
+  fullName           String
+  phone              String?
+  role               String    // "ADMIN", "TEACHER", "STUDENT"
+  monthlySalary      Float     @default(0) // الراتب الشهري للمعلم
+  mustChangePassword Boolean   @default(false)
+  active             Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  studentProfile     StudentProfile?
+  teacherAssignments TeacherAssignment[]
+  timetableSlots     TimetableSlot[]
+  dailyReports       DailyReport[]
+  createdExams       TeacherEvaluationExam[]
+  teacherLeaves      TeacherLeave[]
+  notifications      Notification[]
+
+  @@unique([tenantId, username])
+}
+
+model ClassRoom {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  name               String    // e.g. الأول متوسط, السادس الإعدادي (العلمي)
+  code               String    // e.g. 1-INT, 6-SCI
+  annualTuition      Float     @default(1500000) // Default tuition in IQD
+  orderIndex         Int       @default(0)
+  isGraduatingClass  Boolean   @default(false)   // إذا كان الصف مرحلة منتهية يتخرج طلابها (مثل السادس الإعدادي)
+  nextClassRoomId    String?   // الصف التالي في الترقية التلقائية
+
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sections           Section[]
+  studentProfiles    StudentProfile[]
+  teacherAssignments TeacherAssignment[]
+  timetableSlots     TimetableSlot[]
+  attendanceRecords  AttendanceRecord[]
+  dailyReports       DailyReport[]
+  gradeRecords       GradeRecord[]
+  evaluationExams    TeacherEvaluationExam[]
+
+  @@unique([tenantId, code])
+}
+
+model Section {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  classRoomId        String
+  name               String    // e.g. "أ", "ب", "ج"
+
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  classRoom          ClassRoom @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+  studentProfiles    StudentProfile[]
+  teacherAssignments TeacherAssignment[]
+  timetableSlots     TimetableSlot[]
+  attendanceRecords  AttendanceRecord[]
+  dailyReports       DailyReport[]
+  evaluationExams    TeacherEvaluationExam[]
+
+  @@unique([tenantId, classRoomId, name])
+}
+
+model Subject {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  name               String    // e.g. الرياضيات, اللغة العربية, اللغة الإنكليزية, الفيزياء, الكيمياء
+  code               String    // e.g. MATH, ARABIC, ENG, PHYS
+  orderIndex         Int       @default(0)
+
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacherAssignments TeacherAssignment[]
+  timetableSlots     TimetableSlot[]
+  dailyReports       DailyReport[]
+  gradeRecords       GradeRecord[]
+  evaluationExams    TeacherEvaluationExam[]
+
+  @@unique([tenantId, code])
+}
+
+model TeacherAssignment {
+  id          String    @id @default(cuid())
+  tenantId    String
+  teacherId   String
+  classRoomId String
+  sectionId   String
+  subjectId   String
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacher     User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classRoom   ClassRoom @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+  section     Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, teacherId, classRoomId, sectionId, subjectId])
+}
+
+model TimetableSlot {
+  id           String    @id @default(cuid())
+  tenantId     String
+  classRoomId  String
+  sectionId    String
+  dayOfWeek    String    // "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY"
+  periodNumber Int       // 1 (الحصة الأولى), 2, 3, 4, 5, 6
+  teacherId    String
+  subjectId    String
+
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  classRoom    ClassRoom @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+  section      Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  teacher      User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject      Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, classRoomId, sectionId, dayOfWeek, periodNumber])
+}
+
+model StudentProfile {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  userId             String    @unique
+  classRoomId        String
+  sectionId          String
+  studentNumber      String    // e.g. STU-2025-001
+  guardianName       String
+  guardianPhone      String
+  dateOfBirth        String?
+  address            String?
+  totalTuition       Float     @default(1500000)
+  depositAmount      Float     @default(0)
+  registrationStatus String    @default("ACTIVE") // "ACTIVE", "PENDING", "SUSPENDED", "GRADUATED", "ARCHIVED"
+  graduationYear     String?   // e.g. "2024-2025"
+  isCleared          Boolean   @default(false)   // براءة ذمة مالية وإدارية
+  archivedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classRoom          ClassRoom @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+  section            Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  documents          StudentDocument[]
+  attendanceRecords  AttendanceRecord[]
+  leaveRequests      LeaveRequest[]
+  evaluationSubmissions TeacherEvaluationSubmission[]
+  gradeRecords       GradeRecord[]
+  paymentReceipts    PaymentReceipt[]
+
+  @@unique([tenantId, studentNumber])
+}
+
+model DocumentRequirement {
+  id          String   @id @default(cuid())
+  tenantId    String
+  title       String   // e.g. هوية الأحوال المدنية / البطاقة الموحدة للطالب
+  isRequired  Boolean  @default(true)
+  description String?
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  studentDocuments StudentDocument[]
+}
+
+model StudentDocument {
+  id            String              @id @default(cuid())
+  tenantId      String
+  studentId     String
+  documentReqId String
+  status        String              @default("MISSING") // "MISSING", "UPLOADED", "VERIFIED"
+  fileUrl       String?
+  notes         String?
+  updatedAt     DateTime            @updatedAt
+
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student       StudentProfile      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  requirement   DocumentRequirement @relation(fields: [documentReqId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, studentId, documentReqId])
+}
+
+model AttendanceRecord {
+  id                  String         @id @default(cuid())
+  tenantId            String
+  studentId           String
+  classRoomId         String
+  sectionId           String
+  date                String         // YYYY-MM-DD
+  status              String         // "PRESENT" (حاضر), "ABSENT" (غائب), "ON_LEAVE" (مجاز), "LATE" (متأخر)
+  periodNumber        Int            @default(1)
+  recordedByUserId    String
+  isOverriddenByAdmin Boolean        @default(false)
+  notes               String?
+  createdAt           DateTime       @default(now())
+
+  tenant              Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student             StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classRoom           ClassRoom      @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+  section             Section        @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, studentId, date, periodNumber])
+}
+
+model LeaveRequest {
+  id                 String         @id @default(cuid())
+  tenantId           String
+  studentId          String
+  startDate          String         // YYYY-MM-DD
+  endDate            String         // YYYY-MM-DD
+  reason             String
+  attachmentUrl      String?
+  status             String         @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  rejectionReason    String?
+  processedAt        DateTime?
+  processedByAdminId String?
+  createdAt          DateTime       @default(now())
+
+  tenant             Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student            StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+// إجازات وغياب المعلمين والبديل الذكي
+model TeacherLeave {
+  id              String    @id @default(cuid())
+  tenantId        String
+  teacherId       String
+  startDate       String    // YYYY-MM-DD
+  endDate         String    // YYYY-MM-DD
+  reason          String
+  status          String    @default("APPROVED") // "PENDING", "APPROVED", "REJECTED"
+  substitutesJson String?   // JSON Array: [{ periodNumber, classRoomId, sectionId, subjectId, substituteTeacherId, substituteTeacherName }]
+  createdAt       DateTime  @default(now())
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacher         User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+}
+
+model DailyReport {
+  id                   String    @id @default(cuid())
+  tenantId             String
+  teacherId            String
+  classRoomId          String
+  sectionId            String
+  subjectId            String
+  date                 String    // YYYY-MM-DD
+  title                String
+  content              String    // الشرح والموضوع الذي تم إعطاؤه
+  homework             String?   // الواجب البيتي المطلوب
+  attachmentUrl        String?
+  status               String    @default("PENDING_APPROVAL") // "DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED"
+  adminRejectionReason String?
+  approvedAt           DateTime?
+  approvedByAdminId    String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  tenant               Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacher              User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classRoom            ClassRoom @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+  section              Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subject              Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+}
+
+// جدول تقييم أداء المعلمين السري والمعزول 100% عن المعلم والنتائج
+model TeacherEvaluationExam {
+  id              String    @id @default(cuid())
+  tenantId        String
+  title           String    // e.g. استبيان تقييم أداء مدرس مادة الرياضيات للفصل الأول
+  description     String?
+  targetTeacherId String
+  classRoomId     String
+  sectionId       String
+  subjectId       String
+  questionsJson   String    // Array of questions in JSON: [{id, type: "rating"|"text", text}]
+  isActive        Boolean   @default(true)
+  createdByAdminId String
+  createdAt       DateTime  @default(now())
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  admin           User      @relation(fields: [createdByAdminId], references: [id], onDelete: Cascade)
+  classRoom       ClassRoom @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+  section         Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subject         Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  submissions     TeacherEvaluationSubmission[]
+}
+
+model TeacherEvaluationSubmission {
+  id              String                @id @default(cuid())
+  tenantId        String
+  examId          String
+  studentId       String
+  targetTeacherId String
+  answersJson     String                // Array of answers: [{questionId, score, text}]
+  overallScore    Float                 @default(0)
+  feedbackText    String?
+  submittedAt     DateTime              @default(now())
+
+  tenant          Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  exam            TeacherEvaluationExam @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student         StudentProfile        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, examId, studentId])
+}
+
+// نظام الدرجات المرحلي العراقي المتوافق رسمياً مع وزارة التربية
+model GradeRecord {
+  id                String         @id @default(cuid())
+  tenantId          String
+  studentId         String
+  subjectId         String
+  classRoomId       String
+  academicYear      String         @default("2024-2025")
+
+  // الفصل الأول
+  month1            Float?         // الشهر الأول
+  month2            Float?         // الشهر الثاني
+  term1Average      Float?         // سعي الفصل الأول = (month1 + month2) / 2
+
+  // منتصف السنة
+  midYear           Float?         // امتحان نصف السنة
+
+  // الفصل الثاني
+  month3            Float?         // الشهر الثالث
+  month4            Float?         // الشهر الرابع
+  term2Average      Float?         // سعي الفصل الثاني = (month3 + month4) / 2
+
+  // السعي السنوي والنهائي
+  annualAverage     Float?         // السعي السنوي = (term1Average + term2Average + midYear) / 3
+  finalExam         Float?         // امتحان نهاية السنة
+  finalGrade        Float?         // الدرجة النهائية = (annualAverage + finalExam) / 2
+
+  // أقفال المراحل (حماية الدرجات من التعديل المتأخر)
+  isMonth1Locked    Boolean        @default(false)
+  isMonth2Locked    Boolean        @default(false)
+  isMidYearLocked   Boolean        @default(false)
+  isMonth3Locked    Boolean        @default(false)
+  isMonth4Locked    Boolean        @default(false)
+  isFinalExamLocked Boolean        @default(false)
+  isFullyApproved   Boolean        @default(false)
+
+  updatedAt         DateTime       @updatedAt
+
+  tenant            Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student           StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject           Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  classRoom         ClassRoom      @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, studentId, subjectId, academicYear])
+}
+
+// الأقساط والمدفوعات
+model PaymentReceipt {
+  id              String         @id @default(cuid())
+  tenantId        String
+  studentId       String
+  receiptNumber   String         // e.g. REC-2025-0012
+  amount          Float
+  paymentDate     String         // YYYY-MM-DD
+  paymentMethod   String         @default("CASH") // "CASH", "BANK_TRANSFER", "ZAIN_CASH"
+  notes           String?
+  receivedByUserId String
+  createdAt       DateTime       @default(now())
+
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student         StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, receiptNumber])
+}
+
+// طابور رسائل واتساب لولي الأمر
+model WhatsAppMessageQueue {
+  id             String    @id @default(cuid())
+  tenantId       String
+  recipientPhone String
+  recipientName  String
+  eventType      String    // ACCOUNT_ACTIVATED, MISSING_DOCS, REPORT_APPROVED, STUDENT_ABSENT, LEAVE_STATUS, PAYMENT_RECEIPT, PAYMENT_OVERDUE, GRADES_PUBLISHED
+  messageText    String
+  status         String    @default("QUEUED") // "QUEUED", "SENT", "FAILED"
+  sentAt         DateTime?
+  payloadJson    String?
+  createdAt      DateTime  @default(now())
+
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+// سجل النسخ الاحتياطية
+model BackupRecord {
+  id              String    @id @default(cuid())
+  tenantId        String
+  backupType      String    // "DATABASE_JSON", "EMERGENCY_PDF_BUNDLE"
+  fileName        String
+  fileSize        String
+  recordCount     Int       @default(0)
+  createdAt       DateTime  @default(now())
+  createdByUserId String
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+// سجل إغلاق وفتح الأعوام الدراسية وترقية الطلاب
+model AcademicYearClosure {
+  id               String   @id @default(cuid())
+  tenantId         String
+  closedYear       String   // e.g. "2024-2025"
+  newYear          String   // e.g. "2025-2026"
+  closureDate      String   // YYYY-MM-DD
+  closedByUserId   String
+  promotedCount    Int      @default(0)
+  graduatedCount   Int      @default(0)
+  unpaidDebtsTotal Float    @default(0)
+  summaryJson      String?
+  createdAt        DateTime @default(now())
+
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+// نظام الإشعارات الداخلي اللحظي لجميع المستخدمين
+model Notification {
+  id          String    @id @default(cuid())
+  tenantId    String
+  userId      String    // Target user ID who receives this notification
+  title       String    // e.g. "تقرير يومي جديد بانتظار الاعتماد", "تم نشر درجات الشهر الأول"
+  message     String    // detailed message text
+  type        String    @default("SYSTEM") // "REPORT", "GRADE", "LEAVE", "PAYMENT", "ATTENDANCE", "SYSTEM"
+  link        String?   // Target page URL (e.g. "/admin/reports", "/student/grades")
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId, isRead])
+}
