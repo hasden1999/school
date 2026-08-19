@@ -1,7 +1,7 @@
 // Nukhba School SaaS - Offline-First Service Worker (Multi-Day Reliable)
 // App Shell + Stale-While-Revalidate Architecture + Full Route Pre-Caching
-const CACHE_NAME = "nukhba-pwa-v5";
-const APP_SHELL_CACHE = "nukhba-shell-v5";
+const CACHE_NAME = "nukhba-pwa-v6";
+const APP_SHELL_CACHE = "nukhba-shell-v6";
 
 // Static assets to pre-cache on install
 const STATIC_ASSETS = [
