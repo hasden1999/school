@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NotificationBellDropdown } from "../notifications/NotificationBellDropdown";
-import { logoutAction, quickDemoLogin } from "@/app/actions/authActions";
+import { logoutAction } from "@/app/actions/authActions";
 import {
   LayoutDashboard,
   Award,
@@ -88,23 +88,8 @@ export const StudentNavbar: React.FC<StudentNavbarProps> = ({ user }) => {
             })}
           </nav>
 
-          {/* Quick Demo Switcher & Logout */}
+          {/* Notification Bell & Logout */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden sm:flex items-center bg-slate-100 rounded-xl p-1 text-xs text-slate-600 gap-1 border border-slate-200">
-              <span className="px-1 text-[11px] text-slate-400">معاينة:</span>
-              <button
-                onClick={() => quickDemoLogin("ADMIN")}
-                className="px-2 py-1 rounded-lg bg-white hover:bg-emerald-50 hover:text-emerald-700 transition-colors shadow-sm"
-              >
-                👔 الإدارة
-              </button>
-              <button
-                onClick={() => quickDemoLogin("TEACHER_MATH")}
-                className="px-2 py-1 rounded-lg bg-white hover:bg-emerald-50 hover:text-emerald-700 transition-colors shadow-sm"
-              >
-                👨‍🏫 المعلم
-              </button>
-            </div>
 
             {/* Notification Bell */}
             <NotificationBellDropdown />
@@ -142,24 +127,6 @@ export const StudentNavbar: React.FC<StudentNavbarProps> = ({ user }) => {
               </Link>
             );
           })}
-
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>تبديل فوري:</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => quickDemoLogin("ADMIN")}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 font-bold text-slate-800"
-              >
-                👔 الإدارة
-              </button>
-              <button
-                onClick={() => quickDemoLogin("TEACHER_MATH")}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 font-bold text-slate-800"
-              >
-                👨‍🏫 المعلم
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </header>

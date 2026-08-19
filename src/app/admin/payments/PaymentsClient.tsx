@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { recordPaymentAction } from "@/app/actions/paymentActions";
+import { PaymentRepository } from "@/lib/repositories/PaymentRepository";
+import { StudentRepository } from "@/lib/repositories/StudentRepository";
 import { runOverdueTuitionReminders } from "@/lib/cronEngine";
 import { Modal } from "@/components/ui/Modal";
 import { PaymentReceiptModal } from "@/components/print/PaymentReceiptModal";
@@ -58,20 +60,48 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
     return matchesSearch && matchesClass;
   });
 
+  // Load local students if empty on offline mount
+  useEffect(() => {
+    async function loadLocalStudents() {
+      if (!initialStudents || initialStudents.length === 0 || (typeof window !== "undefined" && !navigator.onLine)) {
+        const localList = await StudentRepository.getStudents();
+        if (localList && localList.length > 0) {
+          setStudents(localList);
+        }
+      }
+    }
+    loadLocalStudents();
+  }, [initialStudents]);
+
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStudentForPay) return;
+
+    const paidAlready =
+      (selectedStudentForPay.paymentReceipts?.reduce((sum: number, r: any) => sum + r.amount, 0) || 0) +
+      (selectedStudentForPay.depositAmount || 0);
+    const maxRemaining = Math.max(0, selectedStudentForPay.totalTuition - paidAlready);
+
+    if (amount <= 0) {
+      alert("يرجى إدخال مبلغ دفع صحيح أكبر من الصفر.");
+      return;
+    }
+
+    if (amount > maxRemaining) {
+      alert(`⚠️ لا يمكن إتمام العملية: المبلغ المدخل (${amount.toLocaleString()} ${currency}) يتجاوز المبلغ المتبقي على الطالب (${maxRemaining.toLocaleString()} ${currency}).`);
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const res = await recordPaymentAction({
+      const res = await PaymentRepository.createReceipt({
         studentId: selectedStudentForPay.id,
         amount,
         paymentMethod,
         notes,
-        notifyWhatsApp,
       });
 
-      if (res.success) {
+      if (res.success && res.receipt) {
         const updatedStudent = {
           ...selectedStudentForPay,
           paymentReceipts: [res.receipt, ...(selectedStudentForPay.paymentReceipts || [])],
@@ -86,6 +116,8 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
           student: updatedStudent,
         });
         setIsRecordOpen(false);
+      } else if (res.error) {
+        alert(res.error);
       }
     } catch (e: any) {
       alert(e.message || "حدث خطأ أثناء تسجيل الدفعة");
@@ -139,31 +171,72 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
         </div>
       )}
 
-      {/* Filter Bar */}
-      <div className="p-4 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="relative flex-1 w-full">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="بحث باسم الطالب أو ولي الأمر أو الرقم المدرسي..."
-            className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs font-medium outline-none focus:border-emerald-500"
-          />
-          <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
+      {/* Filter Bar with Quick Class Pills */}
+      <div className="p-4 bg-white rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="relative flex-1 w-full">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="بحث سريع باسم الطالب، ولي الأمر، أو الرقم المدرسي..."
+              className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs font-medium outline-none focus:border-emerald-500 bg-slate-50/50"
+            />
+            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <span className="text-xs font-bold text-slate-500 whitespace-nowrap hidden sm:inline">الصفوف:</span>
+            <select
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+              className="w-full md:w-auto px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white outline-none focus:border-emerald-500"
+            >
+              <option value="ALL">جميع الصفوف ({students.length})</option>
+              {classRooms.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <select
-          value={selectedClass}
-          onChange={(e) => setSelectedClass(e.target.value)}
-          className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white"
-        >
-          <option value="ALL">جميع المراحل والصفوف</option>
-          {classRooms.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        {/* Quick Class Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+          <button
+            type="button"
+            onClick={() => setSelectedClass("ALL")}
+            className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all shrink-0 ${
+              selectedClass === "ALL"
+                ? "bg-slate-900 text-white shadow-sm"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            الكل ({students.length})
+          </button>
+          {classRooms.map((c) => {
+            const count = students.filter((s) => s.classRoomId === c.id).length;
+            const isSel = selectedClass === c.id;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setSelectedClass(c.id)}
+                className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                  isSel
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : "bg-slate-100 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800"
+                }`}
+              >
+                <span>{c.name}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSel ? "bg-white/20 text-white" : "bg-slate-200 text-slate-600"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Students Financial Ledger */}
@@ -276,37 +349,61 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
         maxWidth="md"
       >
         <form onSubmit={handlePaymentSubmit} className="space-y-4">
-          <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1 text-xs">
-            <div className="flex justify-between">
-              <span className="text-slate-500">القسط السنوي:</span>
-              <span className="font-bold text-slate-800">
-                {Number(selectedStudentForPay?.totalTuition).toLocaleString()} {currency}
-              </span>
-            </div>
-            <div className="flex justify-between text-rose-700 font-bold">
-              <span>المتبقي حالياً:</span>
-              <span>
-                {Number(
-                  (selectedStudentForPay?.totalTuition || 0) -
-                    ((selectedStudentForPay?.paymentReceipts?.reduce((sum: number, r: any) => sum + r.amount, 0) || 0) +
-                      (selectedStudentForPay?.depositAmount || 0))
-                ).toLocaleString()}{" "}
-                {currency}
-              </span>
-            </div>
-          </div>
+          {(() => {
+            const currentPaid =
+              (selectedStudentForPay?.paymentReceipts?.reduce((sum: number, r: any) => sum + r.amount, 0) || 0) +
+              (selectedStudentForPay?.depositAmount || 0);
+            const currentRem = Math.max(0, (selectedStudentForPay?.totalTuition || 0) - currentPaid);
+            const isOver = amount > currentRem;
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">المبلغ المقبوض ({currency}) *</label>
-            <input
-              type="number"
-              required
-              min="1000"
-              value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-black outline-none focus:border-emerald-500 font-mono"
-            />
-          </div>
+            return (
+              <>
+                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">القسط السنوي:</span>
+                    <span className="font-bold text-slate-800">
+                      {Number(selectedStudentForPay?.totalTuition).toLocaleString()} {currency}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-rose-700 font-bold">
+                    <span>المتبقي حالياً:</span>
+                    <span>
+                      {Number(currentRem).toLocaleString()} {currency}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1 text-xs">
+                    <label className="font-bold text-slate-700">المبلغ المقبوض ({currency}) *</label>
+                    <button
+                      type="button"
+                      onClick={() => setAmount(currentRem)}
+                      className="text-[11px] font-bold text-emerald-600 hover:underline"
+                    >
+                      تسديد كامل المتبقي ({Number(currentRem).toLocaleString()} {currency})
+                    </button>
+                  </div>
+                  <input
+                    type="number"
+                    required
+                    min="1000"
+                    max={currentRem}
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-black outline-none font-mono ${
+                      isOver ? "border-rose-500 bg-rose-50 text-rose-700" : "border-slate-200 focus:border-emerald-500 text-slate-900"
+                    }`}
+                  />
+                  {isOver && (
+                    <p className="text-[11px] text-rose-600 font-bold mt-1">
+                      ⚠️ خطأ: لا يمكن قبول مبلغ أكبر من المتبقي على الطالب ({Number(currentRem).toLocaleString()} {currency}).
+                    </p>
+                  )}
+                </div>
+              </>
+            );
+          })()}
 
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">طريقة الدفع *</label>
@@ -352,10 +449,22 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
             </button>
             <button
               type="submit"
-              disabled={submitting}
-              className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-all shadow-md"
+              disabled={
+                submitting ||
+                amount <= 0 ||
+                (selectedStudentForPay &&
+                  amount >
+                    Math.max(
+                      0,
+                      (selectedStudentForPay.totalTuition || 0) -
+                        ((selectedStudentForPay.paymentReceipts?.reduce((sum: number, r: any) => sum + r.amount, 0) || 0) +
+                          (selectedStudentForPay.depositAmount || 0))
+                    ))
+              }
+              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white text-xs font-bold transition-all shadow-md flex items-center gap-2"
             >
-              {submitting ? "جاري الحفظ..." : "حفظ وإصدار الوصل"}
+              {submitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              <span>تأكيد وطباعة الوصل</span>
             </button>
           </div>
         </form>

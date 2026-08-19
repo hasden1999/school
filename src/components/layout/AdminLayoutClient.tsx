@@ -3,17 +3,20 @@
 import React, { useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
+import { SubscriptionBanner } from "../billing/SubscriptionBanner";
 
 interface AdminLayoutClientProps {
   children: React.ReactNode;
   user: any;
   schoolName?: string;
+  tenant?: any;
 }
 
 export const AdminLayoutClient: React.FC<AdminLayoutClientProps> = ({
   children,
   user,
   schoolName,
+  tenant,
 }) => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -28,6 +31,7 @@ export const AdminLayoutClient: React.FC<AdminLayoutClientProps> = ({
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+        <SubscriptionBanner tenant={tenant} />
         <AdminHeader
           user={user}
           onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}

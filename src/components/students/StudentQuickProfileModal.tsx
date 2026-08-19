@@ -27,6 +27,8 @@ import {
   X,
   ExternalLink,
   ShieldCheck,
+  Copy,
+  KeyRound,
 } from "lucide-react";
 
 interface StudentQuickProfileModalProps {
@@ -266,17 +268,54 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
               </div>
 
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
-                <span className="text-[11px] font-bold text-slate-400 block">اسم مستخدم الدخول:</span>
-                <span className="text-sm font-bold text-indigo-700 font-mono">
-                  @{student.user.username}
-                </span>
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
                 <span className="text-[11px] font-bold text-slate-400 block">تاريخ التسجيل:</span>
                 <span className="text-sm font-bold text-slate-900">
                   {new Date(student.createdAt).toLocaleDateString("ar-IQ")}
                 </span>
+              </div>
+            </div>
+
+            {/* Dedicated Credentials Box */}
+            <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-950 border border-emerald-500/30 text-white shadow-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    <KeyRound className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-white">بيانات دخول الطالب للمنظومة</h4>
+                    <p className="text-[10px] text-slate-400">حساب خماسي مخصص باللغة الإنجليزية</p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = `بيانات الدخول لمنظومة المدرسة:\nالطالب: ${student.user.fullName}\nاسم المستخدم: ${student.user.username}\nرمز المرور: ${student.user.plainPasscode || "stu123"}\nرابط المنظومة: ${window.location.origin}/login`;
+                    navigator.clipboard.writeText(text);
+                    alert("✓ تم نسخ بيانات الدخول بنجاح!");
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow flex items-center gap-1.5"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>نسخ البيانات</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-1 text-xs">
+                <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block mb-0.5">اسم المستخدم (Username):</span>
+                  <span className="font-mono text-sm font-black text-emerald-400 tracking-wider">
+                    {student.user.username}
+                  </span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block mb-0.5">رمز المرور (Passcode):</span>
+                  <span className="font-mono text-sm font-black text-amber-400 tracking-wider">
+                    {student.user.plainPasscode || "stu123"}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

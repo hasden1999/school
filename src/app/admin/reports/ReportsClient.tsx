@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { reviewDailyReportAction } from "@/app/actions/reportActions";
+import {
+  reviewDailyReportAction,
+  createAdminAnnouncementAction,
+} from "@/app/actions/reportActions";
 import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import {
@@ -13,19 +16,49 @@ import {
   Calendar,
   User,
   Clock,
+  Megaphone,
+  Send,
+  Users,
+  GraduationCap,
+  Sparkles,
+  RefreshCw,
 } from "lucide-react";
 
 interface ReportsClientProps {
   reports: any[];
+  classRooms?: any[];
+  sections?: any[];
+  students?: any[];
 }
 
-export const ReportsClient: React.FC<ReportsClientProps> = ({ reports: initialReports }) => {
+export const ReportsClient: React.FC<ReportsClientProps> = ({
+  reports: initialReports,
+  classRooms = [],
+  sections = [],
+  students = [],
+}) => {
   const [reports, setReports] = useState<any[]>(initialReports);
   const [filter, setFilter] = useState<string>("PENDING_APPROVAL");
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
+
+  // Announcement State
+  const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
+  const [announcementScope, setAnnouncementScope] = useState<"ALL" | "CLASSROOM" | "STUDENT">("ALL");
+  const [targetClassId, setTargetClassId] = useState(classRooms[0]?.id || "");
+  const [targetSectionId, setTargetSectionId] = useState("");
+  const [targetStudentId, setTargetStudentId] = useState(students[0]?.id || "");
+  const [announcementTitle, setAnnouncementTitle] = useState("");
+  const [announcementMessage, setAnnouncementMessage] = useState("");
+  const [notifyWhatsApp, setNotifyWhatsApp] = useState(true);
+  const [sendingAnnouncement, setSendingAnnouncement] = useState(false);
+
+  const availableSections = sections.filter((s) => s.classRoomId === targetClassId);
+  const filteredStudents = targetClassId
+    ? students.filter((st) => st.classRoomId === targetClassId && (!targetSectionId || st.sectionId === targetSectionId))
+    : students;
 
   const filteredReports = reports.filter((r) => {
     if (filter === "ALL") return true;
@@ -68,46 +101,88 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({ reports: initialRe
     }
   };
 
+  const handleSendAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!announcementTitle.trim() || !announcementMessage.trim()) return;
+
+    setSendingAnnouncement(true);
+    try {
+      const res = await createAdminAnnouncementAction({
+        targetScope: announcementScope,
+        classRoomId: announcementScope !== "ALL" ? targetClassId : undefined,
+        sectionId: announcementScope === "CLASSROOM" ? targetSectionId : undefined,
+        studentId: announcementScope === "STUDENT" ? targetStudentId : undefined,
+        title: announcementTitle.trim(),
+        message: announcementMessage.trim(),
+        notifyWhatsApp,
+      });
+
+      if (res.success) {
+        alert("✓ " + res.message);
+        setIsAnnouncementOpen(false);
+        setAnnouncementTitle("");
+        setAnnouncementMessage("");
+      } else {
+        alert(res.error || "فشل إرسال التبليغ");
+      }
+    } catch (err: any) {
+      alert(err.message || "حدث خطأ غير متوقع");
+    } finally {
+      setSendingAnnouncement(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900">التقارير اليومية والواجبات</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">التقارير اليومية والتعميمات</h1>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            تدقيق واعتماد ملخصات الدروس والواجبات المرفوعة من الكادر التدريسي قبل نشرها للطلاب.
+            تدقيق واعتماد ملخصات الدروس والواجبات، أو نشر تعميم وتبليغ إداري موجه لكافة المدرسة أو لصف أو طالب محدد.
           </p>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex items-center gap-1 bg-white p-1 rounded-2xl border border-slate-200 text-xs shadow-sm">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => setFilter("PENDING_APPROVAL")}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-colors ${
-              filter === "PENDING_APPROVAL"
-                ? "bg-amber-500 text-white shadow-sm"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
+            type="button"
+            onClick={() => setIsAnnouncementOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all shadow-md"
           >
-            بانتظار المراجعة ({reports.filter((r) => r.status === "PENDING_APPROVAL").length})
-          </button>
-          <button
-            onClick={() => setFilter("APPROVED")}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-colors ${
-              filter === "APPROVED" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            المعتمدة
-          </button>
-          <button
-            onClick={() => setFilter("ALL")}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-colors ${
-              filter === "ALL" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            الكل
+            <Megaphone className="w-4 h-4 text-amber-300" />
+            <span>نشر تبليغ / تعميم إداري</span>
           </button>
         </div>
+      </div>
+
+      {/* Filter Pills */}
+      <div className="flex items-center gap-1 bg-white p-1 rounded-2xl border border-slate-200 text-xs shadow-sm w-fit">
+        <button
+          onClick={() => setFilter("PENDING_APPROVAL")}
+          className={`px-3 py-1.5 rounded-xl font-bold transition-colors ${
+            filter === "PENDING_APPROVAL"
+              ? "bg-amber-500 text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          بانتظار المراجعة ({reports.filter((r) => r.status === "PENDING_APPROVAL").length})
+        </button>
+        <button
+          onClick={() => setFilter("APPROVED")}
+          className={`px-3 py-1.5 rounded-xl font-bold transition-colors ${
+            filter === "APPROVED" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          المعتمدة
+        </button>
+        <button
+          onClick={() => setFilter("ALL")}
+          className={`px-3 py-1.5 rounded-xl font-bold transition-colors ${
+            filter === "ALL" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          الكل
+        </button>
       </div>
 
       {/* Reports Grid */}
@@ -245,6 +320,203 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({ reports: initialRe
           </div>
         </form>
       </Modal>
+
+      {/* Broadcast Announcement Modal */}
+      {isAnnouncementOpen && (
+        <Modal
+          isOpen={isAnnouncementOpen}
+          onClose={() => setIsAnnouncementOpen(false)}
+          title="نشر تبليغ أو تعميم إداري رسمي"
+          maxWidth="lg"
+        >
+          <form onSubmit={handleSendAnnouncement} className="space-y-4 font-cairo text-right" dir="rtl">
+            {/* Scope Selection */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-700">نطاق توجيه التبليغ *</label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAnnouncementScope("ALL")}
+                  className={`p-3 rounded-2xl border text-xs font-bold transition-all flex flex-col items-center gap-1.5 ${
+                    announcementScope === "ALL"
+                      ? "bg-slate-900 text-white border-slate-900 shadow-md"
+                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  <Users className="w-5 h-5 text-emerald-400" />
+                  <span>لكل المدرسة</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAnnouncementScope("CLASSROOM")}
+                  className={`p-3 rounded-2xl border text-xs font-bold transition-all flex flex-col items-center gap-1.5 ${
+                    announcementScope === "CLASSROOM"
+                      ? "bg-slate-900 text-white border-slate-900 shadow-md"
+                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  <GraduationCap className="w-5 h-5 text-indigo-400" />
+                  <span>لصف محدد</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAnnouncementScope("STUDENT")}
+                  className={`p-3 rounded-2xl border text-xs font-bold transition-all flex flex-col items-center gap-1.5 ${
+                    announcementScope === "STUDENT"
+                      ? "bg-slate-900 text-white border-slate-900 shadow-md"
+                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  <User className="w-5 h-5 text-amber-400" />
+                  <span>لطالب محدد</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Classroom / Section Selectors */}
+            {announcementScope === "CLASSROOM" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs animate-fadeIn">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">الصف المستهدف *</label>
+                  <select
+                    value={targetClassId}
+                    onChange={(e) => {
+                      setTargetClassId(e.target.value);
+                      const secs = sections.filter((s) => s.classRoomId === e.target.value);
+                      setTargetSectionId(secs[0]?.id || "");
+                    }}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 font-bold bg-white outline-none"
+                  >
+                    {classRooms.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">الشعبة (اختياري / لكافة الشعب)</label>
+                  <select
+                    value={targetSectionId}
+                    onChange={(e) => setTargetSectionId(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 font-bold bg-white outline-none"
+                  >
+                    <option value="">كافة شعب هذا الصف</option>
+                    {availableSections.map((sec) => (
+                      <option key={sec.id} value={sec.id}>
+                        شعبة ({sec.name})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Student Selector */}
+            {announcementScope === "STUDENT" && (
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-3 animate-fadeIn">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">تصفية حسب الصف:</label>
+                    <select
+                      value={targetClassId}
+                      onChange={(e) => {
+                        setTargetClassId(e.target.value);
+                        const matched = students.find((st) => st.classRoomId === e.target.value);
+                        if (matched) setTargetStudentId(matched.id);
+                      }}
+                      className="w-full p-2 rounded-xl border border-slate-200 font-bold bg-white outline-none"
+                    >
+                      <option value="">كافة الصفوف</option>
+                      {classRooms.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">اختيار الطالب المستهدف *</label>
+                    <select
+                      value={targetStudentId}
+                      onChange={(e) => setTargetStudentId(e.target.value)}
+                      className="w-full p-2 rounded-xl border border-slate-200 font-bold bg-white outline-none"
+                    >
+                      {filteredStudents.map((st) => (
+                        <option key={st.id} value={st.id}>
+                          {st.user?.fullName} — {st.classRoom?.name} ({st.section?.name})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Title & Message */}
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">عنوان التبليغ *</label>
+                <input
+                  type="text"
+                  required
+                  value={announcementTitle}
+                  onChange={(e) => setAnnouncementTitle(e.target.value)}
+                  placeholder="مثال: موعد الامتحانات الشهرية / اجتماع أولياء الأمور / تنبيه هام"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">نص التبليغ أو التوجيه *</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={announcementMessage}
+                  onChange={(e) => setAnnouncementMessage(e.target.value)}
+                  placeholder="اكتب تفاصيل التبليغ الإداري هنا بشكل واضح..."
+                  className="w-full p-3 rounded-xl border border-slate-200 font-medium outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                <input
+                  type="checkbox"
+                  id="whatsAppNotify"
+                  checked={notifyWhatsApp}
+                  onChange={(e) => setNotifyWhatsApp(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 rounded"
+                />
+                <label htmlFor="whatsAppNotify" className="font-bold text-emerald-900 cursor-pointer">
+                  📲 إرسال نسخة آلية فورية عبر واتساب إلى أرقام هواتف أولياء الأمور
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsAnnouncementOpen(false)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100"
+              >
+                إلغاء
+              </button>
+              <button
+                type="submit"
+                disabled={sendingAnnouncement}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all shadow-md"
+              >
+                {sendingAnnouncement ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                <span>نشر وإرسال التبليغ الآن</span>
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 };

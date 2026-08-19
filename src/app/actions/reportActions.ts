@@ -193,3 +193,112 @@ export async function reviewDailyReportAction(data: {
   return { success: true };
 }
 
+/**
+ * Admin Directed Announcement / Broadcast
+ * Can target: ALL school, specific CLASSROOM & SECTION, or a single STUDENT
+ */
+export async function createAdminAnnouncementAction(data: {
+  targetScope: "ALL" | "CLASSROOM" | "STUDENT";
+  classRoomId?: string;
+  sectionId?: string;
+  studentId?: string;
+  title: string;
+  message: string;
+  notifyWhatsApp?: boolean;
+}) {
+  const session = await requireAuth(["ADMIN"]);
+  const tenantId = session.tenantId;
+
+  const title = data.title.trim();
+  const message = data.message.trim();
+
+  if (!title || !message) {
+    return { success: false, error: "يرجى كتابة عنوان ونص التبليغ." };
+  }
+
+  try {
+    const school = await prisma.tenant.findUnique({ where: { id: tenantId } });
+
+    // Determine target students
+    let targetStudents: any[] = [];
+
+    if (data.targetScope === "STUDENT" && data.studentId) {
+      const student = await prisma.studentProfile.findUnique({
+        where: { id: data.studentId, tenantId },
+        include: { user: true, classRoom: true },
+      });
+      if (student) targetStudents = [student];
+    } else if (data.targetScope === "CLASSROOM" && data.classRoomId) {
+      targetStudents = await prisma.studentProfile.findMany({
+        where: {
+          tenantId,
+          classRoomId: data.classRoomId,
+          ...(data.sectionId ? { sectionId: data.sectionId } : {}),
+          registrationStatus: "ACTIVE",
+        },
+        include: { user: true, classRoom: true },
+      });
+    } else {
+      // ALL School
+      targetStudents = await prisma.studentProfile.findMany({
+        where: { tenantId, registrationStatus: "ACTIVE" },
+        include: { user: true, classRoom: true },
+      });
+    }
+
+    if (targetStudents.length === 0) {
+      return { success: false, error: "لم يتم العثور على أي طلاب في النطاق المحدد." };
+    }
+
+    // 1. Batch create in-app notifications
+    await prisma.notification.createMany({
+      data: targetStudents.map((s) => ({
+        tenantId,
+        userId: s.userId,
+        title: `📢 تبليغ إداري: ${title}`,
+        message,
+        type: "SYSTEM",
+        link: "/student/dashboard",
+      })),
+    });
+
+    // 2. If WhatsApp selected, queue messages
+    if (data.notifyWhatsApp) {
+      const queueEntries: any[] = [];
+
+      for (const s of targetStudents) {
+        if (s.guardianPhone) {
+          const text = `📢 *تبليغ رسمي من إدارة ${school?.name || "المدرسة"}*\n\nعزيزي ولي أمر الطالب/ة: *${s.user.fullName}*\n\n📌 *الموضوع:* ${title}\n\n${message}\n\nمع تحيات إدارة المدرسة 🌹`;
+
+          queueEntries.push({
+            tenantId,
+            recipientPhone: s.guardianPhone,
+            recipientName: s.guardianName,
+            eventType: "ADMIN_BROADCAST",
+            messageText: text,
+            status: "QUEUED",
+          });
+        }
+      }
+
+      if (queueEntries.length > 0) {
+        await prisma.whatsAppMessageQueue.createMany({
+          data: queueEntries,
+        });
+      }
+    }
+
+    revalidatePath("/admin/reports");
+    revalidatePath("/admin/whatsapp");
+    revalidatePath("/student/dashboard");
+
+    return {
+      success: true,
+      message: `تم إرسال التبليغ الإداري بنجاح إلى (${targetStudents.length}) طالب/ولي أمر.`,
+    };
+  } catch (e: any) {
+    return { success: false, error: e.message || "حدث خطأ أثناء إرسال التبليغ" };
+  }
+}
+
+

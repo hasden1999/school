@@ -57,6 +57,15 @@ export const ScheduleClient: React.FC<ScheduleClientProps> = ({
     classRooms[0]?.sections[0]?.id || ""
   );
 
+  // Keep selected class valid when school stage changes
+  React.useEffect(() => {
+    if (classRooms.length > 0 && !classRooms.some((c) => c.id === selectedClassId)) {
+      const firstClass = classRooms[0];
+      setSelectedClassId(firstClass.id);
+      setSelectedSectionId(firstClass.sections?.[0]?.id || "");
+    }
+  }, [classRooms, selectedClassId]);
+
   // Edit Slot Modal
   const [editingSlot, setEditingSlot] = useState<{
     dayOfWeek: string;

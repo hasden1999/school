@@ -1,7 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
-import { createDatabaseBackupAction, getEmergencyBundleData } from "@/app/actions/backupActions";
+import React, { useState, useRef } from "react";
+import {
+  createDatabaseBackupAction,
+  getEmergencyBundleData,
+  restoreDatabaseBackupAction,
+} from "@/app/actions/backupActions";
 import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import {
@@ -29,6 +33,8 @@ import {
   UserCheck,
   Users,
   CheckCircle2,
+  UploadCloud,
+  FileUp,
 } from "lucide-react";
 
 interface BackupClientProps {
@@ -38,7 +44,9 @@ interface BackupClientProps {
 export const BackupClient: React.FC<BackupClientProps> = ({ records: initialRecords }) => {
   const [records, setRecords] = useState<any[]>(initialRecords);
   const [creating, setCreating] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [lastReport, setLastReport] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Emergency Bundle
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
@@ -49,6 +57,42 @@ export const BackupClient: React.FC<BackupClientProps> = ({ records: initialReco
   >("STUDENTS");
 
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
+
+  const handleRestoreFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (
+      !confirm(
+        `⚠️ تحذير أمني هام:\nهل أنت متأكد من استعادة النسخة الاحتياطية من الملف (${file.name})؟\nسيقوم النظام بمطابقة وتحديث كافة السجلات والصفوف والطلاب والمقبوضات.`
+      )
+    ) {
+      e.target.value = "";
+      return;
+    }
+
+    setRestoring(true);
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const content = evt.target?.result as string;
+        const res = await restoreDatabaseBackupAction(content);
+        if (res.success) {
+          alert("✓ " + res.message);
+          window.location.reload();
+        } else {
+          alert("❌ " + res.error);
+        }
+      } catch (err: any) {
+        alert("حدث خطأ أثناء قراءة الملف: " + err.message);
+      } finally {
+        setRestoring(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const fetchEmergencyData = async () => {
     if (emergencyData) return emergencyData;
@@ -304,6 +348,19 @@ export const BackupClient: React.FC<BackupClientProps> = ({ records: initialReco
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <label className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all shadow-md cursor-pointer">
+            {restoring ? <RefreshCw className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4 text-amber-300" />}
+            <span>{restoring ? "جاري الاستعادة..." : "استعادة نسخة احتياطية (.JSON)"}</span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              disabled={restoring}
+              onChange={handleRestoreFile}
+              className="hidden"
+            />
+          </label>
+
           <button
             onClick={handleOpenEmergencyBundle}
             disabled={loadingEmergency}

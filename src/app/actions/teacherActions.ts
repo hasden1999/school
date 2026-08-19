@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireAuth, hashPassword } from "@/lib/auth";
+import { generateUniqueFiveLetterUsername, generateFiveLetterPasscode } from "@/lib/credentialGenerator";
 import { revalidatePath } from "next/cache";
 
 export async function createTeacherAction(data: {
@@ -17,12 +18,11 @@ export async function createTeacherAction(data: {
   const session = await requireAuth(["ADMIN"]);
   const tenantId = session.tenantId;
 
-  // Generate username: t.firstname.3digits
-  const cleanFirst = data.fullName.trim().split(" ")[0].toLowerCase().replace(/[^\u0621-\u064A0-9a-z]/g, "");
-  const randomSuffix = Math.floor(100 + Math.random() * 900);
-  const username = `t.${cleanFirst || "teach"}${randomSuffix}`;
+  // 1. Generate unique 5 distinct English letters username
+  const username = await generateUniqueFiveLetterUsername(tenantId);
 
-  const rawPassword = Math.random().toString(36).slice(-8);
+  // 2. Generate 5 distinct English letters passcode
+  const rawPassword = generateFiveLetterPasscode();
   const passwordHash = await hashPassword(rawPassword);
 
   const teacher = await prisma.user.create({
@@ -31,6 +31,7 @@ export async function createTeacherAction(data: {
       username,
       fullName: data.fullName.trim(),
       passwordHash,
+      plainPasscode: rawPassword,
       phone: data.phone?.trim(),
       role: "TEACHER",
       monthlySalary: data.monthlySalary ? Number(data.monthlySalary) : 0,
@@ -59,13 +60,91 @@ export async function updateTeacherSalaryAction(teacherId: string, monthlySalary
   const session = await requireAuth(["ADMIN"]);
   const tenantId = session.tenantId;
 
-  await prisma.user.update({
+  const teacher = await prisma.user.update({
     where: { id: teacherId, tenantId },
     data: { monthlySalary: Number(monthlySalary) },
   });
 
   revalidatePath("/admin/teachers");
-  return { success: true };
+  return { success: true, teacher };
+}
+
+export async function updateTeacherAction(
+  teacherId: string,
+  data: {
+    fullName: string;
+    phone?: string;
+    monthlySalary?: number;
+    assignments?: Array<{
+      classRoomId: string;
+      sectionId: string;
+      subjectId: string;
+    }>;
+  }
+) {
+  const session = await requireAuth(["ADMIN"]);
+  const tenantId = session.tenantId;
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 1. Update user record
+      await tx.user.update({
+        where: { id: teacherId, tenantId },
+        data: {
+          fullName: data.fullName.trim(),
+          phone: data.phone?.trim(),
+          monthlySalary: data.monthlySalary ? Number(data.monthlySalary) : 0,
+        },
+      });
+
+      // 2. Update assignments if provided
+      if (data.assignments) {
+        await tx.teacherAssignment.deleteMany({
+          where: { tenantId, teacherId },
+        });
+
+        for (const assign of data.assignments) {
+          await tx.teacherAssignment.create({
+            data: {
+              tenantId,
+              teacherId,
+              classRoomId: assign.classRoomId,
+              sectionId: assign.sectionId,
+              subjectId: assign.subjectId,
+            },
+          });
+        }
+      }
+    });
+
+    revalidatePath("/admin/teachers");
+    revalidatePath("/admin/schedule");
+
+    return { success: true, message: "تم تعديل بيانات المعلم بنجاح" };
+  } catch (e: any) {
+    return { success: false, error: e.message || "فشل تعديل بيانات المعلم" };
+  }
+}
+
+export async function deleteTeacherAction(teacherId: string) {
+  const session = await requireAuth(["ADMIN"]);
+  const tenantId = session.tenantId;
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.teacherAssignment.deleteMany({ where: { tenantId, teacherId } });
+      await tx.timetableSlot.deleteMany({ where: { tenantId, teacherId } });
+      await tx.teacherLeave.deleteMany({ where: { tenantId, teacherId } });
+      await tx.user.delete({ where: { id: teacherId, tenantId } });
+    });
+
+    revalidatePath("/admin/teachers");
+    revalidatePath("/admin/schedule");
+
+    return { success: true, message: "تم حذف المعلم وسجلاته بنجاح" };
+  } catch (e: any) {
+    return { success: false, error: e.message || "فشل حذف المعلم" };
+  }
 }
 
 export async function getTeachersList() {
@@ -86,3 +165,4 @@ export async function getTeachersList() {
     orderBy: { fullName: "asc" },
   });
 }
+

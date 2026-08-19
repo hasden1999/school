@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { submitAttendanceAction, checkAttendancePermissionAction, getClassAttendanceData } from "@/app/actions/attendanceActions";
+import { AttendanceRepository } from "@/lib/repositories/AttendanceRepository";
 import { run9AMAttendanceAudit } from "@/lib/cronEngine";
 import { Badge } from "@/components/ui/Badge";
 import {
@@ -34,6 +35,16 @@ export const AttendanceClient: React.FC<AttendanceClientProps> = ({
   );
   const [dateStr, setDateStr] = useState(new Date().toISOString().split("T")[0]);
 
+  // Keep selected class valid when school stage changes
+  React.useEffect(() => {
+    if (classRooms.length > 0 && !classRooms.some((c) => c.id === selectedClassId)) {
+      const firstClass = classRooms[0];
+      setSelectedClassId(firstClass.id);
+      const sec = sections.find((s) => s.classRoomId === firstClass.id);
+      if (sec) setSelectedSectionId(sec.id);
+    }
+  }, [classRooms, sections, selectedClassId]);
+
   const [students, setStudents] = useState<any[]>(initialStudents);
   const [attendanceState, setAttendanceState] = useState<Record<string, "PRESENT" | "ABSENT" | "ON_LEAVE" | "LATE">>({});
   const [notesState, setNotesState] = useState<Record<string, string>>({});
@@ -49,18 +60,22 @@ export const AttendanceClient: React.FC<AttendanceClientProps> = ({
     setLoading(true);
     setSaveSuccess(false);
     try {
-      const [perm, roster] = await Promise.all([
-        checkAttendancePermissionAction({
+      let perm: any = { canTakeAttendance: true, isPeriod1: true, isOverridden: false };
+      try {
+        perm = await checkAttendancePermissionAction({
           classRoomId: selectedClassId,
           sectionId: selectedSectionId,
           dateStr,
-        }),
-        getClassAttendanceData({
-          classRoomId: selectedClassId,
-          sectionId: selectedSectionId,
-          dateStr,
-        }),
-      ]);
+        });
+      } catch {
+        // Fallback for offline mode
+      }
+
+      const roster = await AttendanceRepository.getClassAttendance(
+        selectedClassId,
+        selectedSectionId,
+        dateStr
+      );
 
       setPermissionInfo(perm);
       setStudents(roster);
@@ -69,7 +84,7 @@ export const AttendanceClient: React.FC<AttendanceClientProps> = ({
       const initialMap: Record<string, any> = {};
       const initialNotes: Record<string, any> = {};
       for (const s of roster) {
-        const record = s.attendanceRecords[0];
+        const record = s.attendanceRecords?.[0];
         initialMap[s.id] = record ? record.status : "PRESENT";
         initialNotes[s.id] = record?.notes || "";
       }
@@ -102,16 +117,16 @@ export const AttendanceClient: React.FC<AttendanceClientProps> = ({
         notes: notesState[s.id],
       }));
 
-      const res = await submitAttendanceAction({
-        classRoomId: selectedClassId,
-        sectionId: selectedSectionId,
+      const res = await AttendanceRepository.saveAttendance(
+        selectedClassId,
+        selectedSectionId,
         dateStr,
-        records,
-      });
+        records
+      );
 
       if (res.success) {
         setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 4000);
+        setTimeout(() => setSaveSuccess(false), 5000);
       } else if (res.error) {
         alert(res.error);
       }
@@ -335,6 +350,54 @@ export const AttendanceClient: React.FC<AttendanceClientProps> = ({
                     : permissionInfo.message}
                 </span>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Clickable Class & Section Pills for Instant 1-Touch Switching */}
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100 flex-wrap">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin flex-1">
+            <span className="text-[11px] font-bold text-slate-400 shrink-0 ml-1">الصفوف:</span>
+            {classRooms.map((c) => {
+              const isSel = selectedClassId === c.id;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedClassId(c.id);
+                    const s = sections.find((sec) => sec.classRoomId === c.id);
+                    setSelectedSectionId(s?.id || "");
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                    isSel
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {c.name}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick Mark All Present Button */}
+          {dateStr === new Date().toISOString().split("T")[0] && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const nextState: Record<string, "PRESENT" | "ABSENT" | "ON_LEAVE" | "LATE"> = {};
+                  students.forEach((s) => {
+                    nextState[s.id] = "PRESENT";
+                  });
+                  setAttendanceState(nextState);
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-black transition-all flex items-center gap-1.5 shadow-sm border border-emerald-300"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                <span>تحديد الكل كحاضر ✅</span>
+              </button>
             </div>
           )}
         </div>

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { NotificationBellDropdown } from "../notifications/NotificationBellDropdown";
 import { usePathname } from "next/navigation";
-import { logoutAction, quickDemoLogin } from "@/app/actions/authActions";
+import { logoutAction } from "@/app/actions/authActions";
 import {
   LayoutDashboard,
   UserCheck,
@@ -16,6 +16,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { OfflineStatusBar } from "../offline/OfflineStatusBar";
 
 interface TeacherNavbarProps {
   user: {
@@ -83,23 +84,9 @@ export const TeacherNavbar: React.FC<TeacherNavbarProps> = ({ user }) => {
             })}
           </nav>
 
-          {/* Quick Demo Switcher & Logout */}
+          {/* Offline Sync, Notification Bell & Logout */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden lg:flex items-center bg-slate-800 rounded-xl p-1 text-xs text-slate-300 gap-1 border border-slate-700">
-              <span className="px-1 text-[11px] text-slate-400">تبديل الحساب:</span>
-              <button
-                onClick={() => quickDemoLogin("ADMIN")}
-                className="px-2 py-1 rounded-lg bg-slate-700 hover:bg-emerald-600 hover:text-white transition-colors"
-              >
-                👔 الإدارة
-              </button>
-              <button
-                onClick={() => quickDemoLogin("STUDENT")}
-                className="px-2 py-1 rounded-lg bg-slate-700 hover:bg-blue-600 hover:text-white transition-colors"
-              >
-                🎓 الطالب
-              </button>
-            </div>
+            <OfflineStatusBar />
 
             {/* Notification Bell */}
             <NotificationBellDropdown variant="dark" />
@@ -137,24 +124,6 @@ export const TeacherNavbar: React.FC<TeacherNavbarProps> = ({ user }) => {
               </Link>
             );
           })}
-
-          <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-            <span>تبديل الحساب:</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => quickDemoLogin("ADMIN")}
-                className="px-2.5 py-1 rounded-lg bg-slate-800 font-bold text-slate-200 border border-slate-700"
-              >
-                👔 الإدارة
-              </button>
-              <button
-                onClick={() => quickDemoLogin("STUDENT")}
-                className="px-2.5 py-1 rounded-lg bg-slate-800 font-bold text-slate-200 border border-slate-700"
-              >
-                🎓 الطالب
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </header>

@@ -26,6 +26,24 @@ export async function recordPaymentAction(data: {
 
   if (!student) return { error: "الطالب غير موجود" };
 
+  const school = await prisma.tenant.findUnique({ where: { id: tenantId } });
+  const curr = school?.currency || "د.ع";
+
+  // Calculate current paid & remaining balance BEFORE new payment
+  const alreadyPaid = student.paymentReceipts.reduce((sum, r) => sum + r.amount, 0) + student.depositAmount;
+  const currentRemaining = Math.max(0, student.totalTuition - alreadyPaid);
+  const paymentAmount = Number(data.amount);
+
+  if (paymentAmount <= 0) {
+    return { error: "يرجى إدخال مبلغ دفع صحيح أكبر من الصفر." };
+  }
+
+  if (paymentAmount > currentRemaining) {
+    return {
+      error: `⚠️ تنبيه مالي: المبلغ المدخل (${paymentAmount.toLocaleString("ar-IQ")} ${curr}) يتجاوز المبلغ المتبقي على الطالب (${currentRemaining.toLocaleString("ar-IQ")} ${curr}). الحد الأقصى المسموح بقبضه هو (${currentRemaining.toLocaleString("ar-IQ")} ${curr}).`,
+    };
+  }
+
   const receiptCount = await prisma.paymentReceipt.count({ where: { tenantId } });
   const receiptNumber = `REC-2025-${String(receiptCount + 1).padStart(4, "0")}`;
   const today = new Date().toISOString().split("T")[0];
@@ -35,7 +53,7 @@ export async function recordPaymentAction(data: {
       tenantId,
       studentId: data.studentId,
       receiptNumber,
-      amount: Number(data.amount),
+      amount: paymentAmount,
       paymentDate: today,
       paymentMethod: data.paymentMethod,
       notes: data.notes?.trim(),
@@ -44,11 +62,7 @@ export async function recordPaymentAction(data: {
   });
 
   // Calculate new balance
-  const totalPaid = student.paymentReceipts.reduce((sum, r) => sum + r.amount, 0) + Number(data.amount) + student.depositAmount;
-  const remaining = student.totalTuition - totalPaid;
-
-  const school = await prisma.tenant.findUnique({ where: { id: tenantId } });
-  const curr = school?.currency || "د.ع";
+  const remaining = currentRemaining - paymentAmount;
 
   // In-App Notification to the student
   await createInAppNotification({

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Background Rounded Shield / App Icon -->
+  <rect width="512" height="512" rx="128" fill="url(#grad)" />
+  
+  <!-- Subtle Inner Border -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="none" stroke="#34d399" stroke-width="6" opacity="0.3" />
+
+  <!-- School / Graduation Cap Icon -->
+  <g filter="url(#shadow)" transform="translate(56, 76)">
+    <!-- Graduation Cap Top Diamond -->
+    <polygon points="200,40 380,120 200,200 20,120" fill="#ffffff" />
+    
+    <!-- Cap Base Arc -->
+    <path d="M 80,155 L 80,240 C 80,300 320,300 320,240 L 320,155" fill="none" stroke="#ffffff" stroke-width="24" stroke-linecap="round" />
+    
+    <!-- Tassel and Ribbon -->
+    <path d="M 330,140 L 350,220 L 350,270" fill="none" stroke="#fbbf24" stroke-width="12" stroke-linecap="round" />
+    <circle cx="350" cy="275" r="14" fill="#fbbf24" />
+
+    <!-- Academic Star Badge -->
+    <polygon points="200,270 215,310 255,310 222,335 235,375 200,350 165,375 178,335 145,310 185,310" fill="#fbbf24" />
+  </g>
+
+  <!-- Arabic Branding Text -->
+  <text x="256" y="450" font-family="sans-serif" font-size="34" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">منظومة النخبة</text>
+</svg>

@@ -1,7 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
-import { registerStudentAction } from "@/app/actions/studentActions";
+import React, { useState, useEffect } from "react";
+import {
+  registerStudentAction,
+  updateStudentAction,
+  archiveStudentAction,
+  unarchiveStudentAction,
+  deleteStudentAction,
+} from "@/app/actions/studentActions";
+import { StudentRepository } from "@/lib/repositories/StudentRepository";
 import { sendMissingDocsWhatsAppRemindersAction } from "@/app/actions/documentActions";
 import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
@@ -27,6 +34,9 @@ import {
   Building2,
   Eye,
   SlidersHorizontal,
+  Edit2,
+  Trash2,
+  ArchiveRestore,
 } from "lucide-react";
 
 interface StudentsClientProps {
@@ -43,7 +53,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
   currency,
 }) => {
   const [students, setStudents] = useState<any[]>(initialStudents);
-  const [activeTab, setActiveTab] = useState<"ACTIVE" | "GRADUATED" | "ALL">("ACTIVE");
+  const [activeTab, setActiveTab] = useState<"ACTIVE" | "ARCHIVED" | "GRADUATED" | "ALL">("ACTIVE");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClass, setSelectedClass] = useState("ALL");
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
@@ -56,6 +66,21 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
   const [selectedReceiptData, setSelectedReceiptData] = useState<{ receipt: any; student: any } | null>(null);
   const [sendingReminders, setSendingReminders] = useState(false);
   const [reminderResult, setReminderResult] = useState<string | null>(null);
+
+  // Edit Student State
+  const [selectedEditStudent, setSelectedEditStudent] = useState<any | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    fullName: "",
+    guardianName: "",
+    guardianPhone: "",
+    classRoomId: "",
+    sectionId: "",
+    totalTuition: 1500000,
+    depositAmount: 0,
+    address: "",
+    dateOfBirth: "",
+  });
+  const [submittingEdit, setSubmittingEdit] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -73,6 +98,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
 
   // Filter sections by selected classroom
   const availableSections = sections.filter((s) => s.classRoomId === formData.classRoomId);
+  const editAvailableSections = sections.filter((s) => s.classRoomId === editFormData.classRoomId);
 
   const handleClassChange = (classId: string) => {
     const selectedC = classRooms.find((c) => c.id === classId);
@@ -85,17 +111,150 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
     });
   };
 
+  const handleOpenEdit = (student: any) => {
+    setSelectedEditStudent(student);
+    setEditFormData({
+      fullName: student.user?.fullName || "",
+      guardianName: student.guardianName || "",
+      guardianPhone: student.guardianPhone || "",
+      classRoomId: student.classRoomId || classRooms[0]?.id || "",
+      sectionId: student.sectionId || "",
+      totalTuition: student.totalTuition || 1500000,
+      depositAmount: student.depositAmount || 0,
+      address: student.address || "",
+      dateOfBirth: student.dateOfBirth || "",
+    });
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEditStudent) return;
+    setSubmittingEdit(true);
+
+    try {
+      const res = await updateStudentAction(selectedEditStudent.id, {
+        ...editFormData,
+        sectionId: editFormData.sectionId || editAvailableSections[0]?.id || "",
+      });
+
+      if (res.success) {
+        alert("✓ تم حفظ تعديل بيانات الطالب بنجاح!");
+        setStudents((prev) =>
+          prev.map((st) =>
+            st.id === selectedEditStudent.id
+              ? {
+                  ...st,
+                  guardianName: editFormData.guardianName,
+                  guardianPhone: editFormData.guardianPhone,
+                  totalTuition: editFormData.totalTuition,
+                  depositAmount: editFormData.depositAmount,
+                  classRoomId: editFormData.classRoomId,
+                  sectionId: editFormData.sectionId,
+                  classRoom: classRooms.find((c) => c.id === editFormData.classRoomId) || st.classRoom,
+                  section: sections.find((s) => s.id === editFormData.sectionId) || st.section,
+                  user: { ...st.user, fullName: editFormData.fullName, phone: editFormData.guardianPhone },
+                }
+              : st
+          )
+        );
+        setSelectedEditStudent(null);
+      } else {
+        alert(res.error || "فشل تعديل بيانات الطالب");
+      }
+    } catch (err: any) {
+      alert(err.message || "حدث خطأ");
+    } finally {
+      setSubmittingEdit(false);
+    }
+  };
+
+  const handleToggleArchive = async (student: any) => {
+    const isArchived = student.registrationStatus === "ARCHIVED";
+    const actionName = isArchived ? "استعادة من الأرشيف" : "أرشفة الطالب";
+    if (!confirm(`هل أنت متأكد من ${actionName} للطالب (${student.user?.fullName})؟`)) return;
+
+    try {
+      const res = isArchived
+        ? await unarchiveStudentAction(student.id)
+        : await archiveStudentAction(student.id);
+
+      if (res.success) {
+        alert(`✓ ${res.message}`);
+        setStudents((prev) =>
+          prev.map((st) =>
+            st.id === student.id
+              ? { ...st, registrationStatus: isArchived ? "ACTIVE" : "ARCHIVED" }
+              : st
+          )
+        );
+      } else {
+        alert(res.error || "فشلت العملية");
+      }
+    } catch (err: any) {
+      alert(err.message || "حدث خطأ");
+    }
+  };
+
+  const handleDeleteStudent = async (student: any) => {
+    if (
+      !confirm(
+        `⚠️ تحذير نهائي: هل أنت متأكد من حذف الطالب (${student.user?.fullName}) وجميع سجلاته؟ لا يمكن التراجع عن هذه الخطوة!`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const res = await deleteStudentAction(student.id);
+      if (res.success) {
+        alert("✓ تم حذف الطالب بنجاح.");
+        setStudents((prev) => prev.filter((st) => st.id !== student.id));
+      } else {
+        alert(res.error || "فشل حذف الطالب");
+      }
+    } catch (err: any) {
+      alert(err.message || "حدث خطأ");
+    }
+  };
+
+  // Load from Repository if initialStudents is empty or offline
+  useEffect(() => {
+    async function loadLocalStudents() {
+      if (!initialStudents || initialStudents.length === 0 || (typeof window !== "undefined" && !navigator.onLine)) {
+        const localList = await StudentRepository.getStudents();
+        if (localList && localList.length > 0) {
+          setStudents(localList);
+        }
+      }
+    }
+    loadLocalStudents();
+  }, [initialStudents]);
+
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await registerStudentAction({
+      const payload = {
         ...formData,
-        sectionId: formData.sectionId || availableSections[0]?.id,
-      });
-      if (res.success) {
-        setRegisteredData(res);
+        sectionId: formData.sectionId || availableSections[0]?.id || "",
+      };
+
+      const res = await StudentRepository.createStudent(payload as any);
+      if (res.success && res.student) {
+        setStudents((prev) => [res.student, ...prev]);
+        setRegisteredData({
+          success: true,
+          student: res.student,
+          credentials: {
+            username: res.student.user?.username || "تم التسجيل محلياً",
+            tempPassword: res.student.user?.username ? `${res.student.user?.username}123` : "123456",
+            studentNumber: res.student.studentNumber,
+          },
+          depositReceipt: res.student.paymentReceipts?.[0],
+        });
         setIsRegisterOpen(false);
+      } else if (res.error) {
+        alert(res.error);
       }
     } catch (e: any) {
       alert(e.message || "حدث خطأ أثناء تسجيل الطالب");
@@ -223,35 +382,76 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
         </button>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="p-4 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="relative flex-1 w-full">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={
-              activeTab === "GRADUATED"
-                ? "بحث في أرشيف الخريجين (الاسم، الرقم المدرسي، سنة التخرج، الهاتف)..."
-                : "بحث باسم الطالب، ولي الأمر، الرقم المدرسي، أو الهاتف..."
-            }
-            className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs font-medium outline-none focus:border-emerald-500"
-          />
-          <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
+      {/* Filter and Search Bar with Quick Classroom Pills */}
+      <div className="p-4 bg-white rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="relative flex-1 w-full">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={
+                activeTab === "GRADUATED"
+                  ? "بحث في أرشيف الخريجين (الاسم، الرقم المدرسي، سنة التخرج، الهاتف)..."
+                  : "بحث سريع باسم الطالب، ولي الأمر، الرقم المدرسي، أو الهاتف..."
+              }
+              className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs font-medium outline-none focus:border-emerald-500 bg-slate-50/50"
+            />
+            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <span className="text-xs font-bold text-slate-500 whitespace-nowrap hidden sm:inline">الصفوف:</span>
+            <select
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+              className="w-full md:w-auto px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white outline-none focus:border-emerald-500"
+            >
+              <option value="ALL">جميع الصفوف ({students.length})</option>
+              {classRooms.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <select
-          value={selectedClass}
-          onChange={(e) => setSelectedClass(e.target.value)}
-          className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white"
-        >
-          <option value="ALL">جميع المراحل والصفوف</option>
-          {classRooms.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        {/* Quick Clickable Class Filter Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 scrollbar-thin">
+          <button
+            type="button"
+            onClick={() => setSelectedClass("ALL")}
+            className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all shrink-0 ${
+              selectedClass === "ALL"
+                ? "bg-slate-900 text-white shadow-sm"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            الكل ({students.length})
+          </button>
+          {classRooms.map((c) => {
+            const count = students.filter((s) => s.classRoomId === c.id).length;
+            const isSel = selectedClass === c.id;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setSelectedClass(c.id)}
+                className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                  isSel
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : "bg-slate-100 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800"
+                }`}
+              >
+                <span>{c.name}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSel ? "bg-white/20 text-white" : "bg-slate-200 text-slate-600"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Students Table */}
@@ -313,6 +513,27 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                                 <span>{s.studentNumber}</span>
                                 <span>•</span>
                                 <span>{s.guardianPhone}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 mt-1.5">
+                                <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-mono font-bold border border-emerald-200/60" title="اسم المستخدم الخماسي">
+                                  👤 {s.user.username}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 text-[10px] font-mono font-bold border border-amber-200/60" title="رمز الدخول الخماسي">
+                                  🔑 {s.user.plainPasscode || "stu123"}
+                                </span>
+                                <button
+                                  type="button"
+                                  title="نسخ بيانات الدخول"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const text = `اسم المستخدم: ${s.user.username}\nرمز المرور: ${s.user.plainPasscode || "stu123"}`;
+                                    navigator.clipboard.writeText(text);
+                                    alert(`✓ تم نسخ بيانات الدخول للطالب (${s.user.fullName})!`);
+                                  }}
+                                  className="p-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -384,8 +605,17 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                           <div className="flex items-center justify-center gap-1.5">
                             <button
                               type="button"
+                              onClick={() => handleOpenEdit(s)}
+                              className="p-1.5 rounded-xl bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-700 text-xs font-bold transition-all shadow-sm border border-amber-200"
+                              title="تعديل بيانات الطالب وولي الأمر والصف"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              type="button"
                               onClick={() => setSelectedQuickStudent(s)}
-                              className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm border border-emerald-200"
+                              className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm border border-emerald-200"
                               title="فتح الملف الشامل، تسديد قسط فوري، أو إدارة المستمسكات"
                             >
                               <CreditCard className="w-3.5 h-3.5" />
@@ -395,11 +625,37 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                             <button
                               type="button"
                               onClick={() => setSelectedReportStudent(s)}
-                              className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-800 text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm"
+                              className="px-2 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-800 text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm"
                               title="عرض وطباعة السجل الأكاديمي والشهادة الرسمية"
                             >
                               <Printer className="w-3.5 h-3.5" />
                               <span>{isGraduated ? "الوثيقة" : "الشهادة"}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleToggleArchive(s)}
+                              className={`p-1.5 rounded-xl text-xs font-bold transition-all shadow-sm border ${
+                                s.registrationStatus === "ARCHIVED"
+                                  ? "bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 border-indigo-200"
+                                  : "bg-slate-100 hover:bg-slate-800 hover:text-white text-slate-600 border-slate-200"
+                              }`}
+                              title={s.registrationStatus === "ARCHIVED" ? "استعادة الطالب من الأرشيف" : "أرشفة الطالب"}
+                            >
+                              {s.registrationStatus === "ARCHIVED" ? (
+                                <ArchiveRestore className="w-3.5 h-3.5" />
+                              ) : (
+                                <Archive className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteStudent(s)}
+                              className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-xs font-bold transition-all shadow-sm border border-rose-200"
+                              title="حذف الطالب نهائياً من المنظومة"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>
@@ -556,13 +812,25 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
             {/* Credentials Card */}
             <div className="p-4 bg-slate-900 text-white rounded-2xl text-right text-xs space-y-2 font-mono">
               <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
-                <span className="text-slate-400 font-cairo">اسم المستخدم:</span>
+                <span className="text-slate-400 font-cairo">اسم المستخدم (5 أحرف):</span>
                 <span className="font-bold text-emerald-400 text-sm">{registeredData.username}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400 font-cairo">كلمة المرور المؤقتة:</span>
-                <span className="font-bold text-emerald-400 text-sm">{registeredData.rawPassword}</span>
+              <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
+                <span className="text-slate-400 font-cairo">رمز المرور (5 أحرف):</span>
+                <span className="font-bold text-amber-400 text-sm">{registeredData.rawPassword}</span>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const text = `بيانات الدخول لمنظومة المدرسة:\nالطالب: ${registeredData.user.fullName}\nاسم المستخدم: ${registeredData.username}\nرمز المرور: ${registeredData.rawPassword}\nرابط المنظومة: ${window.location.origin}/login`;
+                  navigator.clipboard.writeText(text);
+                  alert("✓ تم نسخ بيانات الدخول للطالب بنجاح!");
+                }}
+                className="w-full mt-2 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-cairo font-bold text-xs flex items-center justify-center gap-1.5"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>نسخ بيانات الدخول للطالب</span>
+              </button>
             </div>
 
             <p className="text-xs text-emerald-700 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
@@ -612,6 +880,142 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
           student={selectedReceiptData.student}
           currency={currency}
         />
+      )}
+
+      {/* Edit Student Information Modal */}
+      {selectedEditStudent && (
+        <Modal
+          isOpen={!!selectedEditStudent}
+          onClose={() => setSelectedEditStudent(null)}
+          title={`تعديل بيانات الطالب: ${selectedEditStudent.user?.fullName}`}
+          maxWidth="xl"
+        >
+          <form onSubmit={handleEditSubmit} className="space-y-4 font-cairo">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">اسم الطالب الكامل *</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.fullName}
+                  onChange={(e) => setEditFormData({ ...editFormData, fullName: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">اسم ولي الأمر *</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.guardianName}
+                  onChange={(e) => setEditFormData({ ...editFormData, guardianName: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-medium outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">رقم هاتف ولي الأمر (واتساب) *</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.guardianPhone}
+                  onChange={(e) => setEditFormData({ ...editFormData, guardianPhone: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono font-bold outline-none focus:border-amber-500 text-left"
+                  dir="ltr"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">الصف الدراسي *</label>
+                <select
+                  value={editFormData.classRoomId}
+                  onChange={(e) => {
+                    const newClassId = e.target.value;
+                    const secs = sections.filter((s) => s.classRoomId === newClassId);
+                    setEditFormData({
+                      ...editFormData,
+                      classRoomId: newClassId,
+                      sectionId: secs[0]?.id || "",
+                    });
+                  }}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold outline-none focus:border-amber-500 bg-white"
+                >
+                  {classRooms.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">الشعبة الدراسية *</label>
+                <select
+                  value={editFormData.sectionId}
+                  onChange={(e) => setEditFormData({ ...editFormData, sectionId: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold outline-none focus:border-amber-500 bg-white"
+                >
+                  {editAvailableSections.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      شعبة {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">القسط السنوي الكلي ({currency}) *</label>
+                <input
+                  type="number"
+                  required
+                  value={editFormData.totalTuition}
+                  onChange={(e) => setEditFormData({ ...editFormData, totalTuition: Number(e.target.value) })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono font-bold outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">مبلغ العربون / الدفعة الأولى ({currency})</label>
+                <input
+                  type="number"
+                  value={editFormData.depositAmount}
+                  onChange={(e) => setEditFormData({ ...editFormData, depositAmount: Number(e.target.value) })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono font-bold outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">السكن والعنوان</label>
+                <input
+                  type="text"
+                  value={editFormData.address}
+                  onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
+                  placeholder="مثال: بغداد - الكرخ"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-medium outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setSelectedEditStudent(null)}
+                className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-bold transition-all"
+              >
+                إلغاء
+              </button>
+              <button
+                type="submit"
+                disabled={submittingEdit}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition-all shadow-md"
+              >
+                {submittingEdit ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                <span>حفظ تعديل بيانات الطالب</span>
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { logoutAction, quickDemoLogin } from "@/app/actions/authActions";
+import { logoutAction } from "@/app/actions/authActions";
 import {
   Bell,
   Clock,
@@ -10,11 +10,14 @@ import {
   MessageSquare,
   ShieldCheck,
   Menu,
+  Radio,
 } from "lucide-react";
 import { CronSimulatorModal } from "../cron/CronSimulatorModal";
 import { WhatsAppQueueDrawer } from "../whatsapp/WhatsAppQueueDrawer";
 import { NotificationBellDropdown } from "../notifications/NotificationBellDropdown";
 import { GlobalCommandPalette } from "../navigation/GlobalCommandPalette";
+import { OfflineStatusBar } from "../offline/OfflineStatusBar";
+import { SchoolNetworkModal } from "../network/SchoolNetworkModal";
 
 interface AdminHeaderProps {
   user: {
@@ -30,6 +33,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 }) => {
   const [showCronModal, setShowCronModal] = useState(false);
   const [showWhatsAppDrawer, setShowWhatsAppDrawer] = useState(false);
+  const [showNetworkModal, setShowNetworkModal] = useState(false);
 
   return (
     <header className="h-16 sm:h-18 bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm no-print">
@@ -55,30 +59,20 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         <GlobalCommandPalette />
       </div>
 
-      {/* Right: Quick Switchers, WhatsApp Drawer, Cron & Profile */}
+      {/* Right: Offline Sync Status, WhatsApp Drawer, Cron & Profile */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Quick Demo Role Switcher (Hidden on Mobile/Tablet) */}
-        <div className="hidden xl:flex items-center bg-slate-100 rounded-xl p-1 text-xs font-bold text-slate-600 gap-1 border border-slate-200">
-          <span className="px-2 text-slate-400">معاينة فورية:</span>
-          <button
-            onClick={() => quickDemoLogin("TEACHER_MATH")}
-            className="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 hover:text-emerald-700 transition-colors shadow-sm"
-          >
-            👨‍🏫 معلم الرياضيات
-          </button>
-          <button
-            onClick={() => quickDemoLogin("TEACHER_ARABIC")}
-            className="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 hover:text-emerald-700 transition-colors shadow-sm"
-          >
-            👨‍🏫 معلم العربي
-          </button>
-          <button
-            onClick={() => quickDemoLogin("STUDENT")}
-            className="px-2.5 py-1 rounded-lg bg-white hover:bg-blue-50 hover:text-blue-700 transition-colors shadow-sm"
-          >
-            🎓 الطالب كرار
-          </button>
-        </div>
+        {/* Offline Network & Sync Control */}
+        <OfflineStatusBar />
+
+        {/* Wi-Fi School Hub & QR Access */}
+        <button
+          onClick={() => setShowNetworkModal(true)}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold text-xs transition-colors border border-indigo-200 shadow-sm"
+          title="بث شبكة واي فاي المدرسة ورمز QR لهواتف المعلمين"
+        >
+          <Radio className="w-4 h-4 text-indigo-600 animate-pulse" />
+          <span className="hidden sm:inline">واي فاي المدرسة (LAN)</span>
+        </button>
 
         {/* WhatsApp Queue Button */}
         <button
@@ -93,10 +87,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         {/* Cron Simulator Trigger */}
         <button
           onClick={() => setShowCronModal(true)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold text-xs transition-colors border border-indigo-200 shadow-sm"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 font-bold text-xs transition-colors border border-slate-200 shadow-sm"
           title="تشغيل وتجربة المهام المجدولة"
         >
-          <Clock className="w-4 h-4 text-indigo-600" />
+          <Clock className="w-4 h-4 text-slate-600" />
           <span className="hidden md:inline">مشغل المهام (Cron)</span>
         </button>
 
@@ -106,10 +100,12 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         {/* Admin Profile & Logout */}
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-3 border-r border-slate-200">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow-sm">
-            {user.fullName.slice(0, 1)}
+            {user?.fullName ? user.fullName.slice(0, 1) : "م"}
           </div>
           <div className="hidden sm:block text-right">
-            <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-1">{user.fullName}</p>
+            <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-1">
+              {user?.fullName || "مدير النظام"}
+            </p>
             <span className="text-[10px] font-semibold text-slate-500">مدير النظام</span>
           </div>
           <button
@@ -122,6 +118,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         </div>
       </div>
 
+      <SchoolNetworkModal isOpen={showNetworkModal} onClose={() => setShowNetworkModal(false)} />
       <CronSimulatorModal isOpen={showCronModal} onClose={() => setShowCronModal(false)} />
       <WhatsAppQueueDrawer isOpen={showWhatsAppDrawer} onClose={() => setShowWhatsAppDrawer(false)} />
     </header>

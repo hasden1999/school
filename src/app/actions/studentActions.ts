@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAuth, hashPassword } from "@/lib/auth";
 import { generateWhatsAppMessage } from "@/lib/whatsappEngine";
+import { generateUniqueFiveLetterUsername, generateFiveLetterPasscode } from "@/lib/credentialGenerator";
 import { revalidatePath } from "next/cache";
 
 export async function registerStudentAction(data: {
@@ -21,13 +22,11 @@ export async function registerStudentAction(data: {
   const session = await requireAuth(["ADMIN"]);
   const tenantId = session.tenantId;
 
-  // 1. Generate clean username
-  const cleanFirst = data.fullName.trim().split(" ")[0].toLowerCase().replace(/[^\u0621-\u064A0-9a-z]/g, "");
-  const randomSuffix = Math.floor(100 + Math.random() * 900);
-  const username = `s.${cleanFirst || "stu"}${randomSuffix}`;
+  // 1. Generate unique 5 distinct English letters username (no dots, no commas, no numbers)
+  const username = await generateUniqueFiveLetterUsername(tenantId);
 
-  // 2. Generate random 8-character password
-  const rawPassword = Math.random().toString(36).slice(-8);
+  // 2. Generate 5 distinct English letters passcode
+  const rawPassword = generateFiveLetterPasscode();
   const passwordHash = await hashPassword(rawPassword);
 
   // 3. Generate sequential student number
@@ -42,6 +41,7 @@ export async function registerStudentAction(data: {
         username,
         fullName: data.fullName.trim(),
         passwordHash,
+        plainPasscode: rawPassword,
         role: "STUDENT",
         phone: data.guardianPhone.trim(),
         mustChangePassword: true,
@@ -85,30 +85,30 @@ export async function registerStudentAction(data: {
       });
     }
 
-    // Attach required documents
+    // Attach required documents in batch
     const docReqs = await tx.documentRequirement.findMany({ where: { tenantId } });
-    for (const req of docReqs) {
-      await tx.studentDocument.create({
-        data: {
+    if (docReqs.length > 0) {
+      await tx.studentDocument.createMany({
+        data: docReqs.map((req) => ({
           tenantId,
           studentId: profile.id,
           documentReqId: req.id,
           status: "MISSING",
-        },
+        })),
       });
     }
 
-    // Initialize Grade Records for all subjects in this grade
+    // Initialize Grade Records for all subjects in 1 fast query
     const subjects = await tx.subject.findMany({ where: { tenantId } });
-    for (const sub of subjects) {
-      await tx.gradeRecord.create({
-        data: {
+    if (subjects.length > 0) {
+      await tx.gradeRecord.createMany({
+        data: subjects.map((sub) => ({
           tenantId,
           studentId: profile.id,
           subjectId: sub.id,
           classRoomId: data.classRoomId,
           academicYear: "2024-2025",
-        },
+        })),
       });
     }
 
@@ -138,43 +138,152 @@ export async function registerStudentAction(data: {
     });
 
     return { user, profile, username, rawPassword, receiptNumber };
-  });
+  },
+  { maxWait: 15000, timeout: 25000 });
 
   revalidatePath("/admin/students");
   revalidatePath("/admin/payments");
   return { success: true, ...result };
 }
 
-export async function getStudentsList(filters?: {
-  classRoomId?: string;
-  sectionId?: string;
-  search?: string;
-}) {
-  const session = await requireAuth(["ADMIN", "TEACHER"]);
+export async function updateStudentAction(
+  studentId: string,
+  data: {
+    fullName: string;
+    guardianName: string;
+    guardianPhone: string;
+    classRoomId: string;
+    sectionId: string;
+    totalTuition: number;
+    depositAmount: number;
+    dateOfBirth?: string;
+    address?: string;
+  }
+) {
+  const session = await requireAuth(["ADMIN"]);
   const tenantId = session.tenantId;
 
-  return prisma.studentProfile.findMany({
-    where: {
-      tenantId,
-      ...(filters?.classRoomId && { classRoomId: filters.classRoomId }),
-      ...(filters?.sectionId && { sectionId: filters.sectionId }),
-      ...(filters?.search && {
-        OR: [
-          { user: { fullName: { contains: filters.search } } },
-          { studentNumber: { contains: filters.search } },
-          { guardianPhone: { contains: filters.search } },
-        ],
-      }),
-    },
-    include: {
-      user: true,
-      classRoom: true,
-      section: true,
-      documents: {
-        include: { requirement: true },
-      },
-      paymentReceipts: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const student = await prisma.studentProfile.findUnique({
+      where: { id: studentId, tenantId },
+      include: { user: true },
+    });
+
+    if (!student) {
+      return { success: false, error: "الطالب غير موجود" };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Update user info (fullName, phone)
+      await tx.user.update({
+        where: { id: student.userId },
+        data: {
+          fullName: data.fullName.trim(),
+          phone: data.guardianPhone.trim(),
+        },
+      });
+
+      // 2. Update student profile
+      await tx.studentProfile.update({
+        where: { id: studentId },
+        data: {
+          guardianName: data.guardianName.trim(),
+          guardianPhone: data.guardianPhone.trim(),
+          classRoomId: data.classRoomId,
+          sectionId: data.sectionId,
+          totalTuition: Number(data.totalTuition),
+          depositAmount: Number(data.depositAmount),
+          dateOfBirth: data.dateOfBirth,
+          address: data.address,
+        },
+      });
+    });
+
+    revalidatePath("/admin/students");
+    revalidatePath("/admin/payments");
+    revalidatePath("/admin/grades");
+
+    return { success: true, message: "تم تعديل بيانات الطالب بنجاح" };
+  } catch (e: any) {
+    return { success: false, error: e.message || "فشل تعديل بيانات الطالب" };
+  }
 }
+
+export async function archiveStudentAction(studentId: string) {
+  const session = await requireAuth(["ADMIN"]);
+  const tenantId = session.tenantId;
+
+  try {
+    await prisma.studentProfile.update({
+      where: { id: studentId, tenantId },
+      data: {
+        registrationStatus: "ARCHIVED",
+        archivedAt: new Date(),
+      },
+    });
+
+    revalidatePath("/admin/students");
+    return { success: true, message: "تمت أرشفة الطالب بنجاح" };
+  } catch (e: any) {
+    return { success: false, error: e.message || "فشل أرشفة الطالب" };
+  }
+}
+
+export async function unarchiveStudentAction(studentId: string) {
+  const session = await requireAuth(["ADMIN"]);
+  const tenantId = session.tenantId;
+
+  try {
+    await prisma.studentProfile.update({
+      where: { id: studentId, tenantId },
+      data: {
+        registrationStatus: "ACTIVE",
+        archivedAt: null,
+      },
+    });
+
+    revalidatePath("/admin/students");
+    return { success: true, message: "تمت استعادة الطالب وإلغاء الأرشفة بنجاح" };
+  } catch (e: any) {
+    return { success: false, error: e.message || "فشل إلغاء الأرشفة" };
+  }
+}
+
+export async function deleteStudentAction(studentId: string) {
+  const session = await requireAuth(["ADMIN"]);
+  const tenantId = session.tenantId;
+
+  try {
+    const student = await prisma.studentProfile.findUnique({
+      where: { id: studentId, tenantId },
+      include: { user: true },
+    });
+
+    if (!student) {
+      return { success: false, error: "الطالب غير موجود" };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Delete child relations
+      await tx.paymentReceipt.deleteMany({ where: { studentId } });
+      await tx.gradeRecord.deleteMany({ where: { studentId } });
+      await tx.attendanceRecord.deleteMany({ where: { studentId } });
+      await tx.leaveRequest.deleteMany({ where: { studentId } });
+      await tx.studentDocument.deleteMany({ where: { studentId } });
+      await tx.teacherEvaluationSubmission.deleteMany({ where: { studentId } });
+
+      // Delete profile and user
+      await tx.studentProfile.delete({ where: { id: studentId } });
+      await tx.user.delete({ where: { id: student.userId } });
+    });
+
+    revalidatePath("/admin/students");
+    revalidatePath("/admin/payments");
+    revalidatePath("/admin/grades");
+
+    return { success: true, message: "تم حذف الطالب وسجلاته بنجاح" };
+  } catch (e: any) {
+    return { success: false, error: e.message || "فشل حذف الطالب" };
+  }
+}
+

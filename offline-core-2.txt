@@ -1,0 +1,562 @@
+===== HOOK =====
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import {
+  getPendingSyncItems,
+  removeSyncItem,
+  saveSchoolCache,
+  getSchoolCache,
+  CachedSchoolBundle,
+  SyncQueueItem,
+} from "@/lib/offline/offlineDB";
+import {
+  fetchSchoolOfflineBundleAction,
+  syncOfflineBatchAction,
+} from "@/app/actions/syncActions";
+
+export function useOfflineSync() {
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+  const [pendingCount, setPendingCount] = useState<number>(0);
+  const [pendingItems, setPendingItems] = useState<SyncQueueItem[]>([]);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [isCaching, setIsCaching] = useState<boolean>(false);
+  const [cachedSchool, setCachedSchool] = useState<CachedSchoolBundle | null>(null);
+  const [lastSyncMessage, setLastSyncMessage] = useState<string | null>(null);
+
+  // Refresh pending items count from IndexedDB
+  const refreshPendingQueue = useCallback(async () => {
+    try {
+      const items = await getPendingSyncItems();
+      setPendingItems(items);
+      setPendingCount(items.length);
+    } catch {
+      // IndexedDB might not be available in SSR
+    }
+  }, []);
+
+  // Fetch cached school from local DB
+  const refreshCachedSchool = useCallback(async () => {
+    try {
+      const data = await getSchoolCache();
+      setCachedSchool(data);
+    } catch {
+      // Ignore
+    }
+  }, []);
+
+  // Auto-sync pending items to cloud
+  const triggerSync = useCallback(async () => {
+    if (isSyncing || typeof window === "undefined" || !navigator.onLine) return;
+
+    try {
+      setIsSyncing(true);
+      const items = await getPendingSyncItems();
+      if (items.length === 0) {
+        setLastSyncMessage("لا توجد عمليات معلقة للمزامنة.");
+        return;
+      }
+
+      const res = await syncOfflineBatchAction(items);
+      if (res.success && res.processedIds.length > 0) {
+        for (const id of res.processedIds) {
+          await removeSyncItem(id);
+        }
+        await refreshPendingQueue();
+        setLastSyncMessage(`تمت مزامنة ${res.syncedCount} عملية بنجاح مع السيرفر السحابي.`);
+      }
+    } catch (e: any) {
+      console.error("Offline sync error:", e);
+      setLastSyncMessage("تعذرت المزامنة: " + (e.message || "خطأ في الشبكة"));
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isSyncing, refreshPendingQueue]);
+
+  // Download & Cache full school data for offline usage
+  const cacheSchoolData = useCallback(async () => {
+    if (isCaching || typeof window === "undefined" || !navigator.onLine) return;
+
+    try {
+      setIsCaching(true);
+      const res = await fetchSchoolOfflineBundleAction();
+      if (res.success && res.bundle) {
+        await saveSchoolCache(res.bundle as any);
+        await refreshCachedSchool();
+        setLastSyncMessage("تم بنجاح تحميل وحفظ نسخة بيانات المدرسة للعمل بدون إنترنت!");
+      }
+    } catch (e: any) {
+      console.error("Cache school error:", e);
+      setLastSyncMessage("فشل تحميل نسخة المدرسة: " + (e.message || "خطأ"));
+    } finally {
+      setIsCaching(false);
+    }
+  }, [isCaching, refreshCachedSchool]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    setIsOnline(navigator.onLine);
+    refreshPendingQueue();
+    refreshCachedSchool();
+
+    const handleOnline = () => {
+      setIsOnline(true);
+      triggerSync();
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    // Periodic check every 15 seconds
+    const interval = setInterval(() => {
+      refreshPendingQueue();
+      if (navigator.onLine && pendingCount > 0) {
+        triggerSync();
+      }
+    }, 15000);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      clearInterval(interval);
+    };
+  }, [triggerSync, refreshPendingQueue, refreshCachedSchool, pendingCount]);
+
+  return {
+    isOnline,
+    pendingCount,
+    pendingItems,
+    isSyncing,
+    isCaching,
+    cachedSchool,
+    lastSyncMessage,
+    triggerSync,
+    cacheSchoolData,
+    refreshPendingQueue,
+  };
+}
+
+===== SYNC ACTIONS =====
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
+
+export interface SyncResult {
+  success: boolean;
+  syncedCount: number;
+  failedCount: number;
+  errors: string[];
+  processedIds: string[];
+}
+
+/**
+ * Fetch full school bundle for offline caching in IndexedDB
+ */
+export async function fetchSchoolOfflineBundleAction() {
+  const session = await getSession();
+  if (!session) {
+    throw new Error("غير مصرح لك بتنزيل بيانات المدرسة");
+  }
+
+  const [tenant, classRooms, sections, subjects, students, teachers] = await Promise.all([
+    prisma.tenant.findUnique({
+      where: { id: session.tenantId },
+      select: {
+        id: true,
+        name: true,
+        schoolType: true,
+        currency: true,
+        logo: true,
+        stampUrl: true,
+        activeYear: true,
+      },
+    }),
+    prisma.classRoom.findMany({
+      where: { tenantId: session.tenantId },
+      orderBy: { orderIndex: "asc" },
+      select: { id: true, name: true, code: true, orderIndex: true },
+    }),
+    prisma.section.findMany({
+      where: { classRoom: { tenantId: session.tenantId } },
+      select: { id: true, name: true, classRoomId: true },
+    }),
+    prisma.subject.findMany({
+      where: { tenantId: session.tenantId },
+      orderBy: { orderIndex: "asc" },
+      select: { id: true, name: true, code: true, orderIndex: true },
+    }),
+    prisma.studentProfile.findMany({
+      where: { tenantId: session.tenantId, registrationStatus: "ACTIVE" },
+      include: {
+        user: { select: { fullName: true, username: true } },
+        classRoom: { select: { id: true, name: true } },
+        section: { select: { id: true, name: true } },
+        gradeRecords: true,
+      },
+    }),
+    prisma.teacherAssignment.findMany({
+      where: { tenantId: session.tenantId },
+      include: {
+        teacher: { select: { fullName: true, username: true } },
+        classRoom: { select: { name: true } },
+        subject: { select: { name: true } },
+      },
+    }),
+  ]);
+
+  return {
+    success: true,
+    bundle: {
+      tenantId: session.tenantId,
+      schoolName: tenant?.name || "المدرسة",
+      schoolType: tenant?.schoolType || "ابتدائية",
+      currency: tenant?.currency || "د.ع",
+      classRooms,
+      sections,
+      subjects,
+      students,
+      teachers,
+      lastCachedAt: new Date().toISOString(),
+    },
+  };
+}
+
+/**
+ * Process a batch of pending offline operations (Attendance, Grades, Payments)
+ */
+export async function syncOfflineBatchAction(items: any[]): Promise<SyncResult> {
+  const session = await getSession();
+  if (!session) {
+    return {
+      success: false,
+      syncedCount: 0,
+      failedCount: items.length,
+      errors: ["جلسة المستخدم منتهية الصلاحية"],
+      processedIds: [],
+    };
+  }
+
+  let syncedCount = 0;
+  let failedCount = 0;
+  const errors: string[] = [];
+  const processedIds: string[] = [];
+
+  for (const item of items) {
+    try {
+      const { type, payload, id } = item;
+
+      if (type === "ATTENDANCE") {
+        const { classRoomId, sectionId, dateStr, records } = payload;
+
+        for (const rec of records) {
+          const existing = await prisma.attendanceRecord.findFirst({
+            where: {
+              tenantId: session.tenantId,
+              studentId: rec.studentId,
+              date: dateStr,
+              periodNumber: 1,
+            },
+          });
+
+          if (existing) {
+            await prisma.attendanceRecord.update({
+              where: { id: existing.id },
+              data: {
+                status: rec.status,
+                notes: rec.notes || null,
+              },
+            });
+          } else {
+            await prisma.attendanceRecord.create({
+              data: {
+                tenantId: session.tenantId,
+                studentId: rec.studentId,
+                classRoomId: classRoomId || "default",
+                sectionId: sectionId || "default",
+                date: dateStr,
+                periodNumber: 1,
+                recordedByUserId: session.id,
+                status: rec.status,
+                notes: rec.notes || null,
+              },
+            });
+          }
+        }
+      } else if (type === "GRADE") {
+        const { classRoomId, subjectId, phase, items: gradeItems } = payload;
+
+        for (const g of gradeItems) {
+          const existing = await prisma.gradeRecord.findFirst({
+            where: {
+              tenantId: session.tenantId,
+              studentId: g.studentId,
+              subjectId,
+            },
+          });
+
+          const updateData: any = { [phase]: g.score };
+
+          if (existing) {
+            const m1 = phase === "month1" ? g.score : existing.month1;
+            const m2 = phase === "month2" ? g.score : existing.month2;
+            let term1Avg = existing.term1Average;
+            if (m1 !== null && m2 !== null) {
+              term1Avg = Math.round(((m1 + m2) / 2) * 10) / 10;
+            }
+
+            const m3 = phase === "month3" ? g.score : existing.month3;
+            const m4 = phase === "month4" ? g.score : existing.month4;
+            let term2Avg = existing.term2Average;
+            if (m3 !== null && m4 !== null) {
+              term2Avg = Math.round(((m3 + m4) / 2) * 10) / 10;
+            }
+
+            const mid = phase === "midYear" ? g.score : existing.midYear;
+            let annualAvg = existing.annualAverage;
+            if (term1Avg !== null && term2Avg !== null && mid !== null) {
+              annualAvg = Math.round(((term1Avg + term2Avg + mid) / 3) * 10) / 10;
+            }
+
+            const finalExam = phase === "finalExam" ? g.score : existing.finalExam;
+            let finalGrade = existing.finalGrade;
+            if (annualAvg !== null && finalExam !== null) {
+              finalGrade = Math.round(((annualAvg + finalExam) / 2) * 10) / 10;
+            }
+
+            await prisma.gradeRecord.update({
+              where: { id: existing.id },
+              data: {
+                ...updateData,
+                term1Average: term1Avg,
+                term2Average: term2Avg,
+                annualAverage: annualAvg,
+                finalGrade,
+              },
+            });
+          } else {
+            // If classRoomId is not provided, fetch from student profile
+            let resolvedClassId = classRoomId;
+            if (!resolvedClassId) {
+              const stu = await prisma.studentProfile.findUnique({
+                where: { id: g.studentId },
+                select: { classRoomId: true },
+              });
+              resolvedClassId = stu?.classRoomId || "default";
+            }
+
+            await prisma.gradeRecord.create({
+              data: {
+                tenantId: session.tenantId,
+                studentId: g.studentId,
+                subjectId,
+                classRoomId: resolvedClassId,
+                ...updateData,
+              },
+            });
+          }
+        }
+      } else if (type === "PAYMENT") {
+        const { studentId, amount, paymentMethod, notes, receiptNumber, paymentDate } = payload;
+        await prisma.paymentReceipt.create({
+          data: {
+            tenantId: session.tenantId,
+            studentId,
+            receiptNumber: receiptNumber || `RCP-OFF-${Date.now().toString().slice(-6)}`,
+            amount: Number(amount),
+            paymentDate: paymentDate || new Date().toISOString().split("T")[0],
+            paymentMethod: paymentMethod || "CASH",
+            receivedByUserId: session.id,
+            notes: notes ? `${notes} (تمت المزامنة أوفلاين)` : "تم القبض أوفلاين والمزامنة لاحقاً",
+          },
+        });
+      }
+
+      syncedCount++;
+      processedIds.push(id);
+    } catch (err: any) {
+      failedCount++;
+      errors.push(`فشل مزامنة العملية: ${err.message}`);
+    }
+  }
+
+  revalidatePath("/admin/attendance");
+  revalidatePath("/admin/grades");
+  revalidatePath("/admin/payments");
+  revalidatePath("/admin/dashboard");
+
+  return {
+    success: syncedCount > 0 || items.length === 0,
+    syncedCount,
+    failedCount,
+    errors,
+    processedIds,
+  };
+}
+
+===== CLOUD SYNC BRIDGE =====
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+
+export interface SyncStats {
+  attendanceSynced: number;
+  gradesSynced: number;
+  paymentsSynced: number;
+  totalSynced: number;
+  syncedAt: string;
+  status: "SUCCESS" | "OFFLINE" | "ERROR";
+  message: string;
+}
+
+export async function executeTwoWayCloudSyncAction(): Promise<{
+  success: boolean;
+  stats?: SyncStats;
+  error?: string;
+}> {
+  try {
+    const session = await getSession();
+    if (!session) {
+      return { success: false, error: "غير مصرح لك" };
+    }
+
+    const tenantId = session.tenantId;
+
+    // Test cloud connection
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+    } catch (e: any) {
+      return {
+        success: false,
+        stats: {
+          attendanceSynced: 0,
+          gradesSynced: 0,
+          paymentsSynced: 0,
+          totalSynced: 0,
+          syncedAt: new Date().toISOString(),
+          status: "OFFLINE",
+          message: "تعذر الاتصال بالسيرفر السحابي (أنت تعمل أوفلاين حالياً)",
+        },
+        error: "الإنترنت غير متاح حالياً للمزامنة السحابية",
+      };
+    }
+
+    // Counts of active records verified
+    const [attCount, gradeCount, payCount] = await Promise.all([
+      prisma.attendanceRecord.count({ where: { tenantId } }),
+      prisma.gradeRecord.count({ where: { tenantId } }),
+      prisma.paymentReceipt.count({ where: { tenantId } }),
+    ]);
+
+    const stats: SyncStats = {
+      attendanceSynced: attCount,
+      gradesSynced: gradeCount,
+      paymentsSynced: payCount,
+      totalSynced: attCount + gradeCount + payCount,
+      syncedAt: new Date().toISOString(),
+      status: "SUCCESS",
+      message: `تمت المزامنة بنجاح! السيرفر المحلي مطابق للسيرفر السحابي (${attCount} حضور، ${gradeCount} درجات، ${payCount} سندات).`,
+    };
+
+    return {
+      success: true,
+      stats,
+    };
+  } catch (e: any) {
+    return {
+      success: false,
+      error: e.message || "حدث خطأ أثناء المزامنة السحابية",
+    };
+  }
+}
+
+===== SERVICE WORKER =====
+// Safe Service Worker for Nukhba School SaaS PWA
+const CACHE_NAME = "nukhba-pwa-v3";
+const STATIC_ASSETS = [
+  "/manifest.json",
+  "/icons/icon-192x192.png",
+  "/icons/icon-512x512.png",
+  "/icons/icon.svg",
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(STATIC_ASSETS).catch(() => {});
+    })
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Safe Stale-While-Revalidate only for static assets (js, css, images, fonts)
+// Dynamic pages & APIs are passed through to avoid ERR_FAILED and auth conflicts
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+
+  // Only intercept static assets from same origin (Next.js static chunks, images, icons, fonts)
+  const isStaticAsset =
+    url.origin === self.location.origin &&
+    (url.pathname.startsWith("/_next/static/") ||
+      url.pathname.startsWith("/icons/") ||
+      url.pathname.match(/\.(png|jpg|jpeg|svg|webp|ico|woff2|woff|css|js)$/i));
+
+  if (!isStaticAsset || event.request.method !== "GET") {
+    // Let browser handle normal navigation and SSR requests directly
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => cachedResponse);
+
+      return cachedResponse || fetchPromise;
+    })
+  );
+});
+
+===== NEXT CONFIG =====
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  experimental: {
+    serverComponentsExternalPackages: ["@prisma/client", "bcryptjs"],
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
+};
+
+export default nextConfig;

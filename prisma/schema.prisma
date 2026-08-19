@@ -27,6 +27,16 @@ model Tenant {
   activeYear            String   @default("2024-2025")
   plannedClosureDate    String?  // YYYY-MM-DD
   printFooterText       String?  @default("وثيقة رسمية صادرة من إدارة المدرسة — أي كشط أو تحبير يعتبر لاغياً")
+  
+  // SaaS Subscription & Access Control
+  subscriptionStatus    String   @default("TRIAL") // "TRIAL", "ACTIVE", "GRACE_PERIOD", "SUSPENDED"
+  subscriptionPlan      String   @default("TRIAL") // "TRIAL", "BASIC", "PRO", "CUSTOM"
+  trialEndsAt           DateTime? // 14-day free trial end date
+  subscriptionExpiresAt DateTime? // Date when paid access ends
+  maxStudentsLimit      Int      @default(500)
+  isWhatsAppEnabled     Boolean  @default(true)
+  subscriptionPrice     Float    @default(0)
+
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
@@ -51,6 +61,9 @@ model Tenant {
   backupRecords         BackupRecord[]
   academicYearClosures  AcademicYearClosure[]
   notifications         Notification[]
+  platformPayments      PlatformPayment[]
+
+  @@index([subscriptionStatus])
 }
 
 model User {
@@ -58,9 +71,10 @@ model User {
   tenantId           String
   username           String
   passwordHash       String
+  plainPasscode      String?   // رمز الدخول المحفوظ بالإنجليزية (5 أحرف) لعرضه ونسخه للمدير
   fullName           String
   phone              String?
-  role               String    // "ADMIN", "TEACHER", "STUDENT"
+  role               String    // "ADMIN", "TEACHER", "STUDENT", "SUPER_ADMIN"
   monthlySalary      Float     @default(0) // الراتب الشهري للمعلم
   mustChangePassword Boolean   @default(false)
   active             Boolean   @default(true)
@@ -77,6 +91,9 @@ model User {
   notifications      Notification[]
 
   @@unique([tenantId, username])
+  @@index([username])
+  @@index([tenantId, role])
+  @@index([role])
 }
 
 model ClassRoom {
@@ -100,6 +117,7 @@ model ClassRoom {
   evaluationExams    TeacherEvaluationExam[]
 
   @@unique([tenantId, code])
+  @@index([tenantId, orderIndex])
 }
 
 model Section {
@@ -118,6 +136,7 @@ model Section {
   evaluationExams    TeacherEvaluationExam[]
 
   @@unique([tenantId, classRoomId, name])
+  @@index([tenantId, classRoomId])
 }
 
 model Subject {
@@ -135,6 +154,7 @@ model Subject {
   evaluationExams    TeacherEvaluationExam[]
 
   @@unique([tenantId, code])
+  @@index([tenantId, orderIndex])
 }
 
 model TeacherAssignment {
@@ -152,6 +172,8 @@ model TeacherAssignment {
   subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, teacherId, classRoomId, sectionId, subjectId])
+  @@index([tenantId, teacherId])
+  @@index([tenantId, classRoomId, sectionId])
 }
 
 model TimetableSlot {
@@ -171,6 +193,8 @@ model TimetableSlot {
   subject      Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, classRoomId, sectionId, dayOfWeek, periodNumber])
+  @@index([tenantId, teacherId, dayOfWeek])
+  @@index([tenantId, classRoomId, sectionId, dayOfWeek])
 }
 
 model StudentProfile {
@@ -205,6 +229,11 @@ model StudentProfile {
   paymentReceipts    PaymentReceipt[]
 
   @@unique([tenantId, studentNumber])
+  @@index([tenantId, classRoomId, sectionId])
+  @@index([tenantId, registrationStatus])
+  @@index([tenantId, userId])
+  @@index([classRoomId])
+  @@index([sectionId])
 }
 
 model DocumentRequirement {
@@ -216,6 +245,8 @@ model DocumentRequirement {
 
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   studentDocuments StudentDocument[]
+
+  @@index([tenantId])
 }
 
 model StudentDocument {
@@ -233,6 +264,8 @@ model StudentDocument {
   requirement   DocumentRequirement @relation(fields: [documentReqId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, studentId, documentReqId])
+  @@index([tenantId, studentId])
+  @@index([tenantId, status])
 }
 
 model AttendanceRecord {
@@ -255,6 +288,9 @@ model AttendanceRecord {
   section             Section        @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, studentId, date, periodNumber])
+  @@index([tenantId, date, classRoomId, sectionId])
+  @@index([tenantId, studentId, date])
+  @@index([tenantId, date, status])
 }
 
 model LeaveRequest {
@@ -273,6 +309,9 @@ model LeaveRequest {
 
   tenant             Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   student            StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status, startDate])
+  @@index([tenantId, studentId])
 }
 
 // إجازات وغياب المعلمين والبديل الذكي
@@ -289,6 +328,9 @@ model TeacherLeave {
 
   tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   teacher         User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, teacherId, startDate])
+  @@index([tenantId, status])
 }
 
 model DailyReport {
@@ -315,6 +357,10 @@ model DailyReport {
   classRoom            ClassRoom @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
   section              Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   subject              Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, date, classRoomId, sectionId])
+  @@index([tenantId, teacherId, date])
+  @@index([tenantId, status])
 }
 
 // جدول تقييم أداء المعلمين السري والمعزول 100% عن المعلم والنتائج
@@ -338,6 +384,9 @@ model TeacherEvaluationExam {
   section         Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   subject         Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   submissions     TeacherEvaluationSubmission[]
+
+  @@index([tenantId, targetTeacherId, isActive])
+  @@index([tenantId, classRoomId, sectionId])
 }
 
 model TeacherEvaluationSubmission {
@@ -356,6 +405,8 @@ model TeacherEvaluationSubmission {
   student         StudentProfile        @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, examId, studentId])
+  @@index([tenantId, examId])
+  @@index([tenantId, targetTeacherId])
 }
 
 // نظام الدرجات المرحلي العراقي المتوافق رسمياً مع وزارة التربية
@@ -402,6 +453,9 @@ model GradeRecord {
   classRoom         ClassRoom      @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, studentId, subjectId, academicYear])
+  @@index([tenantId, classRoomId, academicYear])
+  @@index([tenantId, studentId, academicYear])
+  @@index([tenantId, subjectId])
 }
 
 // الأقساط والمدفوعات
@@ -421,6 +475,8 @@ model PaymentReceipt {
   student         StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, receiptNumber])
+  @@index([tenantId, studentId])
+  @@index([tenantId, paymentDate])
 }
 
 // طابور رسائل واتساب لولي الأمر
@@ -437,6 +493,8 @@ model WhatsAppMessageQueue {
   createdAt      DateTime  @default(now())
 
   tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status])
 }
 
 // سجل النسخ الاحتياطية
@@ -451,6 +509,8 @@ model BackupRecord {
   createdByUserId String
 
   tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
 }
 
 // سجل إغلاق وفتح الأعوام الدراسية وترقية الطلاب
@@ -468,6 +528,8 @@ model AcademicYearClosure {
   createdAt        DateTime @default(now())
 
   tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, closedYear])
 }
 
 // نظام الإشعارات الداخلي اللحظي لجميع المستخدمين
@@ -486,4 +548,52 @@ model Notification {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, userId, isRead])
+}
+
+// سجل اشتراكات ودفعات المدارس لمالك المنصة (Super Admin Billing)
+model PlatformPayment {
+  id              String   @id @default(cuid())
+  tenantId        String
+  amount          Float
+  currency        String   @default("USD") // "USD" | "IQD"
+  paymentMethod   String   @default("ZAIN_CASH") // "ZAIN_CASH", "ASIA_HAWALA", "BANK_TRANSFER", "CASH", "DIRECT"
+  referenceNumber String?  // رقم الحوالة أو الإشعار
+  durationMonths  Int      @default(1)
+  notes           String?
+  paidAt          DateTime @default(now())
+  status          String   @default("APPROVED") // "APPROVED", "PENDING", "REJECTED"
+  recordedBy      String?  // Super Admin
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([status, createdAt])
+}
+
+// الإعلانات والتنبيهات الموحدة لكافة مدراء المدارس من مالك المنصة
+model SystemBroadcast {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  priority  String   @default("INFO") // "INFO", "WARNING", "URGENT"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([active, createdAt])
+}
+
+// طلبات انضمام وتجربة المدارس الأهلية الجديدة (B2B Lead Inquiries)
+model SchoolJoinRequest {
+  id                String   @id @default(cuid())
+  schoolName        String
+  directorName      String
+  phone             String
+  province          String   @default("بغداد")
+  estimatedStudents Int?     @default(300)
+  status            String   @default("PENDING") // "PENDING", "CONTACTED", "PROVISIONED", "REJECTED"
+  notes             String?
+  createdAt         DateTime @default(now())
+
+  @@index([status, createdAt])
 }

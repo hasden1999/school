@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import {
   Building2,
   ShieldCheck,
@@ -12,7 +14,14 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getSession();
+  if (session) {
+    if (session.role === "SUPER_ADMIN") redirect("/super-admin/dashboard");
+    if (session.role === "ADMIN") redirect("/admin/dashboard");
+    if (session.role === "TEACHER") redirect("/teacher/dashboard");
+    if (session.role === "STUDENT") redirect("/student/dashboard");
+  }
   const features = [
     {
       title: "عزل أمني تام Multi-Tenant",

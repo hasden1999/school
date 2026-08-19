@@ -13,7 +13,7 @@ export default async function AdminLayout({
   });
 
   return (
-    <AdminLayoutClient user={session} schoolName={school?.name}>
+    <AdminLayoutClient user={session} schoolName={school?.name} tenant={school}>
       {children}
     </AdminLayoutClient>
   );

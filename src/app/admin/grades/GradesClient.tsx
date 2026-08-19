@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { savePhaseGradesAction, togglePhaseLockAction } from "@/app/actions/gradeActions";
+import { GradeRepository } from "@/lib/repositories/GradeRepository";
+import { StudentRepository } from "@/lib/repositories/StudentRepository";
 import { StudentReportCardModal } from "@/components/print/StudentReportCardModal";
 import {
   Award,
@@ -36,6 +38,16 @@ export const GradesClient: React.FC<GradesClientProps> = ({
   const [activePhase, setActivePhase] = useState<
     "month1" | "month2" | "term1Average" | "midYear" | "month3" | "month4" | "term2Average" | "annualAverage" | "finalExam" | "finalGrade"
   >("month1");
+
+  // Keep selected class and subject valid when school stage classes change
+  React.useEffect(() => {
+    if (classRooms.length > 0 && !classRooms.some((c) => c.id === selectedClassId)) {
+      setSelectedClassId(classRooms[0].id);
+    }
+    if (subjects.length > 0 && !subjects.some((s) => s.id === selectedSubjectId)) {
+      setSelectedSubjectId(subjects[0].id);
+    }
+  }, [classRooms, subjects, selectedClassId, selectedSubjectId]);
 
   const [students, setStudents] = useState<any[]>(initialStudents);
   const [scoresState, setScoresState] = useState<Record<string, number | "">>({});
@@ -74,6 +86,19 @@ export const GradesClient: React.FC<GradesClientProps> = ({
     setSaveSuccess(false);
   }, [selectedClassId, selectedSubjectId, activePhase, students]);
 
+  // Load local students if empty on offline mount
+  useEffect(() => {
+    async function loadLocalStudents() {
+      if (!initialStudents || initialStudents.length === 0 || (typeof window !== "undefined" && !navigator.onLine)) {
+        const localList = await StudentRepository.getStudents();
+        if (localList && localList.length > 0) {
+          setStudents(localList);
+        }
+      }
+    }
+    loadLocalStudents();
+  }, [initialStudents]);
+
   const handleScoreChange = (studentId: string, val: string) => {
     const num = val === "" ? "" : Math.min(100, Math.max(0, Number(val)));
     setScoresState((prev) => ({ ...prev, [studentId]: num }));
@@ -88,16 +113,19 @@ export const GradesClient: React.FC<GradesClientProps> = ({
         score: scoresState[s.id] === "" ? null : Number(scoresState[s.id]),
       }));
 
-      await savePhaseGradesAction({
-        classRoomId: selectedClassId,
-        subjectId: selectedSubjectId,
-        phase: activePhase as any,
-        grades: items,
-      });
+      const res = await GradeRepository.savePhaseGrades(
+        selectedClassId,
+        selectedSubjectId,
+        activePhase,
+        items
+      );
 
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 4000);
-      window.location.reload();
+      if (res.success) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 4000);
+      } else if (res.error) {
+        alert(res.error);
+      }
     } catch (e: any) {
       alert(e.message || "حدث خطأ أثناء حفظ الدرجات");
     } finally {
@@ -225,6 +253,59 @@ export const GradesClient: React.FC<GradesClientProps> = ({
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        {/* Quick Phase Tabs Bar for Fast 1-Click Jumping */}
+        <div className="space-y-2 pt-2 border-t border-slate-100">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+            <span className="text-[11px] font-bold text-slate-400 shrink-0 ml-1">المرحلة:</span>
+            {phases.map((p) => {
+              const isSel = activePhase === p.key;
+              return (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => setActivePhase(p.key as any)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                    isSel
+                      ? "bg-slate-900 text-white shadow-md"
+                      : !p.isEditable
+                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  <span>{p.label}</span>
+                  {!p.isEditable && (
+                    <span className="text-[9px] bg-emerald-200/80 text-emerald-900 px-1 rounded font-bold">
+                      آلي
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick Subject Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+            <span className="text-[11px] font-bold text-slate-400 shrink-0 ml-1">المادة:</span>
+            {subjects.map((s) => {
+              const isSel = selectedSubjectId === s.id;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSelectedSubjectId(s.id)}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all shrink-0 ${
+                    isSel
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "bg-slate-100 text-slate-700 hover:bg-emerald-50 hover:text-emerald-900"
+                  }`}
+                >
+                  {s.name}
+                </button>
+              );
+            })}
           </div>
         </div>
 
