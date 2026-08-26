@@ -41,47 +41,60 @@ export const StudentNavbar: React.FC<StudentNavbarProps> = ({ user }) => {
   ];
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 no-print font-cairo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Mobile Hamburger Button + Profile Info */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors border border-slate-200"
+              className="lg:hidden p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
               title="القائمة"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-black border border-blue-100 shadow-sm">
-                <GraduationCap className="w-6 h-6" />
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-10 h-10 rounded-lg bg-emerald-800 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <GraduationCap className="w-5 h-5" />
               </div>
-              <div>
-                <h1 className="text-sm font-black text-slate-800 tracking-tight leading-tight">بوابة الطالب</h1>
-                <span className="text-xs text-blue-600 font-bold line-clamp-1">{user.fullName}</span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight leading-tight truncate">
+                    مدرسة المعالي الأهلية الابتدائية المختلطة
+                  </h1>
+                  <span className="hidden sm:inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300/70 shrink-0">
+                    تأسست 2017
+                  </span>
+                </div>
+                <span className="text-[11px] text-emerald-800 font-semibold line-clamp-1">
+                  بوابة التلميذ وولي الأمر — {user.fullName}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-1 overflow-x-auto py-1">
+          <nav className="hidden lg:flex items-center gap-1 overflow-x-auto py-1 scrollbar-none">
             {links.map((link) => {
               const Icon = link.icon;
-              const isActive = pathname.startsWith(link.href);
+              const isActive = pathname === link.href || pathname.startsWith(link.href);
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  prefetch={true}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs whitespace-nowrap transition-colors duration-150 ${
                     isActive
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      ? "bg-emerald-50 text-emerald-900 font-bold border-b-2 border-emerald-800 rounded-b-none"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon
+                    className={`w-4 h-4 ${isActive ? "text-emerald-800" : "text-slate-400"}`}
+                  />
                   <span>{link.label}</span>
                 </Link>
               );
@@ -89,14 +102,12 @@ export const StudentNavbar: React.FC<StudentNavbarProps> = ({ user }) => {
           </nav>
 
           {/* Notification Bell & Logout */}
-          <div className="flex items-center gap-2 sm:gap-3">
-
-            {/* Notification Bell */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <NotificationBellDropdown />
 
             <button
               onClick={() => logoutAction()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-xs transition-colors border border-rose-200 shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-600 hover:text-red-700 hover:bg-red-50 font-semibold text-xs transition-colors border border-transparent hover:border-red-200"
             >
               <LogOut className="w-4 h-4" />
               <span>خروج</span>
@@ -107,22 +118,25 @@ export const StudentNavbar: React.FC<StudentNavbarProps> = ({ user }) => {
 
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-slate-200 bg-white px-4 pt-2 pb-4 space-y-1 shadow-lg animate-fadeIn">
+        <div className="lg:hidden border-t border-slate-200 bg-white px-3 pt-2 pb-4 space-y-0.5 shadow-md animate-fadeIn">
           {links.map((link) => {
             const Icon = link.icon;
-            const isActive = pathname.startsWith(link.href);
+            const isActive = pathname === link.href || pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch={true}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[13px] transition-colors ${
                   isActive
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "text-slate-700 hover:bg-slate-100"
+                    ? "bg-emerald-50 text-emerald-900 font-bold"
+                    : "text-slate-600 hover:bg-slate-100 font-medium"
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon
+                  className={`w-[18px] h-[18px] ${isActive ? "text-emerald-800" : "text-slate-400"}`}
+                />
                 <span>{link.label}</span>
               </Link>
             );

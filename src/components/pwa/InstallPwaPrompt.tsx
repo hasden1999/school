@@ -94,16 +94,16 @@ export const InstallPwaPrompt: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-slideUp font-cairo">
-      <div className="bg-slate-900/95 backdrop-blur-md border border-emerald-500/40 p-4 sm:p-5 rounded-3xl shadow-2xl shadow-black/80 space-y-3 text-slate-100">
+    <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:right-6 sm:max-w-md z-50 font-cairo">
+      <div className="card-surface shadow-pop p-4 sm:p-5 space-y-3 text-slate-900">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white flex items-center justify-center shadow-lg shadow-emerald-600/30 shrink-0 border border-emerald-400/30">
+            <div className="w-12 h-12 rounded-lg bg-brand-700 text-white flex items-center justify-center shadow-sm shrink-0">
               <Smartphone className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-sm font-black text-white">تثبيت تطبيق المنظومة</h4>
-              <p className="text-xs text-slate-300">
+              <h4 className="text-sm font-bold text-slate-900">تثبيت تطبيق المنظومة</h4>
+              <p className="text-xs text-slate-600">
                 لتسهيل الوصول اليومي بدون متصفح وكأنه تطبيق رسمي
               </p>
             </div>
@@ -111,30 +111,30 @@ export const InstallPwaPrompt: React.FC = () => {
 
           <button
             onClick={handleDismiss}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {isIOS ? (
-          <div className="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 text-[11px] text-slate-300 space-y-1.5">
-            <div className="font-bold text-emerald-400 flex items-center gap-1.5">
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-[11px] text-slate-600 space-y-1.5">
+            <div className="font-bold text-brand-700 flex items-center gap-1.5">
               <Share className="w-3.5 h-3.5" />
               <span>طريقة التثبيت على أجهزة iPhone / iPad:</span>
             </div>
             <p className="leading-relaxed">
-              اضغط على زر <span className="font-bold text-white">المشاركة (Share ⎋)</span> أسفل الشاشة، ثم اختر <span className="font-bold text-emerald-300">"إضافة إلى الصفحة الرئيسية (Add to Home Screen)"</span>.
+              اضغط على زر <span className="font-bold text-slate-900">المشاركة (Share)</span> أسفل الشاشة، ثم اختر <span className="font-bold text-brand-700">"إضافة إلى الصفحة الرئيسية (Add to Home Screen)"</span>.
             </p>
           </div>
         ) : (
           <div className="pt-1">
             <button
               onClick={handleInstallClick}
-              className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-lg bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4" />
-              <span>تثبيت أيقونة التطبيق على الجهاز الآن 📱</span>
+              <span>تثبيت أيقونة التطبيق على الجهاز الآن</span>
             </button>
           </div>
         )}

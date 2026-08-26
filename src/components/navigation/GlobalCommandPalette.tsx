@@ -93,25 +93,25 @@ export const GlobalCommandPalette: React.FC = () => {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-slate-100/90 hover:bg-slate-200/80 text-slate-500 hover:text-slate-900 text-xs font-bold transition-all border border-slate-200/70 shadow-inner group"
+        className="flex items-center gap-2.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 text-xs font-bold transition-all border border-slate-200 shadow-inner group"
       >
-        <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-colors" />
+        <Search className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-700 transition-colors" />
         <span className="hidden sm:inline">بحث وانتقال سريع...</span>
         <span className="inline sm:hidden">بحث...</span>
-        <kbd className="hidden md:inline-flex items-center gap-0.5 text-[10px] bg-white border border-slate-300 rounded-md px-1.5 py-0.5 font-mono text-slate-500 shadow-sm">
+        <kbd className="hidden md:inline-flex items-center gap-0.5 text-[10px] bg-slate-100 border border-slate-300 rounded-md px-1.5 py-0.5 font-mono text-slate-500">
           Ctrl + K
         </kbd>
       </button>
 
       {/* Floating Modal Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-slate-900/60 animate-fadeIn">
           <div
-            className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden text-right font-cairo"
+            className="w-full max-w-2xl card-surface shadow-pop overflow-hidden text-right font-cairo animate-scaleUp"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Input Bar */}
-            <div className="flex items-center gap-3 p-4 border-b border-slate-100 bg-slate-50/50">
+            <div className="flex items-center gap-3 p-4 border-b border-slate-100 bg-slate-50">
               <Search className="w-5 h-5 text-slate-400 shrink-0" />
               <input
                 ref={inputRef}
@@ -125,7 +125,7 @@ export const GlobalCommandPalette: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setQuery("")}
-                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200"
+                  className="p-1 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-200"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -133,7 +133,7 @@ export const GlobalCommandPalette: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="text-[11px] font-bold text-slate-400 hover:text-slate-700 bg-slate-200/80 px-2 py-1 rounded-lg"
+                className="text-[11px] font-bold text-slate-500 hover:text-slate-700 bg-slate-100 border border-slate-300 px-2 py-1 rounded-lg"
               >
                 Esc
               </button>
@@ -142,7 +142,7 @@ export const GlobalCommandPalette: React.FC = () => {
             {/* Results List */}
             <div className="max-h-[60vh] overflow-y-auto p-2 divide-y divide-slate-100">
               {filteredItems.length === 0 ? (
-                <div className="text-center py-10 text-slate-400 text-xs">
+                <div className="text-center py-10 text-slate-500 text-xs">
                   لم يتم العثور على نتائج مطابقة لـ "{query}"
                 </div>
               ) : (
@@ -153,25 +153,25 @@ export const GlobalCommandPalette: React.FC = () => {
                       key={item.id}
                       type="button"
                       onClick={() => handleSelect(item.url)}
-                      className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 hover:border-slate-200 transition-all text-right group border border-transparent"
+                      className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-100 transition-all text-right group border border-transparent"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-slate-900 group-hover:text-white text-slate-700 flex items-center justify-center transition-colors">
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 group-hover:bg-brand-50 group-hover:text-brand-800 text-slate-700 flex items-center justify-center transition-colors">
                           <Icon className="w-5 h-5" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-indigo-900">
+                            <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-brand-800">
                               {item.title}
                             </h4>
-                            <span className="text-[10px] font-bold bg-slate-100 group-hover:bg-indigo-50 group-hover:text-indigo-700 text-slate-600 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] font-bold bg-slate-100 group-hover:bg-brand-50 group-hover:text-brand-700 text-slate-600 px-2 py-0.5 rounded-full">
                               {item.category}
                             </span>
                           </div>
                           <p className="text-[11px] text-slate-500 line-clamp-1">{item.subtitle}</p>
                         </div>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-slate-700 rotate-180 transition-transform group-hover:-translate-x-1" />
+                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 rotate-180 transition-transform group-hover:-translate-x-1" />
                     </button>
                   );
                 })
@@ -180,7 +180,7 @@ export const GlobalCommandPalette: React.FC = () => {
 
             {/* Modal Footer */}
             <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-              <span>💡 اضغط على أي خيار للانتقال المباشر للقسم المطلوب</span>
+              <span>اضغط على أي خيار للانتقال المباشر للقسم المطلوب</span>
               <span className="font-mono text-[10px]">نظام الإدارة المدرسية المتكامل</span>
             </div>
           </div>

@@ -4,61 +4,63 @@ import React, { useState, useEffect } from "react";
 import { DashboardClient } from "./DashboardClient";
 import { fetchDashboardDataAction } from "@/app/actions/dataFetchActions";
 import { getSchoolCache, getAllRecords } from "@/lib/offline/offlineDB";
+import { getMemoryData, fastLoad } from "@/lib/dataCache";
 import { RefreshCw } from "lucide-react";
 
 export default function DashboardPage() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const cachedInitial = getMemoryData<any>("admin_dashboard_data");
+  const [data, setData] = useState<any>(cachedInitial);
+  const [loading, setLoading] = useState(!cachedInitial);
 
   useEffect(() => {
-    async function loadData() {
-      const isOnline = typeof window !== "undefined" && navigator.onLine;
-
-      if (isOnline) {
-        try {
-          const res: any = await fetchDashboardDataAction();
-          if (res.success) {
-            setData(res);
-            setLoading(false);
-            return;
-          }
-        } catch (err) {
-          console.warn("Failed to fetch dashboard data online:", err);
+    fastLoad<any>({
+      cacheKey: "admin_dashboard_data",
+      indexedDbLoader: async () => {
+        const [cached, students, teachers] = await Promise.all([
+          getSchoolCache(),
+          getAllRecords<any>("students"),
+          getAllRecords<any>("teachers"),
+        ]);
+        if (students && students.length > 0) {
+          return {
+            success: true,
+            school: cached ? { name: cached.schoolName, currency: cached.currency } : null,
+            session: { fullName: "مدير النظام", role: "ADMIN" },
+            totalStudents: students.filter((s) => s.registrationStatus === "ACTIVE").length,
+            totalTeachers: teachers.length,
+            pendingLeaves: 0,
+            pendingReports: 0,
+            queuedWhatsApp: 0,
+            totalCollected: 0,
+            remainingTuition: 0,
+            missingDocsCount: 0,
+            attendanceRate: 100,
+            todayAttendance: [],
+            recentReceipts: [],
+            recentReports: [],
+            recentLeaves: [],
+          };
         }
+        return null;
+      },
+      serverFetcher: fetchDashboardDataAction,
+      onCachedData: (cached) => {
+        setData(cached);
+        setLoading(false);
+      },
+      onFreshData: (fresh) => {
+        setData(fresh);
+        setLoading(false);
+      },
+    }).then((res) => {
+      if (res) {
+        setData(res);
+        setLoading(false);
       }
-
-      // Offline fallback: construct dashboard data from IndexedDB
-      try {
-        const cached = await getSchoolCache();
-        const students = await getAllRecords<any>("students");
-        const teachers = await getAllRecords<any>("teachers");
-
-        setData({
-          school: cached ? { name: cached.schoolName, currency: cached.currency } : null,
-          session: { fullName: "مدير النظام", role: "ADMIN" },
-          totalStudents: students.filter((s) => s.registrationStatus === "ACTIVE").length,
-          totalTeachers: teachers.length,
-          pendingLeaves: 0,
-          pendingReports: 0,
-          queuedWhatsApp: 0,
-          totalCollected: 0,
-          remainingTuition: 0,
-          missingDocsCount: 0,
-          attendanceRate: 100,
-          todayAttendance: [],
-          recentReceipts: [],
-          recentReports: [],
-          recentLeaves: [],
-        });
-      } catch {
-        setData(null);
-      }
-      setLoading(false);
-    }
-    loadData();
+    });
   }, []);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-3">

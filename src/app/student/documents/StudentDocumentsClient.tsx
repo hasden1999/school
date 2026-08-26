@@ -42,13 +42,21 @@ export const StudentDocumentsClient: React.FC<StudentDocumentsClientProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-900 font-cairo animate-fadeIn">
       {/* Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900">المستمسكات والوثائق الرسمية</h1>
-        <p className="text-xs text-slate-500 font-medium mt-0.5">
-          قائمة المستندات المطلوبة لملف الطالب وإمكانية الرفع أو الالتقاط المباشر بالكاميرا.
-        </p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 card-surface p-6">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
+              <FolderLock className="w-4 h-4" />
+            </span>
+            <span className="text-xs font-bold text-blue-700">الملف والوثائق الرسمية</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">المستمسكات والوثائق الرسمية</h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            قائمة المستندات المطلوبة لملف الطالب وإمكانية الرفع أو الالتقاط المباشر بالكاميرا.
+          </p>
+        </div>
       </div>
 
       {/* Documents Checklist */}
@@ -59,21 +67,23 @@ export const StudentDocumentsClient: React.FC<StudentDocumentsClientProps> = ({
           return (
             <div
               key={d.id}
-              className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4 hover:shadow-md transition-all flex flex-col justify-between"
+              className="card-surface p-6 space-y-4 hover:border-blue-200 transition-colors flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div
-                      className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold ${
-                        isCompleted ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold border ${
+                        isCompleted
+                          ? "bg-brand-50 text-brand-700 border-brand-100"
+                          : "bg-rose-50 text-rose-700 border-rose-100"
                       }`}
                     >
                       <FileText className="w-5 h-5" />
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-slate-900">{d.requirement.title}</h4>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-slate-500 font-semibold">
                         {d.requirement.isRequired ? "مستند إلزامي" : "مستند اختياري"}
                       </span>
                     </div>
@@ -89,29 +99,29 @@ export const StudentDocumentsClient: React.FC<StudentDocumentsClientProps> = ({
                     }
                   >
                     {d.status === "VERIFIED"
-                      ? "موثق ومطابق ✅"
+                      ? "موثق ومطابق"
                       : d.status === "UPLOADED"
-                      ? "قيد التدقيق ⏳"
-                      : "غير مكتمل ❌"}
+                      ? "قيد التدقيق"
+                      : "غير مكتمل"}
                   </Badge>
                 </div>
 
                 {d.notes && (
-                  <p className="text-xs text-slate-500 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                  <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200">
                     {d.notes}
                   </p>
                 )}
               </div>
 
-              <div className="pt-3 border-t border-slate-50 flex items-center justify-between">
-                <span className="text-[10px] text-slate-400">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[10px] text-slate-500">
                   {isCompleted ? "المستند مرفوع بالملف" : "مطلوب تسليمه أو رفعه"}
                 </span>
 
                 <button
                   onClick={() => handleUploadSimulate(d.id)}
                   disabled={uploadingId === d.id}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold transition-colors shadow-xs"
                 >
                   {uploadingId === d.id ? (
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />

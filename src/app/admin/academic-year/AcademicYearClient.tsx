@@ -107,15 +107,15 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
   );
 
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="space-y-8 animate-fadeIn font-cairo">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 card-surface p-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-bold mb-1 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-bold mb-2 border border-brand-100">
             <CalendarDays className="w-3.5 h-3.5" />
             <span>العام الدراسي الحالي: {auditData.activeYear}</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
             إغلاق العام الدراسي والترقية التلقائية والأرشيف
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -125,7 +125,7 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
 
         <button
           onClick={() => setIsClosureModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-600 to-indigo-700 hover:from-rose-700 hover:to-indigo-800 text-white text-xs font-black transition-all shadow-lg hover:shadow-xl"
+          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold transition-all shadow-md"
         >
           <Lock className="w-4 h-4" />
           <span>بدء إجراءات إغلاق العام الدراسي والترقية</span>
@@ -134,14 +134,14 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
 
       {/* Closure Success Banner */}
       {closureResult && (
-        <div className="p-6 rounded-3xl bg-emerald-600 text-white space-y-3 shadow-xl animate-fadeIn">
+        <div className="p-6 rounded-xl bg-brand-50 border border-brand-200 text-brand-800 space-y-3 animate-fadeIn">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-8 h-8" />
             <div>
-              <h3 className="text-lg font-black">
+              <h3 className="text-lg font-bold">
                 تم إغلاق العام الدراسي بنجاح وفتح العام الجديد ({newYear})!
               </h3>
-              <p className="text-xs text-emerald-100">
+              <p className="text-xs text-brand-700">
                 تمت ترقية {closureResult.promotedCount} طالب إلى الصفوف التالية، وأرشفة{" "}
                 {closureResult.graduatedCount} طالب في قسم الخريجين.
               </p>
@@ -151,10 +151,10 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
       )}
 
       {/* Planned Date Setting Card */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="card-surface p-6 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-1">
-          <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-            <CalendarDays className="w-4 h-4 text-indigo-600" />
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <CalendarDays className="w-4 h-4 text-brand-600" />
             <span>تاريخ الإغلاق المخطط للعام الدراسي</span>
           </h3>
           <p className="text-xs text-slate-500">
@@ -168,12 +168,12 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
             required
             value={plannedDate}
             onChange={(e) => setPlannedDate(e.target.value)}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:border-slate-400"
+            className="px-4 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-bold outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
           />
           <button
             type="submit"
             disabled={savingDate}
-            className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm shrink-0"
+            className="px-5 py-2.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all border border-slate-300 shadow-xs shrink-0"
           >
             {savingDate ? "جاري الحفظ..." : "تثبيت الموعد"}
           </button>
@@ -182,56 +182,56 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
 
       {/* Pre-Closure Clearance & Readiness Scorecard */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-2">
+        <div className="card-surface p-6 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 font-bold">
             <span>الطلاب المقيدون</span>
             <GraduationCap className="w-4 h-4 text-blue-600" />
           </div>
-          <h3 className="text-2xl font-black text-slate-900">{auditData.totalActiveStudents} طالب</h3>
-          <p className="text-[11px] text-slate-400">مشمولون بالترقية أو التخرج</p>
+          <h3 className="text-2xl font-bold text-slate-900">{auditData.totalActiveStudents} طالب</h3>
+          <p className="text-[11px] text-slate-500">مشمولون بالترقية أو التخرج</p>
         </div>
 
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-2">
+        <div className="card-surface p-6 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 font-bold">
             <span>إجمالي الذمم والأقساط غير المسددة</span>
             <CreditCard className="w-4 h-4 text-rose-600" />
           </div>
-          <h3 className="text-xl font-black text-rose-600">
+          <h3 className="text-xl font-bold text-rose-600">
             {Number(auditData.totalSchoolDebt).toLocaleString()} {auditData.currency}
           </h3>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-500">
             {auditData.studentsWithDebt.length} طالب بذمتهم متبقي
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-2">
+        <div className="card-surface p-6 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 font-bold">
             <span>الدرجات غير المرصودة</span>
             <FileCheck className="w-4 h-4 text-amber-600" />
           </div>
-          <h3 className="text-2xl font-black text-slate-900">
+          <h3 className="text-2xl font-bold text-slate-900">
             {auditData.studentsWithIncompleteGrades.length} طالب
           </h3>
-          <p className="text-[11px] text-slate-400">بانتظار رصد وقفل النهائي</p>
+          <p className="text-[11px] text-slate-500">بانتظار رصد وقفل النهائي</p>
         </div>
 
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-2">
+        <div className="card-surface p-6 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 font-bold">
             <span>جاهزية الإغلاق والترقية</span>
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <ShieldCheck className="w-4 h-4 text-brand-600" />
           </div>
-          <h3 className="text-lg font-black text-slate-900">
-            {auditData.isReadyForClosure ? "مكتمل 100% ✅" : "يتطلب حسم الذمم ⏳"}
+          <h3 className="text-lg font-bold text-brand-700">
+            {auditData.isReadyForClosure ? "مكتمل 100%" : "يتطلب حسم الذمم"}
           </h3>
-          <p className="text-[11px] text-slate-400">فحص براءة الذمة</p>
+          <p className="text-[11px] text-slate-500">فحص براءة الذمة</p>
         </div>
       </div>
 
       {/* Pre-Closure Debt & Clearance Ledger */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden space-y-4 p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      <div className="card-surface overflow-hidden space-y-4 p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
           <div>
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-rose-600" />
               <span>كشف براءة الذمة المالية للطلاب قبل الإغلاق</span>
             </h3>
@@ -246,20 +246,20 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
               value={debtSearch}
               onChange={(e) => setDebtSearch(e.target.value)}
               placeholder="بحث في ذمم الطلاب..."
-              className="w-full pl-4 pr-10 py-2 rounded-xl border border-slate-200 text-xs outline-none"
+              className="w-full pl-4 pr-10 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-xs outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
+            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
           </div>
         </div>
 
         {filteredDebtStudents.length === 0 ? (
-          <div className="text-center py-12 text-slate-400 text-xs">
-            🎉 لا توجد أي ذمم مالية معلقة! جميع الطلاب مسددون أو حاصلون على براءة ذمة.
+          <div className="text-center py-12 text-slate-500 text-xs font-bold">
+            لا توجد أي ذمم مالية معلقة! جميع الطلاب مسددون أو حاصلون على براءة ذمة.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-right text-xs">
-              <thead className="bg-slate-50 font-bold text-slate-800">
+              <thead className="bg-slate-50 font-semibold text-slate-500 border-b border-slate-200">
                 <tr>
                   <th className="p-3.5">الطالب</th>
                   <th className="p-3.5">الصف</th>
@@ -271,10 +271,10 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredDebtStudents.map((s: any) => (
-                  <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
+                  <tr key={s.id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-3.5 font-bold text-slate-900">
                       <span>{s.fullName}</span>
-                      <span className="block font-mono text-[10px] text-slate-400">
+                      <span className="block font-mono text-[10px] text-slate-500">
                         {s.studentNumber} | {s.guardianPhone}
                       </span>
                     </td>
@@ -282,22 +282,22 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
                     <td className="p-3.5 font-bold text-slate-900">
                       {Number(s.totalTuition).toLocaleString()} {auditData.currency}
                     </td>
-                    <td className="p-3.5 font-bold text-emerald-700">
+                    <td className="p-3.5 font-bold text-brand-700">
                       {Number(s.totalPaid).toLocaleString()} {auditData.currency}
                     </td>
-                    <td className="p-3.5 font-black text-rose-700">
+                    <td className="p-3.5 font-bold text-rose-600">
                       {Number(s.remaining).toLocaleString()} {auditData.currency}
                     </td>
                     <td className="p-3.5 text-center">
                       <button
                         onClick={() => handleToggleClearance(s.id, s.isCleared)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                           s.isCleared
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                            : "bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-700"
+                            ? "bg-brand-50 text-brand-700 border border-brand-100"
+                            : "bg-white hover:bg-slate-50 text-slate-600 border border-slate-300"
                         }`}
                       >
-                        {s.isCleared ? "تمت براءة الذمة ✅" : "منح براءة ذمة وترحيل"}
+                        {s.isCleared ? "تمت براءة الذمة ✓" : "منح براءة ذمة وترحيل"}
                       </button>
                     </td>
                   </tr>
@@ -309,9 +309,9 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
       </div>
 
       {/* Class Progression Matrix (خطة انتقال وترقية الصفوف) */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
-        <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-emerald-600" />
+      <div className="card-surface p-6 space-y-4">
+        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-brand-600" />
           <span>مسار الترقية التلقائية والتخرج للصفوف الدراسية</span>
         </h3>
 
@@ -323,19 +323,19 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
             return (
               <div
                 key={c.id}
-                className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2"
+                className="p-4 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-2"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-black text-slate-900 text-sm">{c.name}</span>
+                  <span className="font-bold text-slate-900 text-sm">{c.name}</span>
                   <Badge variant={isLast ? "success" : "info"}>
-                    {isLast ? "مرحلة منتهية 🎓" : "مرحلة انتقالية"}
+                    {isLast ? "مرحلة منتهية" : "مرحلة انتقالية"}
                   </Badge>
                 </div>
 
-                <div className="flex items-center gap-2 text-slate-600 pt-2 border-t border-slate-200">
+                <div className="flex items-center gap-2 text-slate-500 pt-2 border-t border-slate-200">
                   <span>ينتقل إلى:</span>
-                  <span className="font-bold text-slate-900">
-                    {isLast ? "أرشيف الخريجين الدائم 🏛️" : next?.name}
+                  <span className="font-bold text-brand-700">
+                    {isLast ? "أرشيف الخريجين الدائم" : next?.name}
                   </span>
                 </div>
               </div>
@@ -346,24 +346,24 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
 
       {/* Historical Closures */}
       {auditData.pastClosures.length > 0 && (
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
-          <h3 className="text-base font-black text-slate-900">سجل إغلاق الأعوام السابقة</h3>
+        <div className="card-surface p-6 space-y-4">
+          <h3 className="text-base font-bold text-slate-900">سجل إغلاق الأعوام السابقة</h3>
           <div className="divide-y divide-slate-100">
             {auditData.pastClosures.map((cl: any) => (
               <div key={cl.id} className="py-3.5 flex items-center justify-between text-xs">
                 <div>
                   <span className="font-bold text-slate-900 block text-sm">
-                    العام المغلق: {cl.closedYear} ➔ العام الجديد: {cl.newYear}
+                    العام المغلق: {cl.closedYear} ← العام الجديد: {cl.newYear}
                   </span>
-                  <span className="text-slate-400 font-mono text-[11px]">
+                  <span className="text-slate-500 font-mono text-[11px]">
                     تاريخ الإغلاق: {cl.closureDate}
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-xl">
+                  <span className="text-brand-700 font-bold bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-100">
                     ترقية: {cl.promotedCount} طالب
                   </span>
-                  <span className="text-blue-700 font-bold bg-blue-50 px-2.5 py-1 rounded-xl">
+                  <span className="text-blue-700 font-bold bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
                     تخرج: {cl.graduatedCount} طالب
                   </span>
                 </div>
@@ -380,13 +380,13 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
         title="تأكيد إغلاق العام الدراسي وفتح العام الجديد"
         maxWidth="lg"
       >
-        <form onSubmit={handleExecuteClosure} className="space-y-4">
-          <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-900 text-xs space-y-2">
-            <h4 className="font-black text-sm flex items-center gap-1.5">
+        <form onSubmit={handleExecuteClosure} className="space-y-4 font-cairo text-slate-900">
+          <div className="p-4 bg-rose-50 border border-rose-200 rounded-lg text-rose-800 text-xs space-y-2">
+            <h4 className="font-bold text-sm flex items-center gap-1.5 text-rose-700">
               <AlertTriangle className="w-4 h-4 text-rose-600" />
               <span>إجراء إداري هام وحاسم:</span>
             </h4>
-            <ul className="list-disc list-inside space-y-1 text-[11px] leading-relaxed">
+            <ul className="list-disc list-inside space-y-1 text-[11px] leading-relaxed text-slate-600">
               <li>سيتم تثبيت وتجميد كافة درجات ووصولات العام ({closedYear}).</li>
               <li>سيتم ترقية جميع طلاب الصفوف غير المنتهية إلى الصف التالي تلقائياً.</li>
               <li>سيتم نقل طلاب المرحلة المنتهية (السادس الإعدادي) إلى قسم وأرشيف الخريجين.</li>
@@ -397,42 +397,42 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">العام المغلق *</label>
+              <label className="block text-xs font-bold text-slate-600 mb-1">العام المغلق *</label>
               <input
                 type="text"
                 disabled
                 value={closedYear}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-slate-100 text-slate-500 font-mono"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-xs font-bold bg-slate-50 text-slate-400 font-mono"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">العام الدراسي الجديد *</label>
+              <label className="block text-xs font-bold text-slate-600 mb-1">العام الدراسي الجديد *</label>
               <input
                 type="text"
                 required
                 value={newYear}
                 onChange={(e) => setNewYear(e.target.value)}
                 placeholder="2025-2026"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold font-mono outline-none focus:border-indigo-500"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-xs font-bold font-mono outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">تاريخ الإغلاق الفعلي *</label>
+            <label className="block text-xs font-bold text-slate-600 mb-1">تاريخ الإغلاق الفعلي *</label>
             <input
               type="date"
               required
               value={closureDate}
               onChange={(e) => setClosureDate(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none"
+              className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-bold outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
             />
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-            <label className="block text-xs font-bold text-slate-800">
+          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+            <label className="block text-xs font-bold text-slate-600">
               للتأكيد، اكتب في الحقل أدناه عبارة:{" "}
-              <span className="text-rose-700 font-black">إغلاق العام الدراسي</span>
+              <span className="text-rose-700 font-bold">إغلاق العام الدراسي</span>
             </label>
             <input
               type="text"
@@ -440,22 +440,22 @@ export const AcademicYearClient: React.FC<AcademicYearClientProps> = ({ auditDat
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder="إغلاق العام الدراسي"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-rose-300 text-xs font-bold text-rose-900 outline-none focus:border-rose-500"
+              className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-rose-300 text-xs font-bold text-slate-900 placeholder-slate-400 outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-colors"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
             <button
               type="button"
               onClick={() => setIsClosureModalOpen(false)}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100"
+              className="px-4 py-2.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100"
             >
               إلغاء
             </button>
             <button
               type="submit"
               disabled={executing || confirmText !== "إغلاق العام الدراسي"}
-              className="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-black transition-all shadow-md flex items-center gap-2"
+              className="px-6 py-2.5 rounded-lg bg-rose-700 hover:bg-rose-800 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-md flex items-center gap-2"
             >
               {executing ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />

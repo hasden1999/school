@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { setSession, clearSession, verifyPassword, hashPassword } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-// Ensure Super Admin Master account exists
+// Ensure Super Admin Master account exists securely
 export async function ensureSuperAdminExists() {
   const superAdmin = await prisma.user.findFirst({
     where: { role: "SUPER_ADMIN" },
@@ -30,17 +30,20 @@ export async function ensureSuperAdminExists() {
       });
     }
 
-    const passwordHash = await hashPassword("superadmin2024");
+    const initialPassword =
+      process.env.SUPER_ADMIN_INITIAL_PASSWORD ||
+      process.env.SUPER_ADMIN_PASSWORD ||
+      "SuperAdmin@2025#" + Math.floor(1000 + Math.random() * 9000);
+    const passwordHash = await hashPassword(initialPassword);
     await prisma.user.create({
       data: {
         tenantId: masterTenant.id,
         username: "superadmin",
         passwordHash,
-        plainPasscode: "super",
         fullName: "مالك المنظومة الرئيسي (Super Admin)",
         phone: "07800000000",
         role: "SUPER_ADMIN",
-        mustChangePassword: false,
+        mustChangePassword: true,
       },
     });
   }
@@ -125,6 +128,9 @@ export async function loginAction(formData: FormData) {
     username: user.username,
     fullName: user.fullName,
     role: user.role as any,
+    jobTitle: user.jobTitle || null,
+    permissionsJson: user.permissionsJson || null,
+    isCustomPermissions: !!user.isCustomPermissions,
     phone: user.phone,
     mustChangePassword: user.mustChangePassword,
     schoolName: user.tenant.name,
@@ -133,7 +139,14 @@ export async function loginAction(formData: FormData) {
   // Role based redirection
   if (user.role === "SUPER_ADMIN") {
     redirect("/super-admin/dashboard");
-  } else if (user.role === "ADMIN") {
+  } else if (
+    user.role === "ADMIN" ||
+    user.role === "VICE_PRINCIPAL" ||
+    user.role === "ACCOUNTANT" ||
+    user.role === "STAFF" ||
+    user.role === "SUPERVISOR" ||
+    user.role === "CUSTOM"
+  ) {
     redirect("/admin/dashboard");
   } else if (user.role === "TEACHER") {
     redirect("/teacher/dashboard");

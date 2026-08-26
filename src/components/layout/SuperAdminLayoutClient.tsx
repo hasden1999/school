@@ -14,7 +14,6 @@ import {
   Menu,
   X,
   ShieldCheck,
-  Globe2,
 } from "lucide-react";
 
 interface SuperAdminLayoutClientProps {
@@ -32,104 +31,115 @@ export const SuperAdminLayoutClient: React.FC<SuperAdminLayoutClientProps> = ({
   const links = [
     { label: "المؤشرات المركزية", href: "/super-admin/dashboard", icon: LayoutDashboard },
     { label: "إدارة المدارس والاشتراكات", href: "/super-admin/schools", icon: Building2 },
+    { label: "الأدوار ومصفوفة الصلاحيات", href: "/super-admin/roles", icon: ShieldCheck },
     { label: "سجل الإيرادات والدفعات", href: "/super-admin/billing", icon: CreditCard },
     { label: "التعميمات والإعلانات العامة", href: "/super-admin/broadcast", icon: Megaphone },
   ];
 
-  return (
-    <div className="min-h-screen bg-slate-950 flex flex-row font-cairo text-slate-100 overflow-x-hidden">
-      
-      {/* Desktop Sidebar */}
-      <aside className="w-72 bg-slate-900/90 border-l border-slate-800 flex flex-col justify-between hidden lg:flex shrink-0 h-screen sticky top-0">
-        <div>
-          {/* Brand Header */}
-          <div className="p-6 border-b border-slate-800/80">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-emerald-500 to-teal-400 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 border border-emerald-400/30">
-                <Crown className="w-7 h-7 text-amber-100" />
-              </div>
-              <div>
-                <h1 className="text-sm font-black text-white tracking-tight">لوحة مالك المنظومة</h1>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span className="text-[11px] text-emerald-400 font-bold">Super Admin Master</span>
-                </div>
-              </div>
+  const sidebarContent = (
+    <>
+      <div>
+        {/* Brand Header */}
+        <div className="px-5 py-5 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-lg bg-slate-900 text-white flex items-center justify-center">
+              <Crown className="w-6 h-6 text-amber-400" />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold text-slate-900 tracking-tight">لوحة مالك المنظومة</h1>
+              <span className="text-[11px] text-slate-500 font-medium">التحكم المركزي</span>
             </div>
           </div>
+        </div>
 
-          {/* Navigation Links */}
-          <nav className="p-4 space-y-1.5">
-            {links.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-xs transition-all ${
-                    isActive
-                      ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/30"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+        {/* Navigation Links */}
+        <nav className="p-3 space-y-0.5">
+          {links.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive ? "page" : undefined}
+                onClick={() => setMobileSidebarOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] transition-colors duration-150 relative ${
+                  isActive
+                    ? "bg-emerald-50 text-emerald-900 font-bold border-r-2 border-emerald-800"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium"
+                }`}
+              >
+                <Icon
+                  className={`w-[18px] h-[18px] shrink-0 ${
+                    isActive ? "text-emerald-800" : "text-slate-400"
                   }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+                />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
 
-        {/* Super Admin User Footer */}
-        <div className="p-4 border-t border-slate-800/80 space-y-3 bg-slate-900/60">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-md">
-                👑
-              </div>
-              <div>
-                <span className="block text-xs font-black text-white">{user.fullName || "مالك المنصة"}</span>
-                <span className="text-[10px] text-emerald-400 font-mono">@{user.username}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => logoutAction()}
-              className="p-2 rounded-xl text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-colors"
-              title="تسجيل الخروج"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 justify-center">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span>التحكم المركزي بالسيرفر وقاعدة البيانات</span>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content View */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-slate-950">
-        {/* Top Bar on Mobile */}
-        <header className="h-16 bg-slate-900/90 border-b border-slate-800 px-4 flex items-center justify-between lg:hidden sticky top-0 z-30">
+      {/* Super Admin User Footer */}
+      <div className="p-4 border-t border-slate-200 space-y-2.5 bg-slate-50/70">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-              className="p-2 rounded-xl text-slate-300 hover:bg-slate-800"
-            >
-              {mobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-            <div className="flex items-center gap-2">
-              <Crown className="w-5 h-5 text-amber-400" />
-              <span className="text-xs font-black text-white">لوحة مالك المنظومة</span>
+            <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+              {(user.fullName || "م").slice(0, 1)}
+            </div>
+            <div>
+              <span className="block text-xs font-bold text-slate-800">{user.fullName || "مالك المنصة"}</span>
+              <span className="text-[10px] text-slate-500 tabular-nums" dir="ltr">@{user.username}</span>
             </div>
           </div>
 
           <button
             onClick={() => logoutAction()}
-            className="p-2 rounded-xl text-rose-400 hover:bg-rose-500/20"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-red-700 hover:bg-red-50 transition-colors"
+            title="تسجيل الخروج"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-1.5 text-[10px] text-slate-500 justify-center pt-2 border-t border-slate-200">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
+          <span>التحكم المركزي بالسيرفر وقاعدة البيانات</span>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-row font-cairo text-slate-800 overflow-x-hidden">
+
+      {/* Desktop Sidebar */}
+      <aside className="w-72 bg-white border-l border-slate-200 flex-col justify-between hidden lg:flex shrink-0 h-screen sticky top-0 shadow-xs">
+        {sidebarContent}
+      </aside>
+
+      {/* Main Content View */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">
+        {/* Top Bar on Mobile */}
+        <header className="h-16 bg-white border-b border-slate-200 px-4 flex items-center justify-between lg:hidden sticky top-0 z-30">
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+              className="p-2 rounded-lg text-slate-500 hover:bg-slate-100"
+              aria-label="القائمة"
+            >
+              {mobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+            <div className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-amber-500" />
+              <span className="text-xs font-bold text-slate-800">لوحة مالك المنظومة</span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => logoutAction()}
+            className="p-2 rounded-lg text-slate-400 hover:text-red-700 hover:bg-red-50"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -137,25 +147,15 @@ export const SuperAdminLayoutClient: React.FC<SuperAdminLayoutClientProps> = ({
 
         {/* Mobile Navigation Drawer */}
         {mobileSidebarOpen && (
-          <div className="lg:hidden border-b border-slate-800 bg-slate-900 p-4 space-y-2 animate-fadeIn">
-            {links.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-xs ${
-                    isActive ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+          <div className="lg:hidden fixed inset-y-0 right-0 z-40 w-72 bg-white border-l border-slate-200 overflow-y-auto animate-slideInRight">
+            {sidebarContent}
           </div>
+        )}
+        {mobileSidebarOpen && (
+          <div
+            className="lg:hidden fixed inset-0 z-30 bg-slate-900/50"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
         )}
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">{children}</main>

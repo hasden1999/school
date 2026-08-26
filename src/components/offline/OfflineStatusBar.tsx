@@ -63,35 +63,35 @@ export const OfflineStatusBar: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm border ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm border ${
             !isOnline
-              ? "bg-amber-500 text-slate-950 border-amber-400 animate-pulse"
+              ? "bg-amber-50 text-amber-600 border-slate-200 animate-pulse"
               : pendingCount > 0
-              ? "bg-amber-50 text-amber-900 border-amber-300"
-              : "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+              ? "bg-white text-slate-700 border-slate-200"
+              : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
           }`}
           title="حالة الاتصال والمزامنة الأوفلاين"
         >
           {!isOnline ? (
             <>
-              <WifiOff className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+              <WifiOff className="w-3.5 h-3.5 text-amber-600 shrink-0" />
               <span>أوفلاين (بدون إنترنت)</span>
               {pendingCount > 0 && (
-                <span className="bg-slate-950 text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full font-black">
+                <span className="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
                   {pendingCount}
                 </span>
               )}
             </>
           ) : (
             <>
-              <Wifi className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-green-500 shrink-0"></span>
               <span className="hidden sm:inline">متصل</span>
               {pendingCount > 0 ? (
-                <span className="bg-amber-500 text-slate-950 text-[10px] px-1.5 py-0.2 rounded-full font-black animate-pulse">
+                <span className="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.2 rounded-full font-bold animate-pulse">
                   {pendingCount} معلقة
                 </span>
               ) : (
-                <span className="text-[10px] text-emerald-600 font-bold hidden md:inline">
+                <span className="text-[10px] text-brand-700 font-bold hidden md:inline">
                   متزامن
                 </span>
               )}
@@ -102,34 +102,34 @@ export const OfflineStatusBar: React.FC = () => {
 
       {/* Offline Status & Sync Drawer Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden font-cairo animate-scaleUp">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 animate-fadeIn">
+          <div className="card-surface shadow-pop max-w-lg w-full overflow-hidden font-cairo animate-scaleUp">
             {/* Header */}
-            <div className="p-5 bg-gradient-to-l from-slate-900 via-slate-800 to-emerald-950 text-white flex items-center justify-between">
+            <div className="p-5 bg-white border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-10 h-10 rounded-2xl flex items-center justify-center border shadow-inner ${
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center border ${
                     !isOnline
-                      ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
-                      : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                      ? "bg-amber-50 text-amber-600 border-amber-200"
+                      : "bg-brand-50 text-brand-700 border-brand-100"
                   }`}
                 >
                   {!isOnline ? <WifiOff className="w-5 h-5" /> : <Wifi className="w-5 h-5" />}
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-white flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                     <span>مركز المزامنة والعمل بدون إنترنت</span>
                     <span
                       className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                         !isOnline
-                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                          : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : "bg-brand-50 text-brand-700 border border-brand-100"
                       }`}
                     >
                       {!isOnline ? "وضع الأوفلاين نشط" : "متصل بالإنترنت"}
                     </span>
                   </h3>
-                  <p className="text-[11px] text-slate-300 mt-0.5">
+                  <p className="text-[11px] text-slate-500 mt-0.5">
                     النظام يعمل محلياً بكامل طاقته في حال انقطاع الشبكة مع مزامنة تلقائية.
                   </p>
                 </div>
@@ -138,7 +138,7 @@ export const OfflineStatusBar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -148,22 +148,22 @@ export const OfflineStatusBar: React.FC = () => {
             <div className="p-6 space-y-5 text-xs text-slate-700">
               {/* Feedback Alert */}
               {lastSyncMessage && (
-                <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="p-3.5 rounded-lg bg-brand-50 border border-brand-100 text-brand-800 font-bold flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-brand-700 shrink-0" />
                   <span>{lastSyncMessage}</span>
                 </div>
               )}
 
               {/* Real-time Progress Bar for Offline Preparation */}
               {isCaching && preparationProgress && (
-                <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-black text-indigo-950">
+                <div className="p-4 rounded-lg bg-indigo-50 border border-indigo-200 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-indigo-800">
                     <span>{preparationProgress.currentStep}</span>
                     <span>{preparationProgress.progressPercent}%</span>
                   </div>
                   <div className="w-full h-2.5 bg-indigo-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-indigo-600 to-emerald-500 transition-all duration-300 rounded-full"
+                      className="h-full bg-brand-600 transition-all duration-300 rounded-full"
                       style={{ width: `${preparationProgress.progressPercent}%` }}
                     />
                   </div>
@@ -172,11 +172,11 @@ export const OfflineStatusBar: React.FC = () => {
 
               {/* Status Summary Card */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                  <span className="text-[11px] text-slate-400 font-bold block">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                  <span className="text-[11px] text-slate-500 font-bold block">
                     العمليات المعلقة للمزامنة
                   </span>
-                  <span className="text-xl font-black text-slate-900">
+                  <span className="text-xl font-bold text-slate-900">
                     {pendingCount} عملية
                   </span>
                   <span className="text-[10px] text-slate-500 block">
@@ -186,11 +186,11 @@ export const OfflineStatusBar: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                  <span className="text-[11px] text-slate-400 font-bold block">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                  <span className="text-[11px] text-slate-500 font-bold block">
                     بيانات المدرسة المحفوظة محلياً
                   </span>
-                  <span className="text-xl font-black text-emerald-800">
+                  <span className="text-xl font-bold text-brand-800">
                     {cachedSchool ? `${cachedSchool.students?.length || 0} طالب` : "غير مخزنة"}
                   </span>
                   <span className="text-[10px] text-slate-500 block truncate">
@@ -204,7 +204,7 @@ export const OfflineStatusBar: React.FC = () => {
               {/* Action Buttons */}
               <div className="space-y-2.5">
                 {cloudSyncFeedback && (
-                  <div className="p-3 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-950 font-bold flex items-center gap-2">
+                  <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 font-bold flex items-center gap-2">
                     <CloudLightning className="w-4 h-4 text-indigo-600 shrink-0" />
                     <span>{cloudSyncFeedback}</span>
                   </div>
@@ -214,35 +214,35 @@ export const OfflineStatusBar: React.FC = () => {
                   type="button"
                   onClick={prepareDeviceOffline}
                   disabled={isCaching || !isOnline}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-black transition-all shadow-md flex items-center justify-center gap-2 border border-emerald-400/40"
+                  className="w-full py-3.5 px-4 rounded-lg bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold transition-all shadow-sm flex items-center justify-center gap-2"
                 >
                   {isCaching ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
                   ) : (
-                    <DownloadCloud className="w-4 h-4 text-emerald-200" />
+                    <DownloadCloud className="w-4 h-4 text-white" />
                   )}
-                  <span>تجهيز الجهاز للعمل بدون إنترنت (Download Full Offline Data) 💾</span>
+                  <span>تجهيز الجهاز للعمل بدون إنترنت (Download Full Offline Data)</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleCloudBridgeSync}
                   disabled={isCloudSyncing || !isOnline}
-                  className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black transition-all shadow-md flex items-center justify-center gap-2 border border-slate-700"
+                  className="w-full py-3 px-4 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 disabled:opacity-50 text-slate-700 font-bold transition-all shadow-sm flex items-center justify-center gap-2"
                 >
                   {isCloudSyncing ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
                   ) : (
-                    <CloudLightning className="w-4 h-4 text-amber-300" />
+                    <CloudLightning className="w-4 h-4 text-amber-500" />
                   )}
-                  <span>مزامنة السيرفر السحابي ثنائياً (Two-Way Cloud Sync) ☁️</span>
+                  <span>مزامنة السيرفر السحابي ثنائياً (Two-Way Cloud Sync)</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={triggerSync}
                   disabled={isSyncing || !isOnline || pendingCount === 0}
-                  className="w-full py-2.5 px-4 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 font-black transition-all shadow-sm flex items-center justify-center gap-2"
+                  className="w-full py-2.5 px-4 rounded-lg bg-amber-700 hover:bg-amber-800 disabled:opacity-50 text-white font-bold transition-all shadow-sm flex items-center justify-center gap-2"
                 >
                   {isSyncing ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
@@ -256,28 +256,28 @@ export const OfflineStatusBar: React.FC = () => {
               {/* Pending Operations List preview if any */}
               {pendingItems.length > 0 && (
                 <div className="space-y-2 pt-2 border-t border-slate-100">
-                  <span className="font-black text-slate-800 block text-[11px]">
+                  <span className="font-bold text-slate-800 block text-[11px]">
                     قائمة العمليات المسجلة أوفلاين بانتظار المزامنة:
                   </span>
                   <div className="max-h-36 overflow-y-auto space-y-1.5 scrollbar-thin">
                     {pendingItems.map((item) => (
                       <div
                         key={item.operationId}
-                        className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-[11px]"
+                        className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-[11px]"
                       >
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-900">
                             {item.entity === "ATTENDANCE"
-                              ? "📋 تسجيل حضور وغياب"
+                              ? "تسجيل حضور وغياب"
                               : item.entity === "GRADE"
-                              ? "🏆 رصد درجات مرحلية"
+                              ? "رصد درجات مرحلية"
                               : item.entity === "PAYMENT"
-                              ? "💳 سند قبض مالي"
+                              ? "سند قبض مالي"
                               : item.entity === "STUDENT"
-                              ? "👤 إضافة طالب جديد"
+                              ? "إضافة طالب جديد"
                               : "عملية محلية"}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-mono">
+                          <span className="text-[10px] text-slate-500 font-mono">
                             {new Date(item.timestamp).toLocaleTimeString("ar-IQ")}
                           </span>
                         </div>
@@ -305,7 +305,7 @@ export const OfflineStatusBar: React.FC = () => {
 
             {/* Modal Footer */}
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-              <span>💡 المزامنة تعمل آلياً في الخلفية فور التقاط الإنترنت.</span>
+              <span>المزامنة تعمل آلياً في الخلفية فور التقاط الإنترنت.</span>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}

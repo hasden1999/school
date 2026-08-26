@@ -101,7 +101,7 @@ export const NotificationBellDropdown: React.FC<NotificationBellDropdownProps> =
       case "LEAVE":
         return <CalendarCheck className="w-4 h-4 text-amber-600" />;
       case "PAYMENT":
-        return <CreditCard className="w-4 h-4 text-emerald-600" />;
+        return <CreditCard className="w-4 h-4 text-brand-600" />;
       case "ATTENDANCE":
         return <UserCheck className="w-4 h-4 text-rose-600" />;
       default:
@@ -131,14 +131,14 @@ export const NotificationBellDropdown: React.FC<NotificationBellDropdownProps> =
         }}
         className={`relative p-2 sm:p-2.5 rounded-xl transition-all ${
           variant === "dark"
-            ? "text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700"
+            ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
             : "text-slate-700 hover:bg-slate-100 border border-slate-200 shadow-sm"
         }`}
         title="الإشعارات والتنبيهات"
       >
         <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white font-black text-[10px] flex items-center justify-center animate-pulse border-2 border-white shadow-sm">
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white font-bold text-[10px] flex items-center justify-center animate-pulse border-2 border-white shadow-sm">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -146,15 +146,15 @@ export const NotificationBellDropdown: React.FC<NotificationBellDropdownProps> =
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-80 sm:w-96 max-w-[92vw] bg-white rounded-3xl shadow-2xl border border-slate-200 z-50 overflow-hidden animate-fadeIn">
+        <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-80 sm:w-96 max-w-[92vw] card-surface shadow-pop z-50 overflow-hidden animate-fadeIn">
           {/* Header */}
-          <div className="p-4 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-700 border border-brand-100 flex items-center justify-center">
                 <Bell className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-xs font-black text-slate-900">مركز الإشعارات</h4>
+                <h4 className="text-xs font-bold text-slate-900">مركز الإشعارات</h4>
                 <p className="text-[10px] text-slate-500 font-medium">
                   {unreadCount > 0 ? `${unreadCount} إشعار جديد بانتظارك` : "لا توجد إشعارات جديدة"}
                 </p>
@@ -165,7 +165,7 @@ export const NotificationBellDropdown: React.FC<NotificationBellDropdownProps> =
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors"
+                className="text-[11px] font-bold text-brand-700 hover:text-brand-800 flex items-center gap-1 bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-100 transition-colors"
                 title="تحديد جميع الإشعارات كمقروءة"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
@@ -182,7 +182,7 @@ export const NotificationBellDropdown: React.FC<NotificationBellDropdownProps> =
                 onClick={() => setFilter("ALL")}
                 className={`px-3 py-1 rounded-lg font-bold transition-all ${
                   filter === "ALL"
-                    ? "bg-slate-900 text-white"
+                    ? "bg-brand-50 text-brand-800"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
@@ -193,7 +193,7 @@ export const NotificationBellDropdown: React.FC<NotificationBellDropdownProps> =
                 onClick={() => setFilter("UNREAD")}
                 className={`px-3 py-1 rounded-lg font-bold transition-all ${
                   filter === "UNREAD"
-                    ? "bg-rose-500 text-white"
+                    ? "bg-brand-50 text-brand-800"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
@@ -205,28 +205,28 @@ export const NotificationBellDropdown: React.FC<NotificationBellDropdownProps> =
           {/* Notifications List */}
           <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
             {filteredList.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-xs space-y-1">
-                <p>📭 لا توجد إشعارات لعرضها حالياً</p>
+              <div className="py-12 text-center text-slate-500 text-xs space-y-1">
+                <p>لا توجد إشعارات لعرضها حالياً</p>
               </div>
             ) : (
               filteredList.map((notif) => (
                 <div
                   key={notif.id}
                   onClick={() => handleNotificationClick(notif)}
-                  className={`p-3.5 text-right transition-all cursor-pointer flex items-start gap-3 hover:bg-slate-50 ${
-                    !notif.isRead ? "bg-emerald-50/40 font-medium" : "bg-white"
+                  className={`p-3.5 text-right transition-all cursor-pointer flex items-start gap-3 hover:bg-slate-100 ${
+                    !notif.isRead ? "bg-brand-50/50 font-medium" : "bg-white"
                   }`}
                 >
-                  <div className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200/80 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
                     {getNotificationIcon(notif.type)}
                   </div>
 
                   <div className="flex-1 min-w-0 space-y-0.5">
                     <div className="flex items-center justify-between gap-1">
-                      <h5 className="text-xs font-black text-slate-900 line-clamp-1">
+                      <h5 className="text-xs font-bold text-slate-900 line-clamp-1">
                         {notif.title}
                       </h5>
-                      <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                      <span className="text-[10px] text-slate-500 font-mono shrink-0">
                         {formatRelativeTime(notif.createdAt)}
                       </span>
                     </div>
@@ -234,7 +234,7 @@ export const NotificationBellDropdown: React.FC<NotificationBellDropdownProps> =
                       {notif.message}
                     </p>
                     {notif.link && (
-                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold mt-1">
+                      <span className="inline-flex items-center gap-1 text-[10px] text-brand-700 font-bold mt-1">
                         <span>انقر للمعاينة</span>
                         <ExternalLink className="w-2.5 h-2.5" />
                       </span>
@@ -242,7 +242,7 @@ export const NotificationBellDropdown: React.FC<NotificationBellDropdownProps> =
                   </div>
 
                   {!notif.isRead && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1.5 shadow-sm"></span>
+                    <span className="w-2 h-2 rounded-full bg-brand-600 shrink-0 mt-1.5 shadow-sm"></span>
                   )}
                 </div>
               ))

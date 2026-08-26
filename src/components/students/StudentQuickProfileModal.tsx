@@ -48,8 +48,6 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
   onOpenReportCard,
   onOpenReceipt,
 }) => {
-  if (!student) return null;
-
   const [activeTab, setActiveTab] = useState<"INFO" | "PAYMENT" | "DOCS" | "GRADES">("INFO");
 
   // Payment Form state
@@ -62,7 +60,9 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
 
   // Docs state
   const [updatingDocId, setUpdatingDocId] = useState<string | null>(null);
-  const [docsList, setDocsList] = useState<any[]>(student.documents || []);
+  const [docsList, setDocsList] = useState<any[]>(student?.documents || []);
+
+  if (!isOpen || !student) return null;
 
   const totalPaid =
     (student.paymentReceipts || []).reduce((sum: number, r: any) => sum + r.amount, 0) +
@@ -136,24 +136,24 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
     >
       <div className="space-y-6">
         {/* Student Quick Identity Banner */}
-        <div className="bg-gradient-to-l from-slate-900 via-slate-800 to-emerald-950 p-5 sm:p-6 rounded-3xl text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-slate-50 border border-slate-200 p-5 sm:p-6 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xl shrink-0">
+            <div className="w-14 h-14 rounded-lg bg-brand-50 text-brand-700 border border-brand-100 flex items-center justify-center font-bold text-xl shrink-0">
               {student.user.fullName.slice(0, 1)}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-black text-white">{student.user.fullName}</h3>
+                <h3 className="text-lg font-bold text-slate-900">{student.user.fullName}</h3>
                 <Badge variant={student.registrationStatus === "ACTIVE" ? "success" : "neutral"}>
                   {student.registrationStatus === "ACTIVE" ? "مقيد منتظم" : student.registrationStatus}
                 </Badge>
               </div>
-              <p className="text-xs text-slate-300 flex items-center gap-2 font-medium">
+              <p className="text-xs text-slate-600 flex items-center gap-2 font-medium">
                 <span>{student.classRoom?.name}</span>
                 <span>•</span>
                 <span>شعبة ({student.section?.name})</span>
                 <span>•</span>
-                <span className="font-mono text-emerald-400">{student.studentNumber}</span>
+                <span className="font-mono text-brand-700">{student.studentNumber}</span>
               </p>
             </div>
           </div>
@@ -164,7 +164,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                 href={waUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 <span>واتساب ولي الأمر</span>
@@ -177,7 +177,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                   onClose();
                   onOpenReportCard(student);
                 }}
-                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/20 flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all border border-slate-300 flex items-center gap-1.5"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>الشهادة</span>
@@ -190,9 +190,9 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200">
           <button
             onClick={() => setActiveTab("INFO")}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeTab === "INFO"
-                ? "bg-slate-900 text-white shadow-sm"
+                ? "bg-brand-50 text-brand-800 border border-brand-100 shadow-sm"
                 : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
@@ -202,9 +202,9 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
 
           <button
             onClick={() => setActiveTab("PAYMENT")}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeTab === "PAYMENT"
-                ? "bg-emerald-600 text-white shadow-sm"
+                ? "bg-brand-50 text-brand-800 border border-brand-100 shadow-sm"
                 : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
@@ -214,9 +214,9 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
 
           <button
             onClick={() => setActiveTab("DOCS")}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeTab === "DOCS"
-                ? "bg-blue-600 text-white shadow-sm"
+                ? "bg-brand-50 text-brand-800 border border-brand-100 shadow-sm"
                 : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
@@ -226,9 +226,9 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
 
           <button
             onClick={() => setActiveTab("GRADES")}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeTab === "GRADES"
-                ? "bg-purple-600 text-white shadow-sm"
+                ? "bg-brand-50 text-brand-800 border border-brand-100 shadow-sm"
                 : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
@@ -241,34 +241,34 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
         {activeTab === "INFO" && (
           <div className="space-y-4 animate-fadeIn">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
-                <span className="text-[11px] font-bold text-slate-400 block">اسم ولي الأمر:</span>
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 block">اسم ولي الأمر:</span>
                 <span className="text-sm font-bold text-slate-900">{student.guardianName}</span>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
-                <span className="text-[11px] font-bold text-slate-400 block">رقم هاتف ولي الأمر:</span>
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 block">رقم هاتف ولي الأمر:</span>
                 <span className="text-sm font-bold text-slate-900 font-mono" dir="ltr">
                   {student.guardianPhone}
                 </span>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
-                <span className="text-[11px] font-bold text-slate-400 block">تاريخ الميلاد:</span>
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 block">تاريخ الميلاد:</span>
                 <span className="text-sm font-bold text-slate-900">
                   {student.dateOfBirth || "غير محدد"}
                 </span>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
-                <span className="text-[11px] font-bold text-slate-400 block">عنوان السكن:</span>
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 block">عنوان السكن:</span>
                 <span className="text-sm font-bold text-slate-900">
                   {student.address || "بغداد - الكرخ"}
                 </span>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
-                <span className="text-[11px] font-bold text-slate-400 block">تاريخ التسجيل:</span>
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 block">تاريخ التسجيل:</span>
                 <span className="text-sm font-bold text-slate-900">
                   {new Date(student.createdAt).toLocaleDateString("ar-IQ")}
                 </span>
@@ -276,26 +276,26 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
             </div>
 
             {/* Dedicated Credentials Box */}
-            <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-950 border border-emerald-500/30 text-white shadow-xl space-y-3">
+            <div className="p-5 rounded-xl bg-brand-50 border border-brand-100 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  <div className="p-2 rounded-lg bg-white text-brand-700 border border-brand-100">
                     <KeyRound className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-white">بيانات دخول الطالب للمنظومة</h4>
-                    <p className="text-[10px] text-slate-400">حساب خماسي مخصص باللغة الإنجليزية</p>
+                    <h4 className="text-xs font-bold text-brand-800">بيانات دخول الطالب للمنظومة</h4>
+                    <p className="text-[10px] text-slate-500">حساب خماسي مخصص باللغة الإنجليزية</p>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => {
-                    const text = `بيانات الدخول لمنظومة المدرسة:\nالطالب: ${student.user.fullName}\nاسم المستخدم: ${student.user.username}\nرمز المرور: ${student.user.plainPasscode || "stu123"}\nرابط المنظومة: ${window.location.origin}/login`;
+                    const text = `بيانات الدخول لمنظومة المدرسة:\nالطالب: ${student.user.fullName}\nاسم المستخدم: ${student.user.username}\nرمز المرور: ${student.user.plainPasscode || "(تم تغييره)"}\nرابط المنظومة: ${window.location.origin}/login`;
                     navigator.clipboard.writeText(text);
                     alert("✓ تم نسخ بيانات الدخول بنجاح!");
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
                 >
                   <Copy className="w-3.5 h-3.5" />
                   <span>نسخ البيانات</span>
@@ -303,17 +303,17 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-1 text-xs">
-                <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block mb-0.5">اسم المستخدم (Username):</span>
-                  <span className="font-mono text-sm font-black text-emerald-400 tracking-wider">
+                <div className="p-3 rounded-lg bg-white border border-slate-200">
+                  <span className="text-[10px] text-slate-500 block mb-0.5">اسم المستخدم (Username):</span>
+                  <span className="font-mono text-sm font-bold text-brand-700 tracking-wider">
                     {student.user.username}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block mb-0.5">رمز المرور (Passcode):</span>
-                  <span className="font-mono text-sm font-black text-amber-400 tracking-wider">
-                    {student.user.plainPasscode || "stu123"}
+                <div className="p-3 rounded-lg bg-white border border-slate-200">
+                  <span className="text-[10px] text-slate-500 block mb-0.5">رمز المرور (Passcode):</span>
+                  <span className="font-mono text-sm font-bold text-amber-700 tracking-wider">
+                    {student.user.plainPasscode || "••••••"}
                   </span>
                 </div>
               </div>
@@ -326,40 +326,40 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
           <div className="space-y-5 animate-fadeIn">
             {/* Financial Balance Overview Card */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1">
+              <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 text-center space-y-1">
                 <span className="text-[11px] font-bold text-slate-500 block">القسط السنوي الكلي</span>
-                <span className="text-base font-black text-slate-900">
+                <span className="text-base font-bold text-slate-900">
                   {Number(student.totalTuition).toLocaleString()} {currency}
                 </span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
-                <span className="text-[11px] font-bold text-emerald-800 block">المدفوع حتى الآن</span>
-                <span className="text-base font-black text-emerald-800">
+              <div className="p-4 rounded-lg bg-brand-50 border border-brand-100 text-center space-y-1">
+                <span className="text-[11px] font-bold text-brand-800 block">المدفوع حتى الآن</span>
+                <span className="text-base font-bold text-brand-800">
                   {Number(totalPaid).toLocaleString()} {currency}
                 </span>
               </div>
 
               <div
-                className={`p-4 rounded-2xl text-center space-y-1 border ${
+                className={`p-4 rounded-lg text-center space-y-1 border ${
                   remainingTuition > 0
                     ? "bg-rose-50 border-rose-200 text-rose-800"
-                    : "bg-emerald-50 border-emerald-200 text-emerald-800"
+                    : "bg-brand-50 border-brand-100 text-brand-800"
                 }`}
               >
                 <span className="text-[11px] font-bold block">
                   {remainingTuition > 0 ? "المتبقي بذمة الطالب" : "حالة السداد"}
                 </span>
-                <span className="text-base font-black">
+                <span className="text-base font-bold">
                   {remainingTuition > 0
                     ? `${Number(remainingTuition).toLocaleString()} ${currency}`
-                    : "مسدد بالكامل ✅"}
+                    : "مسدد بالكامل"}
                 </span>
               </div>
             </div>
 
             {paySuccess && (
-              <div className="p-4 rounded-2xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-2 shadow animate-fadeIn">
+              <div className="p-4 rounded-lg bg-brand-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm animate-fadeIn">
                 <CheckCircle2 className="w-5 h-5 shrink-0" />
                 <span>{paySuccess}</span>
               </div>
@@ -369,10 +369,10 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
             {remainingTuition > 0 ? (
               <form
                 onSubmit={handleRecordPayment}
-                className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-4"
+                className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4"
               >
-                <h4 className="text-xs font-black text-slate-900 flex items-center gap-2">
-                  <Plus className="w-4 h-4 text-emerald-600" />
+                <h4 className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-brand-600" />
                   <span>تسجيل دفعة جديدة وإصدار وصل قبض فوري</span>
                 </h4>
 
@@ -389,7 +389,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                       step="5000"
                       value={payAmount}
                       onChange={(e) => setPayAmount(Number(e.target.value))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-black font-mono outline-none focus:border-emerald-500"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-xs font-bold font-mono text-slate-900 placeholder-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
                     />
                   </div>
 
@@ -400,7 +400,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                     <select
                       value={paymentMethod}
                       onChange={(e) => setPaymentMethod(e.target.value as any)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none focus:border-emerald-500"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
                     >
                       <option value="CASH">نقدي (كاش بالخزينة)</option>
                       <option value="ZAIN_CASH">زين كاش (ZainCash)</option>
@@ -417,7 +417,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                       value={payNotes}
                       onChange={(e) => setPayNotes(e.target.value)}
                       placeholder="دفعة القسط الثاني..."
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium outline-none focus:border-emerald-500"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
                     />
                   </div>
                 </div>
@@ -428,7 +428,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                       type="checkbox"
                       checked={notifyWhatsApp}
                       onChange={(e) => setNotifyWhatsApp(e.target.checked)}
-                      className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                      className="rounded border-slate-300 text-brand-600 focus:ring-brand-600 w-4 h-4"
                     />
                     <span>إرسال إشعار وصل القبض فورياً لولي الأمر عبر واتساب</span>
                   </label>
@@ -436,7 +436,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                   <button
                     type="submit"
                     disabled={paying}
-                    className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white text-xs font-black transition-all shadow-md flex items-center gap-2"
+                    className="px-6 py-2.5 rounded-lg bg-brand-700 hover:bg-brand-800 disabled:bg-brand-300 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-2"
                   >
                     {paying ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
@@ -448,10 +448,10 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                 </div>
               </form>
             ) : (
-              <div className="p-6 rounded-3xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
-                <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-                <h4 className="text-sm font-black text-emerald-900">الطالب بريء الذمة المالية بالكامل!</h4>
-                <p className="text-xs text-emerald-700">تم تسديد كامل القسط السنوي المحدد لهذا العام.</p>
+              <div className="p-6 rounded-xl bg-brand-50 border border-brand-100 text-center space-y-1">
+                <CheckCircle2 className="w-8 h-8 text-brand-700 mx-auto" />
+                <h4 className="text-sm font-bold text-brand-800">الطالب بريء الذمة المالية بالكامل!</h4>
+                <p className="text-xs text-brand-700">تم تسديد كامل القسط السنوي المحدد لهذا العام.</p>
               </div>
             )}
 
@@ -463,7 +463,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                   {student.paymentReceipts.map((rec: any) => (
                     <div
                       key={rec.id}
-                      className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs flex items-center justify-between"
+                      className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs flex items-center justify-between"
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-slate-800">{rec.receiptNumber}</span>
@@ -474,14 +474,14 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <span className="font-black text-emerald-800">
+                        <span className="font-bold text-brand-800">
                           {Number(rec.amount).toLocaleString()} {currency}
                         </span>
                         {onOpenReceipt && (
                           <button
                             type="button"
                             onClick={() => onOpenReceipt(rec, student)}
-                            className="p-1.5 text-slate-600 hover:text-slate-900 bg-white rounded-lg border border-slate-200"
+                            className="p-1.5 text-slate-600 hover:text-slate-900 bg-white rounded-md border border-slate-200"
                             title="طباعة الوصل"
                           >
                             <Printer className="w-3.5 h-3.5" />
@@ -509,17 +509,17 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                 return (
                   <div
                     key={doc.id}
-                    className={`p-4 rounded-2xl border text-xs flex items-center justify-between transition-all ${
+                    className={`p-4 rounded-lg border text-xs flex items-center justify-between transition-all ${
                       doc.status === "VERIFIED" || doc.status === "UPLOADED"
-                        ? "bg-emerald-50/50 border-emerald-200"
+                        ? "bg-brand-50/50 border-brand-100"
                         : "bg-rose-50/50 border-rose-200"
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 ${
+                        className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold shrink-0 ${
                           doc.status === "VERIFIED" || doc.status === "UPLOADED"
-                            ? "bg-emerald-100 text-emerald-700"
+                            ? "bg-brand-100 text-brand-700"
                             : "bg-rose-100 text-rose-700"
                         }`}
                       >
@@ -527,7 +527,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                       </div>
                       <div>
                         <h4 className="font-bold text-slate-900">{doc.requirement.title}</h4>
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-slate-500">
                           {doc.requirement.isRequired ? "إلزامي للتسجيل" : "اختياري"}
                         </span>
                       </div>
@@ -535,12 +535,12 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
 
                     <div className="flex items-center gap-2">
                       <span
-                        className={`px-2.5 py-1 rounded-xl text-[10px] font-black ${
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${
                           doc.status === "VERIFIED"
-                            ? "bg-emerald-600 text-white"
+                            ? "bg-brand-700 text-white"
                             : doc.status === "UPLOADED"
-                            ? "bg-blue-600 text-white"
-                            : "bg-rose-600 text-white"
+                            ? "bg-blue-700 text-white"
+                            : "bg-rose-700 text-white"
                         }`}
                       >
                         {doc.status === "VERIFIED"
@@ -550,12 +550,12 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                           : "ناقص"}
                       </span>
 
-                      <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200">
+                      <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200">
                         <button
                           type="button"
                           disabled={isUpdating}
                           onClick={() => handleToggleDocStatus(doc.id, "VERIFIED")}
-                          className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px]"
+                          className="px-2.5 py-1 rounded-md bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-[11px]"
                           title="تحديد كمستند مكتمل ومعتمد"
                         >
                           اعتماد ✓
@@ -564,7 +564,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                           type="button"
                           disabled={isUpdating}
                           onClick={() => handleToggleDocStatus(doc.id, "MISSING")}
-                          className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px]"
+                          className="px-2.5 py-1 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px]"
                           title="تحديد كناقص"
                         >
                           ناقص ✕
@@ -593,7 +593,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                       onClose();
                       onOpenReportCard(student, "month1");
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-sm"
+                    className="px-3 py-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold flex items-center gap-1 shadow-sm"
                     title="طباعة كشف درجات اختبار الشهر الأول"
                   >
                     <Printer className="w-3.5 h-3.5" />
@@ -606,7 +606,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                       onClose();
                       onOpenReportCard(student, "midYear");
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 shadow-sm"
+                    className="px-3 py-1.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold flex items-center gap-1 shadow-sm"
                     title="طباعة كشف درجات نصف السنة"
                   >
                     <Printer className="w-3.5 h-3.5" />
@@ -619,7 +619,7 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                       onClose();
                       onOpenReportCard(student, "FULL");
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1 shadow-sm"
+                    className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1 shadow-sm"
                     title="طباعة الشهادة الرسمية السنوية الكاملة"
                   >
                     <Printer className="w-3.5 h-3.5" />
@@ -629,16 +629,16 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
               )}
             </div>
 
-            <div className="border border-slate-200 rounded-2xl overflow-hidden">
+            <div className="border border-slate-200 rounded-xl overflow-hidden">
               <table className="w-full text-center text-xs">
-                <thead className="bg-slate-800 text-white font-bold">
+                <thead className="bg-slate-100 text-slate-900 font-bold">
                   <tr>
                     <th className="p-3 text-right">المادة</th>
                     <th className="p-3">سعي ف1</th>
                     <th className="p-3">نصف السنة</th>
                     <th className="p-3">سعي ف2</th>
-                    <th className="p-3 bg-indigo-900">السعي السنوي</th>
-                    <th className="p-3 bg-emerald-900">النهائي</th>
+                    <th className="p-3 bg-indigo-50 text-indigo-800">السعي السنوي</th>
+                    <th className="p-3 bg-brand-50 text-brand-800">النهائي</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -651,17 +651,17 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                         <td className="p-3">{g.term1Average ?? "—"}</td>
                         <td className="p-3 font-bold text-blue-900">{g.midYear ?? "—"}</td>
                         <td className="p-3">{g.term2Average ?? "—"}</td>
-                        <td className="p-3 font-black text-indigo-900 bg-indigo-50/50">
+                        <td className="p-3 font-bold text-indigo-900 bg-indigo-50/50">
                           {g.annualAverage ?? "—"}
                         </td>
-                        <td className="p-3 font-black text-emerald-900 bg-emerald-50/50">
+                        <td className="p-3 font-bold text-brand-800 bg-brand-50/50">
                           {g.finalGrade ?? "—"}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="p-6 text-slate-400">
+                      <td colSpan={6} className="p-6 text-slate-500">
                         لا توجد درجات مرصودة لهذا العام حتى الآن.
                       </td>
                     </tr>

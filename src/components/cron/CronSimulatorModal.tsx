@@ -66,10 +66,10 @@ export const CronSimulatorModal: React.FC<CronSimulatorModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="مشغل ومحاكي المهام المجدولة (Cron Jobs Engine)" maxWidth="2xl">
       <div className="space-y-6">
-        <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex items-start gap-3">
-          <Clock className="w-5 h-5 text-indigo-600 mt-0.5" />
+        <div className="p-4 rounded-lg bg-indigo-50 border border-indigo-200 flex items-start gap-3">
+          <Clock className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
           <div>
-            <h4 className="text-sm font-bold text-indigo-900">محرك الأتمتة المجدولة (Background Jobs)</h4>
+            <h4 className="text-sm font-bold text-indigo-800">محرك الأتمتة المجدولة (Background Jobs)</h4>
             <p className="text-xs text-indigo-700 mt-1 leading-relaxed">
               تعمل هذه المهام في الخلفية تلقائياً وفق التوقيتات المحددة بالوثيقة الفنية (مثل حسم الإجازات الساعة 8:00 صباحاً).
               يمكنك هنا تشغيل أي مهمة يدوياً للمعاينة الفورية والتحقق من سير المنطق.
@@ -82,7 +82,7 @@ export const CronSimulatorModal: React.FC<CronSimulatorModalProps> = ({
           {tasks.map((t) => (
             <div
               key={t.id}
-              className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm"
+              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-indigo-300 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm"
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2">
@@ -97,7 +97,7 @@ export const CronSimulatorModal: React.FC<CronSimulatorModalProps> = ({
               <button
                 onClick={() => handleRunTask(t.id)}
                 disabled={loadingTask === t.id}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white text-xs font-bold transition-all shadow-sm shrink-0"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-800 disabled:bg-indigo-300 text-white text-xs font-bold transition-all shadow-sm shrink-0"
               >
                 {loadingTask === t.id ? (
                   <>
@@ -117,20 +117,20 @@ export const CronSimulatorModal: React.FC<CronSimulatorModalProps> = ({
 
         {/* Execution Output Box */}
         {lastReport && (
-          <div className="p-4 rounded-2xl bg-slate-900 text-slate-100 text-xs font-mono border border-slate-800 space-y-2">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+          <div className="p-4 rounded-lg bg-slate-50 text-slate-800 text-xs font-mono border border-slate-200 space-y-2">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <span className="text-brand-700 font-bold flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" />
                 نتيجة تشغيل: {lastReport.taskName}
               </span>
-              <span className="text-slate-400">{lastReport.executedAt}</span>
+              <span className="text-slate-500">{lastReport.executedAt}</span>
             </div>
-            <p className="text-slate-300">
-              عدد السجلات المعالجة: <span className="text-emerald-400 font-bold">{lastReport.processedCount}</span>
+            <p className="text-slate-600">
+              عدد السجلات المعالجة: <span className="text-brand-700 font-bold">{lastReport.processedCount}</span>
             </p>
             <div className="space-y-1 pt-1 max-h-36 overflow-y-auto">
               {lastReport.details?.map((line: string, i: number) => (
-                <div key={i} className="text-slate-400">
+                <div key={i} className="text-slate-500">
                   › {line}
                 </div>
               ))}

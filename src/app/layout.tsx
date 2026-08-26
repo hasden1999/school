@@ -11,13 +11,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "منظومة النخبة لإدارة المدارس الأهلية | School SaaS Iraq",
-  description: "نظام سحابي متكامل لإدارة المدارس الأهلية، الحضور الذكي، الدرجات والشهادات، والأقساط المدرسية.",
+  title: "مدرسة المعالي الأهلية الابتدائية المختلطة | تأسست سنة 2017",
+  description: "المنظومة الإدارية والتربوية الشاملة لمدرسة المعالي الأهلية الابتدائية المختلطة - تأسست سنة 2017.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "منظومة النخبة",
+    title: "مدرسة المعالي الأهلية",
   },
   icons: {
     icon: "/icons/icon-192x192.png",
@@ -36,7 +36,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="منظومة النخبة" />
+        <meta name="apple-mobile-web-app-title" content="مدرسة المعالي الأهلية" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -45,7 +45,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-slate-50 antialiased font-cairo">
+      <body className="min-h-screen bg-[#f8fafc] text-slate-800 antialiased font-cairo selection:bg-brand-100 selection:text-brand-900">
         {children}
         <InstallPwaPrompt />
       </body>

@@ -334,15 +334,20 @@ export const BackupClient: React.FC<BackupClientProps> = ({ records: initialReco
   };
 
   return (
-    <div className="space-y-8 animate-fadeIn max-w-7xl mx-auto">
+    <div className="space-y-8 animate-fadeIn max-w-7xl mx-auto text-slate-100 font-cairo">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900/90 p-6 rounded-3xl border border-slate-800 shadow-xl backdrop-blur-xl">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
-            <Database className="w-6 h-6 text-indigo-600" />
+          <div className="flex items-center gap-2 mb-1">
+            <span className="p-1.5 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+              <Database className="w-4 h-4" />
+            </span>
+            <span className="text-xs font-black text-indigo-400">حماية البيانات والأمان الفني</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
             <span>النسخ الاحتياطي وحزمة الطوارئ الشاملة</span>
           </h1>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-xs text-slate-400 font-medium mt-0.5">
             تصدير نسخة كاملة مستقلة من بيانات المدرسة على شكل ملفات (HTML أوفلاين، جداول Excel، وقاعدة بيانات JSON).
           </p>
         </div>

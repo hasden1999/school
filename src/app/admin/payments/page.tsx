@@ -2,66 +2,61 @@
 
 import { useEffect, useState } from "react";
 import { fetchPaymentsDataAction } from "@/app/actions/dataFetchActions";
-import { getAllRecords, putRecordsBatch } from "@/lib/offline/offlineDB";
+import { getAllRecords, putRecordsBatch, getSchoolCache } from "@/lib/offline/offlineDB";
+import { getMemoryData, fastLoad } from "@/lib/dataCache";
 import { PaymentsClient } from "./PaymentsClient";
 
 export default function PaymentsPage() {
-  const [loading, setLoading] = useState(true);
-  const [students, setStudents] = useState<any[]>([]);
-  const [classRooms, setClassRooms] = useState<any[]>([]);
-  const [currency, setCurrency] = useState("د.ع");
-  const [tenant, setTenant] = useState<any>(null);
+  const cachedInitial = getMemoryData<any>("admin_payments_data");
+  const [data, setData] = useState<any>(cachedInitial);
+  const [loading, setLoading] = useState(!cachedInitial);
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        if (typeof window !== "undefined" && navigator.onLine) {
-          const res = await fetchPaymentsDataAction();
-          if (res.success && res.students && res.classRooms) {
-            setStudents(res.students);
-            setClassRooms(res.classRooms);
-            setCurrency(res.currency || "د.ع");
-            setTenant(res.school || null);
-
-            // Cache to IndexedDB
-            await Promise.all([
-              putRecordsBatch("students", res.students),
-              putRecordsBatch("classrooms", res.classRooms),
-            ]);
-            setLoading(false);
-            return;
-          }
+    fastLoad<any>({
+      cacheKey: "admin_payments_data",
+      indexedDbLoader: async () => {
+        const [cachedStudents, cachedClassrooms, cachedSchool] = await Promise.all([
+          getAllRecords<any>("students"),
+          getAllRecords<any>("classrooms"),
+          getSchoolCache(),
+        ]);
+        if (cachedStudents && cachedStudents.length > 0) {
+          return {
+            students: cachedStudents,
+            classRooms: cachedClassrooms || [],
+            currency: cachedSchool?.currency || "د.ع",
+            school: cachedSchool || null,
+          };
         }
-
-        // Offline fallback
-        const [cachedStudents, cachedClassrooms] = await Promise.all([
-          getAllRecords<any>("students"),
-          getAllRecords<any>("classrooms"),
-        ]);
-        setStudents(cachedStudents || []);
-        setClassRooms(cachedClassrooms || []);
-      } catch (err) {
-        console.error("Error loading payments data:", err);
-        const [cachedStudents, cachedClassrooms] = await Promise.all([
-          getAllRecords<any>("students"),
-          getAllRecords<any>("classrooms"),
-        ]);
-        setStudents(cachedStudents || []);
-        setClassRooms(cachedClassrooms || []);
-      } finally {
+        return null;
+      },
+      serverFetcher: fetchPaymentsDataAction,
+      onCachedData: (cached) => {
+        setData(cached);
+        setLoading(false);
+      },
+      onFreshData: (fresh) => {
+        setData(fresh);
+        setLoading(false);
+      },
+      onIndexedDbPersist: async (fresh) => {
+        if (fresh.students) await putRecordsBatch("students", fresh.students);
+        if (fresh.classRooms) await putRecordsBatch("classrooms", fresh.classRooms);
+      },
+    }).then((res) => {
+      if (res) {
+        setData(res);
         setLoading(false);
       }
-    }
-
-    loadData();
+    });
   }, []);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-bold text-slate-500">جاري التحميل...</p>
+          <p className="text-sm font-bold text-slate-500">جاري تحميل سندات القبض والأقساط...</p>
         </div>
       </div>
     );
@@ -69,10 +64,10 @@ export default function PaymentsPage() {
 
   return (
     <PaymentsClient
-      students={students}
-      classRooms={classRooms}
-      currency={currency}
-      tenant={tenant}
+      students={data?.students || []}
+      classRooms={data?.classRooms || []}
+      currency={data?.currency || "د.ع"}
+      tenant={data?.school || data?.tenant || null}
     />
   );
 }

@@ -96,11 +96,17 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-cairo animate-fadeIn">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 card-surface p-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900">امتحان وتقييم أداء المعلمين (سري ومعزول)</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="p-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+              <Star className="w-4 h-4" />
+            </span>
+            <span className="text-xs font-bold text-amber-400">التقييم وسلوك الكادر</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">امتحان وتقييم أداء المعلمين (سري ومعزول)</h1>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
             استبيانات سرية للطلاب لتقييم الكادر التدريسي — محجوبة 100% عن المعلم والنتائج الأكاديمية.
           </p>
@@ -108,7 +114,7 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
 
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-md"
+          className="flex items-center gap-2 px-5 py-3 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition-all shadow-md"
         >
           <Plus className="w-4 h-4" />
           <span>إنشاء استبيان تقييم جديد</span>
@@ -116,11 +122,11 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
       </div>
 
       {/* Security Architecture Box */}
-      <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex items-start gap-3 text-xs text-amber-950">
-        <Lock className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
-        <div>
-          <h4 className="font-bold">ضمانة العزل الأمني التام (Security Isolation Rule):</h4>
-          <p className="text-amber-900 mt-0.5 leading-relaxed">
+      <div className="p-4.5 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3.5 text-xs text-amber-800">
+        <Lock className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+        <div className="space-y-1">
+          <h4 className="font-bold text-amber-800">ضمانة العزل الأمني التام (Security Isolation Rule):</h4>
+          <p className="text-slate-600 leading-relaxed font-medium">
             وفقاً للبند رقم (7) من وثيقة المواصفات الفنية، تم بناء جدول تقييم المعلمين واستعلاماته بشكل معزول تماماً ومستقل عن سجلات الامتحانات الرسمية، ولا يملك دور المعلم أي صلاحية وصول بالـ API أو بالواجهة لرؤية هذه الاستبيانات أو نتائجها، وتصل إجابات الطلاب مباشرة إلى صندوق المدير فقط.
           </p>
         </div>
@@ -129,59 +135,59 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
       {/* Evaluations Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {exams.length === 0 ? (
-          <div className="col-span-2 text-center py-16 bg-white rounded-3xl border border-slate-100 text-slate-400 text-xs">
+          <div className="col-span-2 text-center py-16 card-surface text-slate-500 text-xs font-bold">
             لا توجد استبيانات تقييم حالياً.
           </div>
         ) : (
           exams.map((exam) => (
             <div
               key={exam.id}
-              className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4 hover:shadow-md transition-all flex flex-col justify-between"
+              className="card-surface p-6 space-y-4 hover:border-amber-300 transition-all flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="p-2 rounded-xl bg-slate-100 text-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <span className="p-2.5 rounded-lg bg-brand-50 text-brand-700 border border-brand-100">
                       <ClipboardList className="w-4 h-4" />
                     </span>
                     <div>
                       <h3 className="text-xs font-bold text-slate-900">{exam.title}</h3>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-slate-500 font-bold">
                         {exam.classRoom.name} ({exam.section.name}) — {exam.subject.name}
                       </span>
                     </div>
                   </div>
 
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold border border-rose-200">
-                    🔒 سري للمدير
+                  <span className="text-[10px] px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 font-bold border border-rose-200">
+                    سري للمدير
                   </span>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 text-xs">
+                <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2 text-xs">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 font-medium">المعلم المستهدف:</span>
                     <span className="font-bold text-slate-900">{exam.targetTeacherName}</span>
                   </div>
 
-                  <div className="flex justify-between items-center pt-1 border-t border-slate-200/60">
+                  <div className="flex justify-between items-center pt-1 border-t border-slate-200">
                     <span className="text-slate-500 font-medium">متوسط التقييم العام:</span>
-                    <span className="font-black text-amber-600 text-sm flex items-center gap-1">
+                    <span className="font-bold text-amber-600 text-sm flex items-center gap-1">
                       <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
                       {exam.averageScore > 0 ? `${exam.averageScore} / 5` : "بانتظار الإجابات"}
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center pt-1 border-t border-slate-200/60 text-[11px] text-slate-400">
+                  <div className="flex justify-between items-center pt-1 border-t border-slate-200 text-[11px] text-slate-500">
                     <span>عدد الطلاب المشاركين:</span>
                     <span className="font-bold text-slate-700">{exam.submissionCount} طالب</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 flex justify-end">
+              <div className="pt-2 border-t border-slate-200 flex justify-end">
                 <button
                   onClick={() => setSelectedExamDetails(exam)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold transition-colors"
+                  className="px-4 py-2.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all border border-slate-300"
                 >
                   عرض إجابات الطلاب وملاحظاتهم
                 </button>
@@ -193,25 +199,25 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
 
       {/* Create Evaluation Modal */}
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="إنشاء استبيان تقييم أداء المعلم السري" maxWidth="xl">
-        <form onSubmit={handleCreateSubmit} className="space-y-4">
+        <form onSubmit={handleCreateSubmit} className="space-y-4 font-cairo text-slate-900">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">عنوان الاستبيان *</label>
+            <label className="block text-xs font-bold text-slate-600 mb-1">عنوان الاستبيان *</label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium outline-none focus:border-emerald-500"
+              className="w-full px-3.5 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-xs font-medium outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">المعلم المستهدف *</label>
+              <label className="block text-xs font-bold text-slate-600 mb-1">المعلم المستهدف *</label>
               <select
                 value={targetTeacherId}
                 onChange={(e) => setTargetTeacherId(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none bg-white"
+                className="w-full px-3.5 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-bold outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
               >
                 {teachers.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -222,11 +228,11 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">المادة *</label>
+              <label className="block text-xs font-bold text-slate-600 mb-1">المادة *</label>
               <select
                 value={subjectId}
                 onChange={(e) => setSubjectId(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none bg-white"
+                className="w-full px-3.5 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-bold outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
               >
                 {subjects.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -237,11 +243,11 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">الصف المستهدف *</label>
+              <label className="block text-xs font-bold text-slate-600 mb-1">الصف المستهدف *</label>
               <select
                 value={classRoomId}
                 onChange={(e) => setClassRoomId(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none bg-white"
+                className="w-full px-3.5 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-bold outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
               >
                 {classRooms.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -252,11 +258,11 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">الشعبة *</label>
+              <label className="block text-xs font-bold text-slate-600 mb-1">الشعبة *</label>
               <select
                 value={sectionId}
                 onChange={(e) => setSectionId(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none bg-white"
+                className="w-full px-3.5 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-bold outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
               >
                 {sections.map((sec) => (
                   <option key={sec.id} value={sec.id}>
@@ -268,13 +274,13 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
           </div>
 
           {/* Question List */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
+          <div className="space-y-3 pt-2 border-t border-slate-200">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-slate-800">أسئلة التقييم:</label>
+              <label className="block text-xs font-bold text-slate-600">أسئلة التقييم:</label>
               <button
                 type="button"
                 onClick={handleAddQuestion}
-                className="text-xs text-emerald-600 font-bold hover:underline flex items-center gap-1"
+                className="text-xs text-brand-700 font-bold hover:underline flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>إضافة سؤال آخر</span>
@@ -282,7 +288,7 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
             </div>
 
             {questions.map((q, idx) => (
-              <div key={idx} className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex gap-2 items-center">
+              <div key={idx} className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex gap-2 items-center">
                 <input
                   type="text"
                   required
@@ -293,7 +299,7 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
                     setQuestions(u);
                   }}
                   placeholder="نص سؤال التقييم..."
-                  className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium bg-white"
+                  className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-xs font-medium outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
                 />
 
                 <select
@@ -303,7 +309,7 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
                     u[idx].type = e.target.value as any;
                     setQuestions(u);
                   }}
-                  className="p-2 rounded-xl border border-slate-200 text-xs font-bold bg-white"
+                  className="p-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-bold outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
                 >
                   <option value="rating">تقييم بالنجوم (1-5)</option>
                   <option value="text">نص حر وملاحظات</option>
@@ -313,7 +319,7 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
                   <button
                     type="button"
                     onClick={() => handleRemoveQuestion(idx)}
-                    className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg"
+                    className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -322,18 +328,18 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
             ))}
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
             <button
               type="button"
               onClick={() => setIsCreateOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100"
+              className="px-4 py-2.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100"
             >
               إلغاء
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold"
+              className="px-6 py-2.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold shadow-md"
             >
               {submitting ? "جاري الحفظ..." : "نشر الاستبيان السري"}
             </button>
@@ -349,28 +355,28 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
           title={`تقرير التقييم السري — ${selectedExamDetails.targetTeacherName}`}
           maxWidth="2xl"
         >
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-slate-900 text-white flex items-center justify-between">
+          <div className="space-y-4 font-cairo text-slate-900">
+            <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-black">{selectedExamDetails.title}</h4>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h4 className="text-sm font-bold text-slate-900">{selectedExamDetails.title}</h4>
+                <p className="text-xs text-slate-500 mt-0.5">
                   المادة: {selectedExamDetails.subject.name} | الصف: {selectedExamDetails.classRoom.name}
                 </p>
               </div>
 
               <div className="text-left">
-                <span className="text-2xl font-black text-amber-400 flex items-center gap-1">
-                  <Star className="w-5 h-5 fill-amber-400" />
+                <span className="text-2xl font-bold text-amber-600 flex items-center gap-1">
+                  <Star className="w-5 h-5 fill-amber-500" />
                   {selectedExamDetails.averageScore}
                 </span>
-                <span className="text-[10px] text-slate-400">من 5 نجوم</span>
+                <span className="text-[10px] text-slate-500 font-bold">من 5 نجوم</span>
               </div>
             </div>
 
             {/* Submissions List */}
             <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
               {selectedExamDetails.submissions.length === 0 ? (
-                <div className="text-center py-12 text-slate-400 text-xs">
+                <div className="text-center py-12 text-slate-500 text-xs font-bold">
                   لم يقم أي طالب بإرسال إجاباته على هذا الاستبيان حتى الآن.
                 </div>
               ) : (
@@ -379,35 +385,35 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
                   return (
                     <div
                       key={sub.id}
-                      className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 text-xs"
+                      className="p-4 rounded-lg bg-slate-50 border border-slate-200 shadow-xs space-y-3 text-xs"
                     >
-                      <div className="flex items-center justify-between border-b pb-2">
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                         <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                          <User className="w-3.5 h-3.5 text-slate-400" />
+                          <User className="w-3.5 h-3.5 text-brand-700" />
                           الطالب: {sub.student.user.fullName} ({sub.student.studentNumber})
                         </span>
-                        <span className="font-bold text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                        <span className="font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
                           التقييم: {sub.overallScore} / 5
                         </span>
                       </div>
 
                       {/* Answers detail */}
-                      <div className="space-y-1.5 text-slate-700">
+                      <div className="space-y-1.5 text-slate-600">
                         {answers.map((a: any, i: number) => (
-                          <div key={i} className="p-2 rounded-xl bg-slate-50">
+                          <div key={i} className="p-2.5 rounded-lg bg-white border border-slate-200">
                             {a.score ? (
-                              <span className="font-bold text-slate-800">
-                                ⭐ التقييم: {a.score} / 5
+                              <span className="font-bold text-amber-600">
+                                التقييم: {a.score} / 5
                               </span>
                             ) : (
-                              <p className="text-slate-700 italic">" {a.text} "</p>
+                              <p className="text-slate-600 italic">" {a.text} "</p>
                             )}
                           </div>
                         ))}
                       </div>
 
                       {sub.feedbackText && (
-                        <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-900 text-[11px] border border-indigo-100">
+                        <div className="p-2.5 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] border border-indigo-200 font-medium">
                           <span className="font-bold">ملاحظات الطالب الإضافية:</span> {sub.feedbackText}
                         </div>
                       )}

@@ -113,14 +113,14 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900">تسجيل الحضور الصباحي (الحصة الأولى)</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">تسجيل الحضور الصباحي (الحصة الأولى)</h1>
         <p className="text-xs text-slate-500 font-medium mt-0.5">
           يُفعل خيار رصد الحضور لمعلم الحصة الأولى فقط بناءً على جدول الحصص اليومي المعتمد.
         </p>
       </div>
 
       {/* Selector Bar */}
-      <div className="p-4 bg-white rounded-3xl border border-slate-100 shadow-sm space-y-3">
+      <div className="card-surface p-4 space-y-3">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <div>
@@ -128,7 +128,7 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
               <select
                 value={selectedAssignmentIndex}
                 onChange={(e) => setSelectedAssignmentIndex(Number(e.target.value))}
-                className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white"
+                className="px-3.5 py-2.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-900 bg-white outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
               >
                 {assignments.map((a, i) => (
                   <option key={a.id} value={i}>
@@ -145,7 +145,7 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
                   type="date"
                   value={dateStr}
                   onChange={(e) => setDateStr(e.target.value)}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none"
+                  className="px-3.5 py-2 rounded-lg border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
                 />
 
                 <div className="flex items-center gap-1">
@@ -154,7 +154,7 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
                     onClick={() => setDateStr(new Date().toISOString().split("T")[0])}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       dateStr === new Date().toISOString().split("T")[0]
-                        ? "bg-slate-900 text-white"
+                        ? "bg-brand-700 text-white"
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
@@ -171,7 +171,7 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       dateStr ===
                       new Date(Date.now() - 86400000).toISOString().split("T")[0]
-                        ? "bg-slate-900 text-white"
+                        ? "bg-brand-700 text-white"
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
@@ -185,14 +185,14 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
           {/* Permission & Past/Future Status Box */}
           {permissionInfo && (
             <div
-              className={`p-3 rounded-2xl border text-xs flex items-center gap-2.5 ${
+              className={`p-3 rounded-lg border text-xs flex items-center gap-2.5 ${
                 dateStr > new Date().toISOString().split("T")[0]
-                  ? "bg-amber-50 text-amber-950 border-amber-300"
+                  ? "bg-amber-50 text-amber-700 border-amber-200"
                   : dateStr < new Date().toISOString().split("T")[0]
-                  ? "bg-blue-50 text-blue-950 border-blue-200"
+                  ? "bg-blue-50 text-blue-700 border-blue-200"
                   : permissionInfo.canTakeAttendance
-                  ? "bg-emerald-50 text-emerald-900 border-emerald-200"
-                  : "bg-slate-50 text-slate-800 border-slate-200"
+                  ? "bg-brand-50 text-brand-700 border-brand-100"
+                  : "bg-slate-50 text-slate-700 border-slate-200"
               }`}
             >
               {dateStr > new Date().toISOString().split("T")[0] ? (
@@ -200,7 +200,7 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
               ) : dateStr < new Date().toISOString().split("T")[0] ? (
                 <Lock className="w-5 h-5 text-blue-600 shrink-0" />
               ) : permissionInfo.canTakeAttendance ? (
-                <UserCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                <UserCheck className="w-5 h-5 text-brand-700 shrink-0" />
               ) : (
                 <Lock className="w-5 h-5 text-slate-500 shrink-0" />
               )}
@@ -214,9 +214,9 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
                 </span>
                 <span className="text-[10px] opacity-80">
                   {dateStr > new Date().toISOString().split("T")[0]
-                    ? "⚠️ لم يتم أخذ الحضور لهذا اليوم (لا يمكن رصد الحضور المسبق)."
+                    ? "لم يتم أخذ الحضور لهذا اليوم (لا يمكن رصد الحضور المسبق)."
                     : dateStr < new Date().toISOString().split("T")[0]
-                    ? "🔒 هذا السجل يخص يوماً سابقاً وهو مؤرشف للقراءة والمراجعة فقط — لا يمكن تعديل الحضور بعد انتهاء اليوم."
+                    ? "هذا السجل يخص يوماً سابقاً وهو مؤرشف للقراءة والمراجعة فقط — لا يمكن تعديل الحضور بعد انتهاء اليوم."
                     : permissionInfo.canTakeAttendance
                     ? "يمكنك رصد وتعديل كشف حضور اليوم وحفظه طوال اليوم الحالي."
                     : "الزر مقفل لعدم كونك معلم الحصة الأولى لهذا اليوم."}
@@ -229,76 +229,76 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
 
       {/* Prominent Day Status Banner */}
       {dateStr > new Date().toISOString().split("T")[0] ? (
-        <div className="p-4 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent border-2 border-amber-300 rounded-3xl text-amber-950 text-xs flex items-center justify-between shadow-sm animate-fadeIn">
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-xs flex items-center justify-between shadow-sm animate-fadeIn">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-lg bg-amber-700 text-white flex items-center justify-center font-bold">
               <AlertCircle className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-black text-sm text-amber-950">تنبيه: لم يتم أخذ الحضور لهذا اليوم ({dateStr})</h4>
-              <p className="text-xs text-amber-800">
+              <h4 className="font-bold text-sm text-amber-900">تنبيه: لم يتم أخذ الحضور لهذا اليوم ({dateStr})</h4>
+              <p className="text-xs text-amber-600">
                 هذا التاريخ لم يأتِ بعد — لا يمكن تسجيل أو تعديل الحضور في تواريخ مستقبلية مسبقاً.
               </p>
             </div>
           </div>
-          <span className="px-3 py-1 bg-amber-100 text-amber-900 font-bold rounded-xl text-[11px] border border-amber-200">
+          <span className="px-3 py-1 bg-amber-100 text-amber-700 font-bold rounded-lg text-[11px] border border-amber-200">
             تاريخ لاحق
           </span>
         </div>
       ) : dateStr < new Date().toISOString().split("T")[0] ? (
-        <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-3xl text-blue-950 text-xs flex items-center justify-between shadow-sm animate-fadeIn">
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-xs flex items-center justify-between shadow-sm animate-fadeIn">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-lg bg-blue-700 text-white flex items-center justify-center font-bold">
               <Lock className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-black text-sm text-blue-950">
+              <h4 className="font-bold text-sm text-blue-900">
                 {students.some((s) => s.attendanceRecords && s.attendanceRecords.length > 0)
                   ? `كشف الحضور والغياب المؤرشف ليوم (${dateStr})`
                   : `تنبيه: لم يتم أخذ الحضور لهذا اليوم (${dateStr})`}
               </h4>
-              <p className="text-xs text-blue-800">
+              <p className="text-xs text-blue-600">
                 {students.some((s) => s.attendanceRecords && s.attendanceRecords.length > 0)
                   ? "سجل رسمي مؤرشف للمراجعة والتدقيق فقط — تم قفل التعديل بانتهاء اليوم الدراسي."
                   : "انتهى هذا اليوم الدراسي السابق دون تسجيل كشف حضور."}
               </p>
             </div>
           </div>
-          <span className="px-3 py-1 bg-blue-100 text-blue-900 font-bold rounded-xl text-[11px] border border-blue-200">
+          <span className="px-3 py-1 bg-blue-100 text-blue-700 font-bold rounded-lg text-[11px] border border-blue-200">
             أرشيف سابق
           </span>
         </div>
       ) : (
-        <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-3xl text-emerald-950 text-xs flex items-center justify-between shadow-sm animate-fadeIn">
+        <div className="p-4 bg-brand-50 border border-brand-100 rounded-xl text-brand-700 text-xs flex items-center justify-between shadow-sm animate-fadeIn">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-lg bg-brand-700 text-white flex items-center justify-center font-bold">
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-black text-sm text-emerald-950">حضور اليوم الحالي ({dateStr})</h4>
-              <p className="text-xs text-emerald-800">
+              <h4 className="font-bold text-sm text-brand-900">حضور اليوم الحالي ({dateStr})</h4>
+              <p className="text-xs text-brand-700">
                 يمكنك تسجيل وتعديل الحضور في أي وقت خلال اليوم الدراسي الحالي.
               </p>
             </div>
           </div>
-          <span className="px-3 py-1 bg-emerald-100 text-emerald-900 font-bold rounded-xl text-[11px] border border-emerald-200">
+          <span className="px-3 py-1 bg-brand-100 text-brand-700 font-bold rounded-lg text-[11px] border border-brand-100">
             متاح للتعديل اليوم
           </span>
         </div>
       )}
 
       {saveSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-2 shadow-lg animate-fadeIn">
+        <div className="p-4 rounded-xl bg-brand-700 text-white text-xs font-bold flex items-center gap-2 shadow-pop animate-fadeIn">
           <CheckCircle2 className="w-5 h-5" />
           <span>تم حفظ سجل الحضور بنجاح واعتماده.</span>
         </div>
       )}
 
       {/* Attendance Roster Table */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="card-surface overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-slate-50 border-b border-slate-100 font-bold text-slate-800">
+            <thead className="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500">
               <tr>
                 <th className="p-4">#</th>
                 <th className="p-4">اسم الطالب</th>
@@ -327,8 +327,8 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
                   const isDisabled = !permissionInfo?.canTakeAttendance || isPastDate;
 
                   return (
-                    <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-4 font-bold text-slate-400">{idx + 1}</td>
+                    <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 font-bold text-slate-500">{idx + 1}</td>
                       <td className="p-4 font-bold text-slate-900">{s.user.fullName}</td>
                       <td className="p-4 font-mono text-slate-500">{s.studentNumber}</td>
 
@@ -340,7 +340,7 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
                             onClick={() => handleStatusChange(s.id, "PRESENT")}
                             className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
                               currentStatus === "PRESENT"
-                                ? "bg-emerald-600 text-white shadow-sm"
+                                ? "bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 shadow-sm"
                                 : "text-slate-600 hover:bg-slate-200/60"
                             } disabled:opacity-70`}
                           >
@@ -353,7 +353,7 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
                             onClick={() => handleStatusChange(s.id, "ABSENT")}
                             className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
                               currentStatus === "ABSENT"
-                                ? "bg-rose-600 text-white shadow-sm"
+                                ? "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-200 shadow-sm"
                                 : "text-slate-600 hover:bg-slate-200/60"
                             } disabled:opacity-70`}
                           >
@@ -366,7 +366,7 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
                             onClick={() => handleStatusChange(s.id, "ON_LEAVE")}
                             className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
                               currentStatus === "ON_LEAVE"
-                                ? "bg-purple-600 text-white shadow-sm"
+                                ? "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200 shadow-sm"
                                 : "text-slate-600 hover:bg-slate-200/60"
                             } disabled:opacity-70`}
                           >
@@ -379,7 +379,7 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
                             onClick={() => handleStatusChange(s.id, "LATE")}
                             className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
                               currentStatus === "LATE"
-                                ? "bg-amber-500 text-white shadow-sm"
+                                ? "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 shadow-sm"
                                 : "text-slate-600 hover:bg-slate-200/60"
                             } disabled:opacity-70`}
                           >
@@ -397,7 +397,7 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
                             setNotesState({ ...notesState, [s.id]: e.target.value })
                           }
                           placeholder={isDisabled ? "مغلق" : "ملاحظة..."}
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium outline-none focus:border-emerald-500 disabled:bg-slate-100"
+                          className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors disabled:bg-slate-100"
                         />
                       </td>
                     </tr>
@@ -414,7 +414,7 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
                 <Lock className="w-4 h-4 text-blue-600 shrink-0" />
-                <span>🔒 هذا الكشف يخص يوماً سابقاً وهو مؤرشف للاطلاع والمراجعة فقط — لا يمكن تعديل الحضور بعد انتهاء اليوم.</span>
+                <span>هذا الكشف يخص يوماً سابقاً وهو مؤرشف للاطلاع والمراجعة فقط — لا يمكن تعديل الحضور بعد انتهاء اليوم.</span>
               </div>
               <span className="px-3.5 py-1.5 bg-white text-slate-700 font-bold rounded-xl text-xs border border-slate-200 shadow-sm">
                 للاطلاع فقط (مغلق)
@@ -422,24 +422,24 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
             </div>
           ) : dateStr > new Date().toISOString().split("T")[0] ? (
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-700">
                 <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>⚠️ تاريخ مستقبلي لاحق — لا يمكن رصد الحضور المسبق قبل موعد بدء اليوم الدراسي.</span>
+                <span>تاريخ مستقبلي لاحق — لا يمكن رصد الحضور المسبق قبل موعد بدء اليوم الدراسي.</span>
               </div>
-              <span className="px-3.5 py-1.5 bg-amber-100 text-amber-900 font-bold rounded-xl text-xs border border-amber-200 shadow-sm">
+              <span className="px-3.5 py-1.5 bg-amber-100 text-amber-700 font-bold rounded-xl text-xs border border-amber-200 shadow-sm">
                 تاريخ لاحق
               </span>
             </div>
           ) : permissionInfo?.canTakeAttendance ? (
             <>
               <span className="text-xs text-slate-500 font-medium">
-                💡 عند حفظ الكشف سيتم إشعار أولياء أمور الطلاب الغائبين فوراً عبر واتساب.
+                عند حفظ الكشف سيتم إشعار أولياء أمور الطلاب الغائبين فوراً عبر واتساب.
               </span>
 
               <button
                 onClick={handleSaveAttendance}
                 disabled={saving || students.length === 0}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white text-xs font-black transition-all shadow-md"
+                className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-brand-700 hover:bg-brand-800 disabled:bg-brand-300 text-white text-xs font-bold transition-all shadow-md"
               >
                 {saving ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />
@@ -450,8 +450,8 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
               </button>
             </>
           ) : (
-            <span className="text-xs text-slate-400 font-medium">
-              🔒 تسجيل الحضور متاح فقط لمعلم الحصة الأولى لليوم الدراسي الحالي.
+            <span className="text-xs text-slate-500 font-medium">
+              تسجيل الحضور متاح فقط لمعلم الحصة الأولى لليوم الدراسي الحالي.
             </span>
           )}
         </div>

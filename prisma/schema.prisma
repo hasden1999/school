@@ -74,7 +74,10 @@ model User {
   plainPasscode      String?   // رمز الدخول المحفوظ بالإنجليزية (5 أحرف) لعرضه ونسخه للمدير
   fullName           String
   phone              String?
-  role               String    // "ADMIN", "TEACHER", "STUDENT", "SUPER_ADMIN"
+  role               String    // "ADMIN", "VICE_PRINCIPAL", "ACCOUNTANT", "STAFF", "TEACHER", "SUPERVISOR", "STUDENT", "SUPER_ADMIN"
+  jobTitle           String?   // المسمى الوظيفي المخصص (مثل: أمين الصندوق، معاون شؤون الطلبة)
+  permissionsJson    String?   // مصفوفة الصلاحيات المخصصة بصيغة JSON
+  isCustomPermissions Boolean  @default(false)
   monthlySalary      Float     @default(0) // الراتب الشهري للمعلم
   mustChangePassword Boolean   @default(false)
   active             Boolean   @default(true)

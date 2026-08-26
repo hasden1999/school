@@ -3,45 +3,18 @@
 import React, { useEffect, useState } from "react";
 import { fetchStudentsDataAction } from "@/app/actions/dataFetchActions";
 import { getAllRecords, putRecordsBatch, getSchoolCache } from "@/lib/offline/offlineDB";
+import { getMemoryData, fastLoad } from "@/lib/dataCache";
 import { StudentsClient } from "./StudentsClient";
 
 export default function StudentsPage() {
-  const [loading, setLoading] = useState(true);
-  const [students, setStudents] = useState<any[]>([]);
-  const [classRooms, setClassRooms] = useState<any[]>([]);
-  const [sections, setSections] = useState<any[]>([]);
-  const [currency, setCurrency] = useState<string>("د.ع");
+  const cachedInitial = getMemoryData<any>("admin_students_data");
+  const [data, setData] = useState<any>(cachedInitial);
+  const [loading, setLoading] = useState(!cachedInitial);
 
   useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      const isOnline = typeof window !== "undefined" ? navigator.onLine : false;
-
-      if (isOnline) {
-        try {
-          const res = await fetchStudentsDataAction();
-          if (res.success && res.students && res.classRooms && res.sections) {
-            setStudents(res.students);
-            setClassRooms(res.classRooms);
-            setSections(res.sections);
-            setCurrency(res.currency || "د.ع");
-
-            // Cache results to IndexedDB
-            await Promise.all([
-              putRecordsBatch("students", res.students),
-              putRecordsBatch("classrooms", res.classRooms),
-              putRecordsBatch("sections", res.sections),
-            ]);
-            setLoading(false);
-            return;
-          }
-        } catch (err) {
-          console.warn("Failed to fetch online students data, falling back to offline:", err);
-        }
-      }
-
-      // If offline or action fails: read from IndexedDB
-      try {
+    fastLoad<any>({
+      cacheKey: "admin_students_data",
+      indexedDbLoader: async () => {
         const [cachedStudents, cachedClassrooms, cachedSections, cachedSchool] =
           await Promise.all([
             getAllRecords<any>("students"),
@@ -49,38 +22,53 @@ export default function StudentsPage() {
             getAllRecords<any>("sections"),
             getSchoolCache(),
           ]);
-
-        setStudents(cachedStudents || []);
-        setClassRooms(cachedClassrooms || []);
-        setSections(cachedSections || []);
-        if (cachedSchool?.currency) {
-          setCurrency(cachedSchool.currency);
+        if (cachedStudents && cachedStudents.length > 0) {
+          return {
+            students: cachedStudents,
+            classRooms: cachedClassrooms || [],
+            sections: cachedSections || [],
+            currency: cachedSchool?.currency || "د.ع",
+          };
         }
-      } catch (err) {
-        console.error("Failed to load offline students data:", err);
-      } finally {
+        return null;
+      },
+      serverFetcher: fetchStudentsDataAction,
+      onCachedData: (cached) => {
+        setData(cached);
+        setLoading(false);
+      },
+      onFreshData: (fresh) => {
+        setData(fresh);
+        setLoading(false);
+      },
+      onIndexedDbPersist: async (fresh) => {
+        if (fresh.students) await putRecordsBatch("students", fresh.students);
+        if (fresh.classRooms) await putRecordsBatch("classrooms", fresh.classRooms);
+        if (fresh.sections) await putRecordsBatch("sections", fresh.sections);
+      },
+    }).then((res) => {
+      if (res) {
+        setData(res);
         setLoading(false);
       }
-    }
-
-    loadData();
+    });
   }, []);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 font-cairo">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm font-medium text-slate-500">جاري التحميل...</p>
+        <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm font-bold text-slate-500">جاري تحميل سجل الطلاب...</p>
       </div>
     );
   }
 
   return (
     <StudentsClient
-      students={students}
-      classRooms={classRooms}
-      sections={sections}
-      currency={currency}
+      students={data?.students || []}
+      classRooms={data?.classRooms || []}
+      sections={data?.sections || []}
+      currency={data?.currency || "د.ع"}
     />
   );
 }

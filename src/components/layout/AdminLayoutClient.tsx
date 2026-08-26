@@ -21,16 +21,17 @@ export const AdminLayoutClient: React.FC<AdminLayoutClientProps> = ({
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-row font-cairo text-slate-900 overflow-x-hidden">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-row font-cairo text-slate-800 overflow-x-hidden">
       {/* Sidebar with responsive Desktop + Mobile Drawer support */}
       <AdminSidebar
         schoolName={schoolName}
+        user={user}
         mobileOpen={mobileSidebarOpen}
         onCloseMobile={() => setMobileSidebarOpen(false)}
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC] text-slate-800">
         <SubscriptionBanner tenant={tenant} />
         <AdminHeader
           user={user}

@@ -125,7 +125,7 @@ export const TeacherGradesClient: React.FC<TeacherGradesClientProps> = ({
 
   if (assignments.length === 0) {
     return (
-      <div className="text-center py-16 bg-white rounded-3xl border border-slate-100 text-slate-400 text-xs">
+      <div className="card-surface text-center py-16 text-slate-500 text-xs">
         لم يتم تعيين أي صفوف أو مواد لك بعد من قبل إدارة المدرسة.
       </div>
     );
@@ -135,21 +135,21 @@ export const TeacherGradesClient: React.FC<TeacherGradesClientProps> = ({
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900">رصد الدرجات المرحلية</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">رصد الدرجات المرحلية</h1>
         <p className="text-xs text-slate-500 font-medium mt-0.5">
           إدخال الدرجات الشهرية لصفوفك وموادك المخصصة فقط وفق معايير وزارة التربية.
         </p>
       </div>
 
       {/* Assignment & Phase Selectors */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-4">
+      <div className="card-surface p-5 sm:p-6 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-[11px] font-bold text-slate-500 mb-1">المادة والصف المكلف به</label>
             <select
               value={selectedAssignmentIndex}
               onChange={(e) => setSelectedAssignmentIndex(Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-900 bg-white outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
             >
               {assignments.map((a, i) => (
                 <option key={a.id} value={i}>
@@ -160,13 +160,13 @@ export const TeacherGradesClient: React.FC<TeacherGradesClientProps> = ({
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-emerald-800 mb-1">
+            <label className="block text-[11px] font-bold text-brand-700 mb-1">
               مرحلة التقييم / الاختبار المراد رصده
             </label>
             <select
               value={activePhase}
               onChange={(e) => setActivePhase(e.target.value as any)}
-              className="w-full px-4 py-2.5 rounded-xl border-2 border-emerald-500 text-xs font-black bg-emerald-50/50 text-emerald-950 outline-none focus:ring-2 focus:ring-emerald-200 shadow-sm"
+              className="w-full px-4 py-2.5 rounded-lg border border-brand-600 text-xs font-bold bg-brand-50 text-brand-800 outline-none focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer shadow-sm"
             >
               {phases.map((p) => (
                 <option key={p.key} value={p.key}>
@@ -178,38 +178,38 @@ export const TeacherGradesClient: React.FC<TeacherGradesClientProps> = ({
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-          <span className="font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl">
+          <span className="font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg">
             {classStudents.length} طلاب مسجلين في هذه الشعبة
           </span>
-          <span className="font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
+          <span className="font-bold text-brand-700 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-lg">
             {phases.find((p) => p.key === activePhase)?.term}
           </span>
         </div>
       </div>
 
       {saveSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-2 shadow-lg animate-fadeIn">
+        <div className="p-4 rounded-xl bg-brand-700 text-white text-xs font-bold flex items-center gap-2 shadow-pop animate-fadeIn">
           <CheckCircle2 className="w-5 h-5" />
           <span>تم حفظ الدرجات بنجاح واحتساب السعي تلقائياً.</span>
         </div>
       )}
 
       {/* Grade Entry Table */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden space-y-0">
+      <div className="card-surface overflow-hidden space-y-0">
         <div className="p-4 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="space-y-0.5">
             <span className="text-xs font-bold text-slate-800">
-              رصد درجات: <span className="text-emerald-700 font-black">{phases.find((p) => p.key === activePhase)?.label}</span>
+              رصد درجات: <span className="text-brand-700 font-bold">{phases.find((p) => p.key === activePhase)?.label}</span>
             </span>
-            <p className="text-[11px] text-slate-400">
-              ⚡ يمكنك الضغط على <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono text-[10px] text-slate-700 font-bold">Shift</kbd> أو <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono text-[10px] text-slate-700 font-bold">Enter ↵</kbd> للانتقال التلقائي للطالب التالي.
+            <p className="text-[11px] text-slate-500">
+              يمكنك الضغط على <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono text-[10px] text-slate-700 font-bold">Shift</kbd> أو <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono text-[10px] text-slate-700 font-bold">Enter ↵</kbd> للانتقال التلقائي للطالب التالي.
             </p>
           </div>
 
           <button
             onClick={handleSaveGrades}
             disabled={saving || classStudents.length === 0}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-all shadow-md shrink-0"
+            className="flex items-center gap-2 px-6 py-2 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition-all shadow-md shrink-0"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? "جاري الحفظ..." : "حفظ واعتماد الدرجات"}</span>
@@ -218,7 +218,7 @@ export const TeacherGradesClient: React.FC<TeacherGradesClientProps> = ({
 
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-slate-50 border-b border-slate-100 font-bold text-slate-800">
+            <thead className="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500">
               <tr>
                 <th className="p-4 w-12 text-center">#</th>
                 <th className="p-4">اسم الطالب</th>
@@ -241,8 +241,8 @@ export const TeacherGradesClient: React.FC<TeacherGradesClientProps> = ({
                   );
 
                   return (
-                    <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-4 font-bold text-slate-400 text-center">{idx + 1}</td>
+                    <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 font-bold text-slate-500 text-center">{idx + 1}</td>
                       <td className="p-4 font-bold text-slate-900">{s.user.fullName}</td>
                       <td className="p-4 font-mono text-slate-500">{s.studentNumber}</td>
 
@@ -257,12 +257,12 @@ export const TeacherGradesClient: React.FC<TeacherGradesClientProps> = ({
                           onKeyDown={(e) => handleKeyDown(e, idx)}
                           onFocus={(e) => e.target.select()}
                           placeholder="لم ترصد"
-                          className="w-24 text-center px-3 py-2 rounded-xl border border-slate-200 font-black text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all shadow-sm"
+                          className="w-24 text-center px-3 py-2 rounded-lg border border-slate-300 font-bold text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors shadow-sm"
                         />
                       </td>
 
                       <td className="p-4 text-center">
-                        <span className="font-bold text-xs text-slate-700 bg-slate-100 px-3 py-1 rounded-xl">
+                        <span className="font-bold text-xs text-slate-700 bg-slate-100 px-3 py-1 rounded-lg">
                           سعي ف1: {g?.term1Average ?? "-"} | النهائي: {g?.finalGrade ?? "-"}
                         </span>
                       </td>

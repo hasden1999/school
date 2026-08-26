@@ -1,322 +1,330 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { loginAction } from "@/app/actions/authActions";
-import { submitJoinRequestAction } from "@/app/actions/superAdminActions";
+import {
+  SCHOOL_INFO,
+  DEMO_CREDENTIALS,
+  SCHOOL_ACTIVITIES,
+  SCHOOL_STATS,
+} from "@/data/schoolActivitiesData";
+import { ActivitiesGallery } from "@/components/activities/ActivitiesGallery";
+import { VideoReelsSection } from "@/components/activities/VideoReelsSection";
 import {
   Building2,
   Lock,
   User,
+  LogIn,
+  Eye,
+  EyeOff,
   Sparkles,
   ArrowRight,
   ShieldCheck,
-  School,
+  Compass,
+  GraduationCap,
+  Users,
   CheckCircle2,
-  AlertCircle,
+  ChevronLeft,
+  School,
+  Phone,
 } from "lucide-react";
 
 export const LoginClient: React.FC = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [showJoinModal, setShowJoinModal] = useState<boolean>(false);
-  const [joinSubmitted, setJoinSubmitted] = useState<boolean>(false);
-  const [joinLoading, setJoinLoading] = useState<boolean>(false);
-  const [joinError, setJoinError] = useState<string | null>(null);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Mode: "LOGIN" or "GUEST_ACTIVITIES"
+  const [mode, setMode] = useState<"LOGIN" | "GUEST_ACTIVITIES">("LOGIN");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
       const formData = new FormData(e.currentTarget);
-      const result = await loginAction(formData);
-
-      if (result?.error) {
-        setError(result.error);
+      const res = await loginAction(formData);
+      if (res?.error) {
+        setError(res.error);
         setLoading(false);
       }
     } catch (err: any) {
       if (err?.message && !err.message.includes("NEXT_REDIRECT")) {
-        setError(err.message || "اسم المستخدم أو كلمة المرور غير صحيحة");
+        setError(err.message || "حدث خطأ غير متوقع أثناء تسجيل الدخول");
       }
       setLoading(false);
     }
   };
 
-  const handleJoinSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setJoinLoading(true);
-    setJoinError(null);
-
-    try {
-      const formData = new FormData(e.currentTarget);
-      const result = await submitJoinRequestAction(formData);
-
-      if (result?.error) {
-        setJoinError(result.error);
-      } else {
-        setJoinSubmitted(true);
-      }
-    } catch (err: any) {
-      setJoinError("حدث خطأ أثناء إرسال الطلب، يرجى المحاولة لاحقاً");
-    } finally {
-      setJoinLoading(false);
-    }
+  const handlePreFill = (u: string, p: string) => {
+    setUsername(u);
+    setPassword(p);
+    setError(null);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-cairo text-slate-100">
-      <div className="w-full max-w-md space-y-6">
-        
-        {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white shadow-2xl shadow-emerald-500/20 mb-2 border border-emerald-400/30">
-            <Building2 className="w-9 h-9" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            منظومة النخبة لإدارة المدارس
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 font-medium">
-            بوابة الدخول السحابية الموحدة (المدراء، الكوادر التعليمية، والطلاب)
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-cairo flex flex-col justify-between relative overflow-x-hidden">
 
-        {/* Global Error Banner */}
-        {error && (
-          <div className="p-4 rounded-2xl bg-rose-500/20 border border-rose-500/50 text-rose-200 text-xs sm:text-sm font-bold flex items-center gap-3 shadow-lg shadow-rose-950/40 animate-shake">
-            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Main Login Box */}
-        <div className="bg-slate-900/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800 space-y-5">
-          <div className="border-b border-slate-800 pb-3 text-center">
-            <h2 className="text-base font-black text-white">تسجيل الدخول المباشر</h2>
-            <p className="text-xs text-slate-400 mt-1">
-              أدخل اسم المستخدم وكلمة المرور للدخول الفوري لحسابك
-            </p>
-          </div>
-
-          <form onSubmit={handleLoginSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                اسم المستخدم / الحساب <span className="text-rose-400">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  name="username"
-                  required
-                  autoFocus
-                  placeholder="اسم المستخدم أو الحساب الخماسي (مثل: admin أو krznb)"
-                  className="w-full pl-4 pr-10 py-3.5 rounded-xl bg-slate-950/80 border border-slate-700 focus:border-emerald-500 text-xs sm:text-sm font-medium text-white transition-all outline-none"
-                />
-                <User className="w-4 h-4 text-slate-400 absolute right-3.5 top-4" />
-              </div>
+      {/* Top Header */}
+      <header className="border-b border-slate-200 bg-white/95 backdrop-blur-xs sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-lg bg-emerald-800 text-white flex items-center justify-center shadow-xs transition-transform group-hover:scale-105">
+              <Building2 className="w-5 h-5" />
             </div>
-
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                كلمة المرور / الرمز السري <span className="text-rose-400">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  name="password"
-                  required
-                  placeholder="أدخل كلمة المرور أو الرمز الخماسي"
-                  className="w-full pl-4 pr-10 py-3.5 rounded-xl bg-slate-950/80 border border-slate-700 focus:border-emerald-500 text-xs sm:text-sm font-medium text-white transition-all outline-none"
-                />
-                <Lock className="w-4 h-4 text-slate-400 absolute right-3.5 top-4" />
-              </div>
-            </div>
-
-            <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800/80 flex items-center justify-between text-[11px]">
-              <span className="text-emerald-400 font-bold flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>حفظ تسجيل الدخول التلقائي مفعل (لمدة سنة)</span>
+              <span className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-emerald-800 transition-colors block leading-tight">
+                {SCHOOL_INFO.name}
+              </span>
+              <span className="text-[10px] text-emerald-700 font-bold block">
+                البوابة الرقمية الموحدة
               </span>
             </div>
+          </Link>
 
+          <div className="flex items-center gap-2">
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-black text-xs sm:text-sm shadow-xl shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 mt-2"
+              onClick={() => setMode(mode === "LOGIN" ? "GUEST_ACTIVITIES" : "LOGIN")}
+              className="px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 transition-all flex items-center gap-2 shadow-xs"
             >
-              <span>{loading ? "جاري التحقق والمصادقة..." : "تسجيل الدخول للمنظومة 🚀"}</span>
-              <ArrowRight className="w-4 h-4" />
+              {mode === "LOGIN" ? (
+                <>
+                  <Compass className="w-4 h-4 text-emerald-700" />
+                  <span>تصفح النشاطات كـ ضيف</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4 text-emerald-700" />
+                  <span>العودة لنموذج تسجيل الدخول</span>
+                </>
+              )}
             </button>
-          </form>
-        </div>
 
-        {/* School Lead Capture Banner */}
-        <div className="bg-gradient-to-r from-slate-900 via-emerald-950/40 to-slate-900 p-5 rounded-3xl border border-emerald-500/20 shadow-xl text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] font-bold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>خاص بالمدارس الأهلية الجديدة</span>
+            <Link
+              href="/"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
+            >
+              <span>الرئيسية</span>
+              <ChevronLeft className="w-4 h-4" />
+            </Link>
           </div>
-          <div>
-            <h3 className="text-sm font-black text-white">هل تود تفعيل المنظومة لمدرستك الأهلية؟</h3>
-            <p className="text-xs text-slate-400 mt-1">
-              استفد من تجربة مجانية كاملة الميزات لمدة 14 يوماً وتدريب كامل لكادرك التعليمي
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setShowJoinModal(true);
-              setJoinSubmitted(false);
-              setJoinError(null);
-            }}
-            className="w-full py-2.5 rounded-xl bg-slate-800/90 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 hover:border-emerald-500 font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2"
-          >
-            <School className="w-4 h-4" />
-            <span>طلب انضمام مدرسة وتجربة 14 يوماً مجاناً 🚀</span>
-          </button>
         </div>
+      </header>
 
-        {/* Security Footer */}
-        <div className="text-center text-xs text-slate-500 flex items-center justify-center gap-2 pt-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-500" />
-          <span>منظومة سحابية مشفرة بمعايير العزل التام للبيانات (Multi-Tenant SaaS)</span>
-        </div>
+      {/* MAIN CONTAINER */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 flex flex-col justify-center w-full">
+        {mode === "LOGIN" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center max-w-5xl mx-auto w-full">
 
-      </div>
+            {/* Left Col: School Highlights Info */}
+            <div className="lg:col-span-5 space-y-6 text-right order-2 lg:order-1">
+              <div className="space-y-3">
+                <span className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold inline-flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>منظومة الإدارة السحابية المعتمدة (SaaS)</span>
+                </span>
+                <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 leading-tight tracking-tight">
+                  مرحباً بكم في <br />
+                  <span className="text-emerald-800">
+                    بوابة الدخول الموحدة
+                  </span>
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                  منصة مركزية تجمع بين إدارة المدرسة، الكوادر التدريسية، والطلبة وأولياء الأمور لمتابعة الحضور والدرجات والسعي والوصولات اليومية.
+                </p>
+              </div>
 
-      {/* JOIN REQUEST MODAL */}
-      {showJoinModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl space-y-5 animate-scaleUp text-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  <School className="w-5 h-5" />
+              {/* Fast Stats */}
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="card-surface p-3.5 space-y-1">
+                  <span className="text-[11px] font-semibold text-slate-500">نسبة الاعتماد والجودة</span>
+                  <span className="text-xl font-bold text-emerald-700 block tabular-nums">100%</span>
                 </div>
-                <div>
-                  <h3 className="text-sm font-black text-white">طلب تفعيل مدرسة جديدة</h3>
-                  <span className="text-[11px] text-emerald-400">فترة تجريبية 14 يوماً مجاناً</span>
+                <div className="card-surface p-3.5 space-y-1">
+                  <span className="text-[11px] font-semibold text-slate-500">تحديثات السعي والدرجات</span>
+                  <span className="text-base font-bold text-slate-800 block">لحظية ومباشرة</span>
                 </div>
               </div>
 
-              <button
-                onClick={() => setShowJoinModal(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800"
-              >
-                ✕
-              </button>
+              {/* Security & Access Info Card */}
+              <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-xs">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                  <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                  <span>دخول آمن ومشفّر لجميع الكوادر والطلبة:</span>
+                </div>
+
+                <div className="space-y-2 text-xs text-slate-600 font-medium leading-relaxed">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>جلسات عمل مشفرة وفق معايير الحماية الحديثة</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>صلاحيات دقيقة بحسب دور المستخدم المعين</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Demo Credentials Switcher */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+                <span className="text-[11px] font-bold text-slate-500 block">
+                  تجربة الدخول السريع (بيانات تجريبية بنقرة واحدة):
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { label: "مدير المدرسة", user: "admin", pass: "admin123" },
+                    { label: "معلم", user: "t.ahmed", pass: "teach123" },
+                    { label: "طالب", user: "stu_1001", pass: "stu123" },
+                    { label: "مالك المنصة", user: "superadmin", pass: "super123" },
+                  ].map((demo) => (
+                    <button
+                      key={demo.user}
+                      type="button"
+                      onClick={() => handlePreFill(demo.user, demo.pass)}
+                      className="px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 border border-slate-200 text-[11px] font-bold text-slate-700 transition-colors"
+                    >
+                      {demo.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            {joinSubmitted ? (
-              <div className="text-center py-6 space-y-4">
-                <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
-                  <CheckCircle2 className="w-8 h-8" />
+            {/* Right Col: Login Form Card */}
+            <div className="lg:col-span-7 order-1 lg:order-2">
+              <div className="card-elevated p-6 sm:p-9 space-y-6 bg-white border border-slate-200 shadow-md">
+
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="space-y-1">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+                      تسجيل الدخول للنظام
+                    </h2>
+                    <p className="text-xs text-slate-500 font-medium">
+                      أدخل اسم المستخدم وكلمة المرور المسندة لحسابك
+                    </p>
+                  </div>
+
+                  <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-200/60">
+                    <Lock className="w-5 h-5" />
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <h4 className="text-base font-black text-white">تم استلام طلب مدرستك بنجاح!</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed px-2">
-                    سيتواصل معك فريق إدارة المنظومة عبر الواتساب لتسليم حساب المدير وتفعيل مدرستك فوراً.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowJoinModal(false)}
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-lg"
-                >
-                  إغلاق
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleJoinSubmit} className="space-y-4 text-xs">
-                {joinError && (
-                  <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-bold text-center">
-                    ⚠️ {joinError}
+
+                {error && (
+                  <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-bold animate-shake">
+                    {error}
                   </div>
                 )}
 
-                <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">
-                    اسم المدرسة الأهلية <span className="text-rose-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="schoolName"
-                    required
-                    placeholder="مثال: ثانوية الفراهيدي الأهلية"
-                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white outline-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-300 mb-1.5">
-                      اسم المدير / المفوض <span className="text-rose-400">*</span>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Username */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700">
+                      اسم المستخدم (Username)
                     </label>
-                    <input
-                      type="text"
-                      name="directorName"
-                      required
-                      placeholder="أستاذ ..."
-                      className="w-full px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white outline-none"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="username"
+                        required
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="أدخل اسم المستخدم المسند إليك"
+                        className="w-full pl-4 pr-11 py-3 rounded-lg bg-white border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 text-slate-900 placeholder-slate-400 text-xs sm:text-sm font-mono outline-none transition-all"
+                      />
+                      <User className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block font-bold text-slate-300 mb-1.5">المحافظة</label>
-                    <select
-                      name="province"
-                      defaultValue="بغداد"
-                      className="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold outline-none"
-                    >
-                      <option value="بغداد">بغداد</option>
-                      <option value="البصرة">البصرة</option>
-                      <option value="أربيل">أربيل</option>
-                      <option value="النجف الأشرف">النجف</option>
-                      <option value="كربلاء المقدسة">كربلاء</option>
-                      <option value="نينوى">الموصل</option>
-                      <option value="بابل">بابل</option>
-                    </select>
+                  {/* Password */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700">
+                      كلمة المرور / الرمز السري
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full pl-11 pr-11 py-3 rounded-lg bg-white border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 text-slate-900 placeholder-slate-400 text-xs sm:text-sm font-mono outline-none transition-all"
+                      />
+                      <Lock className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute left-3.5 top-3 text-slate-400 hover:text-slate-900 p-0.5"
+                        title={showPassword ? "إخفاء" : "إظهار"}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">
-                    رقم هاتف الإدارة / الواتساب <span className="text-rose-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="phone"
-                    required
-                    placeholder="078XXXXXXXX"
-                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white font-mono outline-none"
-                  />
-                  <span className="text-[10px] text-slate-400 mt-1 block">
-                    سيتم إرسال بيانات دخول المدير عبر هذا الرقم في الواتساب.
-                  </span>
-                </div>
-
-                <div className="pt-2 flex items-center gap-3">
+                  {/* Submit CTA */}
                   <button
                     type="submit"
-                    disabled={joinLoading}
-                    className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2"
+                    disabled={loading}
+                    className="w-full py-3.5 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    {joinLoading ? "جاري إرسال الطلب..." : "إرسال طلب الانضمام والتفعيل 🚀"}
+                    <LogIn className="w-4 h-4" />
+                    <span>{loading ? "جاري التحقق والدخول..." : "دخول المنظومة الآن"}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowJoinModal(false)}
-                    className="px-4 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold"
+                </form>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                  <span>تواجه مشكلة في تسجيل الدخول؟</span>
+                  <a
+                    href={`https://wa.me/${SCHOOL_INFO.whatsapp}?text=${encodeURIComponent("السلام عليكم، أحتاج مساعدة في استعادة بيانات دخولي للمنظومة")}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-emerald-800 hover:underline font-bold"
                   >
-                    إلغاء
-                  </button>
+                    تواصل مع الدعم الفني
+                  </a>
                 </div>
-              </form>
-            )}
+              </div>
+            </div>
+
           </div>
-        </div>
-      )}
+        ) : (
+          /* GUEST ACTIVITIES MODE VIEW */
+          <div className="space-y-10 animate-fadeIn">
+            <div className="text-center max-w-2xl mx-auto space-y-3">
+              <span className="px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold inline-flex items-center gap-2">
+                <Compass className="w-4 h-4 text-emerald-600" />
+                <span>وضع الزائر والضيف الكريم</span>
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+                استعراض أنشطة وفيديوهات المدرسة
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+                تصفح فعاليات ومسابقات ومرافق المدرسة دون الحاجة لتسجيل حساب. يمكنك العودة لنموذج الدخول في أي وقت من الأعلى.
+              </p>
+            </div>
+
+            {/* Gallery Component */}
+            <ActivitiesGallery />
+
+            {/* Video Reels Component */}
+            <VideoReelsSection />
+          </div>
+        )}
+      </main>
+
+      {/* Footer Note */}
+      <footer className="border-t border-slate-200 py-5 text-center text-xs text-slate-500 font-medium bg-white">
+        <span>{SCHOOL_INFO.name} — نظام الإدارة الأكاديمية والتربوية الموحدة © 2024</span>
+      </footer>
 
     </div>
   );

@@ -1,4 +1,13 @@
-export type UserRole = "SUPER_ADMIN" | "ADMIN" | "TEACHER" | "STUDENT";
+export type UserRole =
+  | "SUPER_ADMIN"
+  | "ADMIN"
+  | "VICE_PRINCIPAL"
+  | "ACCOUNTANT"
+  | "STAFF"
+  | "SUPERVISOR"
+  | "TEACHER"
+  | "STUDENT"
+  | "CUSTOM";
 
 export interface SessionUser {
   id: string;
@@ -6,6 +15,9 @@ export interface SessionUser {
   username: string;
   fullName: string;
   role: UserRole;
+  jobTitle?: string | null;
+  permissionsJson?: string | null;
+  isCustomPermissions?: boolean;
   phone?: string | null;
   mustChangePassword: boolean;
   schoolName?: string;

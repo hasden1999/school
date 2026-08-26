@@ -30,8 +30,6 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
   initialPhase = "FULL",
   tenant,
 }) => {
-  if (!student) return null;
-
   const [reportType, setReportType] = useState<"FULL" | "MONTHLY">(
     initialPhase === "FULL" ? "FULL" : "MONTHLY"
   );
@@ -39,18 +37,20 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
     initialPhase === "FULL" ? "month1" : initialPhase
   );
 
+  if (!isOpen || !student) return null;
+
   const handlePrint = () => {
     window.print();
   };
 
   const t = tenant || student.tenant;
-  const schoolName = t?.name || "ثانوية النخبة الأهلية للبنين";
+  const schoolName = t?.name || "مدرسة المعالي الأهلية الابتدائية المختلطة";
   const schoolLogo = t?.logo || null;
   const schoolStamp = t?.stampUrl || null;
-  const directorName = t?.directorName || "أ. عادل التميمي";
+  const directorName = t?.directorName || "إدارة مدرسة المعالي الأهلية";
   const activeYear = t?.activeYear || "2024-2025";
-  const footerText = t?.printFooterText || "وثيقة رسمية صادرة من إدارة المدرسة — أي كشط أو تحبير يعتبر لاغياً";
-  const schoolType = t?.schoolType || "ثانوية كاملة (بنين)";
+  const footerText = t?.printFooterText || "وثيقة رسمية صادرة من إدارة مدرسة المعالي الأهلية الابتدائية المختلطة (تأسست 2017) — أي كشط أو تحبير يعتبر لاغياً";
+  const schoolType = t?.schoolType || "مدرسة ابتدائية مختلطة (تأسست سنة 2017)";
 
   const grades = student.gradeRecords || [];
 
@@ -71,8 +71,8 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
 
   // Helper for grade appraisal
   const getAppraisal = (score: number | null | undefined) => {
-    if (score === null || score === undefined) return { label: "—", color: "text-slate-400" };
-    if (score >= 90) return { label: "امتياز", color: "text-emerald-700 font-bold" };
+    if (score === null || score === undefined) return { label: "—", color: "text-slate-500" };
+    if (score >= 90) return { label: "امتياز", color: "text-brand-700 font-bold" };
     if (score >= 80) return { label: "جيد جداً", color: "text-blue-700 font-bold" };
     if (score >= 70) return { label: "جيد", color: "text-teal-700 font-bold" };
     if (score >= 60) return { label: "متوسط", color: "text-amber-700 font-bold" };
@@ -94,16 +94,16 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="بطاقة النتائج والشهادات الرسمية للطالب" maxWidth="4xl">
       <div className="space-y-6">
         {/* Actions & Selector Bar (Hidden during Print) */}
-        <div className="no-print bg-slate-50 p-4 rounded-3xl border border-slate-200 space-y-3">
+        <div className="no-print bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             {/* Report Mode Tabs */}
-            <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-slate-200">
+            <div className="flex items-center gap-1.5 p-1 bg-white rounded-lg border border-slate-200">
               <button
                 type="button"
                 onClick={() => setReportType("MONTHLY")}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                   reportType === "MONTHLY"
-                    ? "bg-emerald-600 text-white shadow-sm"
+                    ? "bg-brand-700 text-white shadow-sm"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
@@ -114,9 +114,9 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
               <button
                 type="button"
                 onClick={() => setReportType("FULL")}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                   reportType === "FULL"
-                    ? "bg-slate-900 text-white shadow-sm"
+                    ? "bg-brand-700 text-white shadow-sm"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
@@ -128,9 +128,9 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
             {/* Print Action */}
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition-all shadow-md"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition-all shadow-sm"
             >
-              <Printer className="w-4 h-4 text-emerald-400" />
+              <Printer className="w-4 h-4 text-white" />
               <span>طباعة المستند الرسمي (PDF / ورقي)</span>
             </button>
           </div>
@@ -142,7 +142,7 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
               <select
                 value={selectedPhase}
                 onChange={(e) => setSelectedPhase(e.target.value)}
-                className="px-4 py-2 rounded-xl border border-emerald-300 bg-white text-xs font-black text-emerald-950 outline-none shadow-sm focus:ring-2 focus:ring-emerald-500"
+                className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-900 outline-none shadow-sm focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
               >
                 {phasesList.map((p) => (
                   <option key={p.key} value={p.key}>
@@ -159,9 +159,9 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
           /* ========================================================= */
           /* SINGLE MONTH / SPECIFIC EXAM RESULT PRINT TEMPLATE        */
           /* ========================================================= */
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border-2 border-slate-800 print-container shadow-sm space-y-6 font-cairo text-slate-900">
+          <div className="bg-white p-6 sm:p-8 rounded-xl border border-slate-200 print-container shadow-sm space-y-6 font-cairo text-slate-900">
             {/* Ministry / School Header */}
-            <div className="border-b-2 border-slate-900 pb-4 text-center space-y-2">
+            <div className="border-b-2 border-slate-300 pb-4 text-center space-y-2">
               <div className="flex items-center justify-between">
                 <div className="text-right text-xs space-y-0.5">
                   <p className="font-bold text-slate-800">جمهورية العراق</p>
@@ -170,16 +170,16 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
                 </div>
 
                 <div className="flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mb-1 shadow overflow-hidden">
+                  <div className="w-14 h-14 rounded-lg bg-white border border-slate-200 flex items-center justify-center mb-1 shadow-sm overflow-hidden">
                     {schoolLogo ? (
                       <img src={schoolLogo} alt="شعار المدرسة" className="w-full h-full object-contain" />
                     ) : (
-                      <div className="w-full h-full bg-slate-900 text-white flex items-center justify-center">
+                      <div className="w-full h-full bg-slate-100 text-slate-600 flex items-center justify-center">
                         <Building2 className="w-7 h-7" />
                       </div>
                     )}
                   </div>
-                  <h2 className="text-sm sm:text-base font-black text-slate-900">
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900">
                     {schoolName}
                   </h2>
                   <p className="text-[10px] text-slate-500 font-bold">{schoolType}</p>
@@ -192,7 +192,7 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
               </div>
 
               <div className="pt-3">
-                <span className="inline-block px-5 py-1.5 rounded-full bg-emerald-800 text-white text-xs sm:text-sm font-black tracking-wider shadow-sm">
+                <span className="inline-block px-5 py-1.5 rounded-full bg-brand-50 text-brand-800 border border-brand-200 text-xs sm:text-sm font-bold tracking-wider">
                   كشف درجات: {currentPhaseObj.label}
                 </span>
                 <p className="text-[11px] text-slate-500 font-medium mt-1">
@@ -202,10 +202,10 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
             </div>
 
             {/* Student Info Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200 text-xs">
               <div>
                 <span className="text-slate-500 block text-[11px]">اسم الطالب الرباعي:</span>
-                <span className="font-black text-slate-900 text-xs sm:text-sm">
+                <span className="font-bold text-slate-900 text-xs sm:text-sm">
                   {student.user?.fullName}
                 </span>
               </div>
@@ -224,18 +224,18 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
             </div>
 
             {/* Monthly Subject Grades Table */}
-            <div className="overflow-x-auto border-2 border-slate-800 rounded-2xl overflow-hidden">
+            <div className="overflow-x-auto border border-slate-300 rounded-lg overflow-hidden">
               <table className="w-full text-xs text-center border-collapse">
-                <thead className="bg-slate-900 text-white font-black">
+                <thead className="bg-slate-100 text-slate-900 font-bold">
                   <tr>
-                    <th className="p-3 border-l border-slate-700 w-12 text-center">#</th>
-                    <th className="p-3 border-l border-slate-700 text-right">المادة الدراسية</th>
-                    <th className="p-3 border-l border-slate-700 w-24">الدرجة العظمى</th>
-                    <th className="p-3 border-l border-slate-700 w-24">درجة النجاح</th>
-                    <th className="p-3 border-l border-slate-700 w-28 bg-emerald-900 text-white">
+                    <th className="p-3 border-l border-slate-300 w-12 text-center">#</th>
+                    <th className="p-3 border-l border-slate-300 text-right">المادة الدراسية</th>
+                    <th className="p-3 border-l border-slate-300 w-24">الدرجة العظمى</th>
+                    <th className="p-3 border-l border-slate-300 w-24">درجة النجاح</th>
+                    <th className="p-3 border-l border-slate-300 w-28 bg-brand-50 text-brand-800">
                       الدرجة المحرزة
                     </th>
-                    <th className="p-3 border-l border-slate-700 w-24">التقدير</th>
+                    <th className="p-3 border-l border-slate-300 w-24">التقدير</th>
                     <th className="p-3 w-28">حالة المادة</th>
                   </tr>
                 </thead>
@@ -249,7 +249,7 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
 
                       return (
                         <tr key={g.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="p-3 font-bold text-slate-400 border-l border-slate-200">
+                          <td className="p-3 font-bold text-slate-500 border-l border-slate-200">
                             {idx + 1}
                           </td>
                           <td className="p-3 font-bold text-slate-900 text-right border-l border-slate-200">
@@ -258,12 +258,12 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
                           <td className="p-3 font-mono text-slate-500 border-l border-slate-200">100</td>
                           <td className="p-3 font-mono text-slate-500 border-l border-slate-200">50</td>
                           <td
-                            className={`p-3 font-black text-sm font-mono border-l border-slate-200 ${
+                            className={`p-3 font-bold text-sm font-mono border-l border-slate-200 ${
                               isFailed
                                 ? "text-rose-600 bg-rose-50/70"
                                 : score !== null && score !== undefined
-                                ? "text-emerald-800 bg-emerald-50/50"
-                                : "text-slate-400"
+                                ? "text-brand-800 bg-brand-50/50"
+                                : "text-slate-500"
                             }`}
                           >
                             {score !== null && score !== undefined ? score : "—"}
@@ -273,7 +273,7 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
                           </td>
                           <td className="p-3">
                             {isPassed ? (
-                              <span className="inline-block px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                              <span className="inline-block px-2.5 py-0.5 rounded-md bg-brand-100 text-brand-800 font-bold text-[10px]">
                                 ناجح ✓
                               </span>
                             ) : isFailed ? (
@@ -281,7 +281,7 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
                                 راسب ✕
                               </span>
                             ) : (
-                              <span className="text-slate-400 text-[10px] font-bold">—</span>
+                              <span className="text-slate-500 text-[10px] font-bold">—</span>
                             )}
                           </td>
                         </tr>
@@ -289,7 +289,7 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
                     })
                   ) : (
                     <tr>
-                      <td colSpan={7} className="p-6 text-slate-400 text-center">
+                      <td colSpan={7} className="p-6 text-slate-500 text-center">
                         لا توجد مواد أو درجات مرصودة لهذا الطالب حتى الآن.
                       </td>
                     </tr>
@@ -299,58 +299,58 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
             </div>
 
             {/* Monthly Summary Statistics Footer */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
-              <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200 text-xs">
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200">
                 <span className="font-bold text-slate-500">المجموع الكلي:</span>
-                <span className="font-black text-sm text-slate-900 font-mono">
+                <span className="font-bold text-sm text-slate-900 font-mono">
                   {totalScoreSum} / {grades.length * 100}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                <span className="font-bold text-emerald-900">المعدل العام للشهر:</span>
-                <span className="font-black text-sm text-emerald-800 font-mono">
+              <div className="flex items-center justify-between p-3 bg-brand-50 rounded-lg border border-brand-100">
+                <span className="font-bold text-brand-800">المعدل العام للشهر:</span>
+                <span className="font-bold text-sm text-brand-800 font-mono">
                   {averageScore}%
                 </span>
               </div>
 
               <div
-                className={`flex items-center justify-between p-3 rounded-xl border ${
+                className={`flex items-center justify-between p-3 rounded-lg border ${
                   failedCount === 0
-                    ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                    ? "bg-brand-50 border-brand-100 text-brand-800"
                     : "bg-rose-50 border-rose-200 text-rose-900"
                 }`}
               >
                 <span className="font-bold">النتيجة العامة:</span>
-                <span className="font-black text-xs">
+                <span className="font-bold text-xs">
                   {failedCount === 0 && validScores.length > 0
-                    ? "ناجح ومؤهل ✅"
+                    ? "ناجح ومؤهل"
                     : failedCount > 0
-                    ? `مكمل في (${failedCount}) مواد ⚠️`
+                    ? `مكمل في (${failedCount}) مواد`
                     : "قيد اكتمال الرصد"}
                 </span>
               </div>
             </div>
 
             {/* Official Signatures & School Stamp */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t-2 border-slate-800 text-xs text-center items-center">
+            <div className="grid grid-cols-3 gap-4 pt-6 border-t-2 border-slate-300 text-xs text-center items-center">
               <div>
                 <p className="font-bold text-slate-800 mb-2">مرشد الصف</p>
-                <div className="h-12 flex items-center justify-center text-[11px] text-slate-400 font-mono">
+                <div className="h-12 flex items-center justify-center text-[11px] text-slate-500 font-mono">
                   التوقيع والملاحظة
                 </div>
               </div>
 
               <div>
                 <p className="font-bold text-slate-800 mb-2">معاون شؤون الطلبة</p>
-                <div className="h-12 flex items-center justify-center text-[11px] text-slate-400 font-mono">
+                <div className="h-12 flex items-center justify-center text-[11px] text-slate-500 font-mono">
                   التدقيق والمصادقة
                 </div>
               </div>
 
               <div>
                 <p className="font-bold text-slate-800 mb-1">مدير المدرسة والختم</p>
-                <p className="font-black text-slate-900 text-xs">{directorName}</p>
+                <p className="font-bold text-slate-900 text-xs">{directorName}</p>
                 <div className="h-14 flex items-center justify-center mt-1">
                   {schoolStamp ? (
                     <img src={schoolStamp} alt="الختم الرسمي" className="h-14 object-contain filter drop-shadow" />
@@ -372,9 +372,9 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
           /* ========================================================= */
           /* FULL ANNUAL REPORT CARD PRINT TEMPLATE                    */
           /* ========================================================= */
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border-2 border-slate-800 print-container shadow-sm space-y-6 font-cairo text-slate-900">
+          <div className="bg-white p-6 sm:p-8 rounded-xl border border-slate-200 print-container shadow-sm space-y-6 font-cairo text-slate-900">
             {/* Header */}
-            <div className="border-b-2 border-slate-800 pb-6 text-center space-y-2">
+            <div className="border-b-2 border-slate-300 pb-6 text-center space-y-2">
               <div className="flex items-center justify-between">
                 <div className="text-right text-xs space-y-1">
                   <p className="font-bold text-slate-900">جمهورية العراق</p>
@@ -383,16 +383,16 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
                 </div>
 
                 <div className="flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mb-1 shadow-md overflow-hidden">
+                  <div className="w-16 h-16 rounded-lg bg-white border border-slate-200 flex items-center justify-center mb-1 shadow-md overflow-hidden">
                     {schoolLogo ? (
                       <img src={schoolLogo} alt="شعار المدرسة" className="w-full h-full object-contain" />
                     ) : (
-                      <div className="w-full h-full bg-slate-900 text-white flex items-center justify-center">
+                      <div className="w-full h-full bg-slate-100 text-slate-600 flex items-center justify-center">
                         <Building2 className="w-8 h-8" />
                       </div>
                     )}
                   </div>
-                  <h2 className="text-base font-black text-slate-900">{schoolName}</h2>
+                  <h2 className="text-base font-bold text-slate-900">{schoolName}</h2>
                   <p className="text-[11px] text-slate-500 font-bold">{schoolType}</p>
                 </div>
 
@@ -403,17 +403,17 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
               </div>
 
               <div className="pt-4">
-                <span className="inline-block px-6 py-1.5 rounded-full bg-slate-900 text-white text-sm font-black tracking-wider">
+                <span className="inline-block px-6 py-1.5 rounded-full bg-slate-100 text-slate-900 border border-slate-300 text-sm font-bold tracking-wider">
                   كشف الدرجات والنتائج السنوية الرسمية
                 </span>
               </div>
             </div>
 
             {/* Student Info Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200 text-xs">
               <div>
                 <span className="text-slate-500 block">اسم الطالب الرباعي:</span>
-                <span className="font-black text-slate-900 text-sm">{student.user?.fullName}</span>
+                <span className="font-bold text-slate-900 text-sm">{student.user?.fullName}</span>
               </div>
               <div>
                 <span className="text-slate-500 block">الصف والمرحلة:</span>
@@ -430,39 +430,39 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
             </div>
 
             {/* Grades Table */}
-            <div className="overflow-x-auto border-2 border-slate-800 rounded-2xl overflow-hidden">
+            <div className="overflow-x-auto border border-slate-300 rounded-lg overflow-hidden">
               <table className="w-full text-xs text-center border-collapse border border-slate-300">
                 <thead>
-                  <tr className="bg-slate-800 text-white font-bold">
-                    <th rowSpan={2} className="border border-slate-400 p-2.5 text-right">
+                  <tr className="bg-slate-100 text-slate-900 font-bold">
+                    <th rowSpan={2} className="border border-slate-300 p-2.5 text-right">
                       المادة الدراسية
                     </th>
-                    <th colSpan={3} className="border border-slate-400 p-2 bg-slate-700">
+                    <th colSpan={3} className="border border-slate-300 p-2 bg-slate-200 text-slate-900">
                       الفصل الأول
                     </th>
-                    <th rowSpan={2} className="border border-slate-400 p-2 bg-blue-900 text-white">
+                    <th rowSpan={2} className="border border-slate-300 p-2 bg-blue-100 text-blue-900">
                       نصف السنة
                     </th>
-                    <th colSpan={3} className="border border-slate-400 p-2 bg-slate-700">
+                    <th colSpan={3} className="border border-slate-300 p-2 bg-slate-200 text-slate-900">
                       الفصل الثاني
                     </th>
-                    <th rowSpan={2} className="border border-slate-400 p-2 bg-indigo-900 text-white">
+                    <th rowSpan={2} className="border border-slate-300 p-2 bg-indigo-100 text-indigo-900">
                       السعي السنوي
                     </th>
-                    <th rowSpan={2} className="border border-slate-400 p-2 bg-slate-800">
+                    <th rowSpan={2} className="border border-slate-300 p-2 bg-slate-200 text-slate-900">
                       الامتحان النهائي
                     </th>
-                    <th rowSpan={2} className="border border-slate-400 p-2 bg-emerald-900 text-white text-sm">
+                    <th rowSpan={2} className="border border-slate-300 p-2 bg-brand-100 text-brand-800 text-sm">
                       الدرجة النهائية
                     </th>
                   </tr>
-                  <tr className="bg-slate-100 text-slate-700 font-semibold">
+                  <tr className="bg-slate-50 text-slate-600 font-semibold">
                     <th className="border border-slate-300 p-1.5">شهر 1</th>
                     <th className="border border-slate-300 p-1.5">شهر 2</th>
-                    <th className="border border-slate-300 p-1.5 bg-slate-200 font-bold">سعي ف1</th>
+                    <th className="border border-slate-300 p-1.5 bg-slate-100 font-bold">سعي ف1</th>
                     <th className="border border-slate-300 p-1.5">شهر 3</th>
                     <th className="border border-slate-300 p-1.5">شهر 4</th>
-                    <th className="border border-slate-300 p-1.5 bg-slate-200 font-bold">سعي ف2</th>
+                    <th className="border border-slate-300 p-1.5 bg-slate-100 font-bold">سعي ف2</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -484,11 +484,11 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
                       <td className="border border-slate-300 p-2 bg-slate-50 font-bold text-slate-900">
                         {g.term2Average ?? "-"}
                       </td>
-                      <td className="border border-slate-300 p-2 bg-indigo-50 font-black text-indigo-900">
+                      <td className="border border-slate-300 p-2 bg-indigo-50 font-bold text-indigo-900">
                         {g.annualAverage ?? "-"}
                       </td>
                       <td className="border border-slate-300 p-2">{g.finalExam ?? "-"}</td>
-                      <td className="border border-slate-300 p-2 bg-emerald-50 font-black text-emerald-900 text-sm">
+                      <td className="border border-slate-300 p-2 bg-brand-50 font-bold text-brand-800 text-sm">
                         {g.finalGrade ?? "-"}
                       </td>
                     </tr>
@@ -498,17 +498,17 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
             </div>
 
             {/* Signatures & Stamps */}
-            <div className="grid grid-cols-3 gap-8 mt-12 pt-8 border-t border-slate-200 text-xs text-center items-center">
+            <div className="grid grid-cols-3 gap-8 mt-12 pt-8 border-t border-slate-300 text-xs text-center items-center">
               <div>
                 <p className="font-bold text-slate-700 mb-2">معاون شؤون الطلبة</p>
-                <div className="h-14 flex items-center justify-center text-slate-400 font-mono text-[11px]">
+                <div className="h-14 flex items-center justify-center text-slate-500 font-mono text-[11px]">
                   التدقيق والمصادقة
                 </div>
               </div>
               <div>
                 <p className="font-bold text-slate-700 mb-1">مدير المدرسة</p>
-                <p className="font-black text-slate-900 text-xs">{directorName}</p>
-                <p className="text-[10px] text-slate-400">التوقيع الرسمي</p>
+                <p className="font-bold text-slate-900 text-xs">{directorName}</p>
+                <p className="text-[10px] text-slate-500">التوقيع الرسمي</p>
               </div>
               <div>
                 <p className="font-bold text-slate-700 mb-2">ختم المدرسة الرسمي</p>

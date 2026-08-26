@@ -3,77 +3,64 @@
 import { useEffect, useState } from "react";
 import { fetchTeachersDataAction } from "@/app/actions/dataFetchActions";
 import { getAllRecords, putRecordsBatch } from "@/lib/offline/offlineDB";
+import { getMemoryData, fastLoad } from "@/lib/dataCache";
 import { TeachersClient } from "./TeachersClient";
 
 export default function TeachersPage() {
-  const [loading, setLoading] = useState(true);
-  const [teachers, setTeachers] = useState<any[]>([]);
-  const [classRooms, setClassRooms] = useState<any[]>([]);
-  const [sections, setSections] = useState<any[]>([]);
-  const [subjects, setSubjects] = useState<any[]>([]);
-  const [currency, setCurrency] = useState("د.ع");
+  const cachedInitial = getMemoryData<any>("admin_teachers_data");
+  const [data, setData] = useState<any>(cachedInitial);
+  const [loading, setLoading] = useState(!cachedInitial);
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        if (typeof window !== "undefined" && navigator.onLine) {
-          const res = await fetchTeachersDataAction();
-          if (res.success && res.teachers) {
-            setTeachers(res.teachers);
-            setClassRooms(res.classRooms || []);
-            setSections(res.sections || []);
-            setSubjects(res.subjects || []);
-            setCurrency(res.currency || "د.ع");
-
-            // Cache to IndexedDB
-            await Promise.all([
-              putRecordsBatch("teachers", res.teachers),
-              putRecordsBatch("classrooms", res.classRooms || []),
-              putRecordsBatch("sections", res.sections || []),
-              putRecordsBatch("subjects", res.subjects || []),
-            ]);
-            setLoading(false);
-            return;
-          }
+    fastLoad<any>({
+      cacheKey: "admin_teachers_data",
+      indexedDbLoader: async () => {
+        const [cachedTeachers, cachedClassrooms, cachedSections, cachedSubjects] = await Promise.all([
+          getAllRecords<any>("teachers"),
+          getAllRecords<any>("classrooms"),
+          getAllRecords<any>("sections"),
+          getAllRecords<any>("subjects"),
+        ]);
+        if (cachedTeachers && cachedTeachers.length > 0) {
+          return {
+            teachers: cachedTeachers,
+            classRooms: cachedClassrooms || [],
+            sections: cachedSections || [],
+            subjects: cachedSubjects || [],
+            currency: "د.ع",
+          };
         }
-
-        // Offline fallback
-        const [cachedTeachers, cachedClassrooms, cachedSections, cachedSubjects] = await Promise.all([
-          getAllRecords<any>("teachers"),
-          getAllRecords<any>("classrooms"),
-          getAllRecords<any>("sections"),
-          getAllRecords<any>("subjects"),
-        ]);
-        setTeachers(cachedTeachers || []);
-        setClassRooms(cachedClassrooms || []);
-        setSections(cachedSections || []);
-        setSubjects(cachedSubjects || []);
-      } catch (err) {
-        console.error("Error loading teachers data:", err);
-        const [cachedTeachers, cachedClassrooms, cachedSections, cachedSubjects] = await Promise.all([
-          getAllRecords<any>("teachers"),
-          getAllRecords<any>("classrooms"),
-          getAllRecords<any>("sections"),
-          getAllRecords<any>("subjects"),
-        ]);
-        setTeachers(cachedTeachers || []);
-        setClassRooms(cachedClassrooms || []);
-        setSections(cachedSections || []);
-        setSubjects(cachedSubjects || []);
-      } finally {
+        return null;
+      },
+      serverFetcher: fetchTeachersDataAction,
+      onCachedData: (cached) => {
+        setData(cached);
+        setLoading(false);
+      },
+      onFreshData: (fresh) => {
+        setData(fresh);
+        setLoading(false);
+      },
+      onIndexedDbPersist: async (fresh) => {
+        if (fresh.teachers) await putRecordsBatch("teachers", fresh.teachers);
+        if (fresh.classRooms) await putRecordsBatch("classrooms", fresh.classRooms);
+        if (fresh.sections) await putRecordsBatch("sections", fresh.sections);
+        if (fresh.subjects) await putRecordsBatch("subjects", fresh.subjects);
+      },
+    }).then((res) => {
+      if (res) {
+        setData(res);
         setLoading(false);
       }
-    }
-
-    loadData();
+    });
   }, []);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-bold text-slate-500">جاري التحميل...</p>
+          <p className="text-sm font-bold text-slate-500">جاري تحميل سجل الكادر والموظفين...</p>
         </div>
       </div>
     );
@@ -81,11 +68,11 @@ export default function TeachersPage() {
 
   return (
     <TeachersClient
-      teachers={teachers}
-      classRooms={classRooms}
-      sections={sections}
-      subjects={subjects}
-      currency={currency}
+      teachers={data?.teachers || []}
+      classRooms={data?.classRooms || []}
+      sections={data?.sections || []}
+      subjects={data?.subjects || []}
+      currency={data?.currency || "د.ع"}
     />
   );
 }

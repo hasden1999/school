@@ -199,14 +199,14 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
   return (
     <div className="space-y-6 font-cairo text-right" dir="rtl">
       {/* Header & Quick Action Bar */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center border border-indigo-200">
+            <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center border border-indigo-200">
               <GraduationCap className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-900">
+              <h3 className="text-base font-bold text-slate-900">
                 إدارة الصفوف والشعب الدراسية
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -220,7 +220,7 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
           <button
             type="button"
             onClick={() => setIsAddClassOpen(!isAddClassOpen)}
-            className="flex-1 md:flex-initial px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2"
+            className="flex-1 md:flex-initial px-5 py-2.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>إضافة صف دراسي جديد</span>
@@ -231,14 +231,14 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
       {/* Feedback Messages */}
       {feedback && (
         <div
-          className={`p-4 rounded-2xl border text-xs font-bold flex items-center gap-2.5 animate-fadeIn ${
+          className={`p-4 rounded-lg border text-xs font-bold flex items-center gap-2.5 animate-fadeIn ${
             feedback.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-              : "bg-rose-50 border-rose-200 text-rose-900"
+              ? "bg-brand-50 border-brand-100 text-brand-800"
+              : "bg-rose-50 border-rose-200 text-rose-800"
           }`}
         >
           {feedback.type === "success" ? (
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-brand-700 shrink-0" />
           ) : (
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
           )}
@@ -250,17 +250,17 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
       {isAddClassOpen && (
         <form
           onSubmit={handleCreateClass}
-          className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-xl space-y-4 animate-scaleUp"
+          className="bg-white text-slate-900 p-6 rounded-xl border border-slate-200 shadow-card space-y-4 animate-scaleUp"
         >
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-            <h4 className="text-sm font-black text-emerald-400 flex items-center gap-2">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h4 className="text-sm font-bold text-brand-700 flex items-center gap-2">
               <Plus className="w-4 h-4" />
               <span>إضافة صف دراسي جديد للنظام</span>
             </h4>
             <button
               type="button"
               onClick={() => setIsAddClassOpen(false)}
-              className="text-xs text-slate-400 hover:text-white"
+              className="text-xs text-slate-500 hover:text-slate-700"
             >
               إلغاء
             </button>
@@ -269,8 +269,8 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
             {/* Class Name */}
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300">
-                اسم الصف الدراسي <span className="text-rose-400">*</span>
+              <label className="font-bold text-slate-600">
+                اسم الصف الدراسي <span className="text-rose-600">*</span>
               </label>
               <input
                 type="text"
@@ -278,13 +278,13 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
                 placeholder="مثال: الأول متوسط أو الرابع العلمي"
                 value={newClassName}
                 onChange={(e) => setNewClassName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-medium"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors font-medium"
               />
             </div>
 
             {/* Annual Tuition */}
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300">
+              <label className="font-bold text-slate-600">
                 القسط السنوي الافتراضي ({currency})
               </label>
               <input
@@ -292,13 +292,13 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
                 placeholder="مثال: 1500000"
                 value={newClassTuition}
                 onChange={(e) => setNewClassTuition(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-medium"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors font-medium"
               />
             </div>
 
             {/* Initial Section */}
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300">
+              <label className="font-bold text-slate-600">
                 اسم أول شعبة تلقائية
               </label>
               <input
@@ -306,7 +306,7 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
                 placeholder="مثال: أ أو 1"
                 value={newClassInitialSection}
                 onChange={(e) => setNewClassInitialSection(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-medium"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors font-medium"
               />
             </div>
 
@@ -315,7 +315,7 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
               <button
                 type="submit"
                 disabled={submittingClass}
-                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow-md flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 rounded-lg bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2"
               >
                 {submittingClass ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />
@@ -330,13 +330,13 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
       )}
 
       {/* Preset Quick Generator Banner */}
-      <div className="p-5 rounded-3xl bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-indigo-500/20 shadow-lg">
+      <div className="p-5 rounded-xl bg-indigo-50 text-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-indigo-200 shadow-sm">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-300">
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700">
             <Sparkles className="w-3.5 h-3.5" />
             <span>تجهيز سريع حسب مناهج وزارة التربية العراقية</span>
           </div>
-          <p className="text-xs text-slate-300">
+          <p className="text-xs text-slate-600">
             هل تود توليد كافة الصفوف والمواد المعتمدة دفعة واحدة بنقرة زر؟
           </p>
         </div>
@@ -345,7 +345,7 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
           <select
             value={selectedPresetType}
             onChange={(e) => setSelectedPresetType(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-white focus:outline-none focus:border-indigo-400"
+            className="px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
           >
             <option value="ابتدائية أهلية">المرحلة الابتدائية (الأول إلى السادس)</option>
             <option value="متوسطة أهلية">المرحلة المتوسطة (الأول إلى الثالث)</option>
@@ -358,7 +358,7 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
             type="button"
             onClick={handleSyncPreset}
             disabled={syncingPreset}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow flex items-center gap-1.5 shrink-0"
+            className="px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 shrink-0"
           >
             {syncingPreset ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Layers className="w-3.5 h-3.5" />}
             <span>تطبيق المنهج</span>
@@ -368,16 +368,16 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
 
       {/* Classrooms Grid List */}
       {loading ? (
-        <div className="py-16 text-center text-slate-400 flex flex-col items-center gap-3">
-          <RefreshCw className="w-8 h-8 animate-spin text-indigo-600" />
+        <div className="py-16 text-center text-slate-500 flex flex-col items-center gap-3">
+          <RefreshCw className="w-8 h-8 animate-spin text-brand-600" />
           <span className="text-xs font-bold">جاري تحميل الصفوف والشعب...</span>
         </div>
       ) : classRooms.length === 0 ? (
-        <div className="bg-white p-12 rounded-3xl border border-dashed border-slate-300 text-center space-y-3">
-          <div className="w-14 h-14 rounded-3xl bg-slate-50 text-slate-400 flex items-center justify-center mx-auto border border-slate-200">
+        <div className="bg-white p-12 rounded-xl border border-dashed border-slate-300 text-center space-y-3">
+          <div className="w-14 h-14 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center mx-auto border border-slate-200">
             <School className="w-7 h-7" />
           </div>
-          <h4 className="text-sm font-black text-slate-800">لم يتم تسجيل أي صفوف دراسية بعد</h4>
+          <h4 className="text-sm font-bold text-slate-800">لم يتم تسجيل أي صفوف دراسية بعد</h4>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             اضغط على زر "إضافة صف دراسي جديد" أعلاه أو استخدم ميزة تطبيق المناهج لتجهيز الصفوف فوراً.
           </p>
@@ -389,14 +389,14 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
             return (
               <div
                 key={c.id}
-                className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-pop transition-all flex flex-col justify-between space-y-4"
               >
                 {/* Class Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                      <h4 className="text-base font-black text-slate-900">{c.name}</h4>
+                      <span className="w-2.5 h-2.5 rounded-full bg-brand-500"></span>
+                      <h4 className="text-base font-bold text-slate-900">{c.name}</h4>
                     </div>
                     <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
                       <span>القسط: {Number(c.annualTuition || 0).toLocaleString("ar-IQ")} {currency}</span>
@@ -411,7 +411,7 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
                   <button
                     type="button"
                     onClick={() => handleDeleteClass(c.id, c.name)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                     title="حذف الصف الدراسي"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -427,7 +427,7 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
                     {c.sections?.map((sec: any) => (
                       <div
                         key={sec.id}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 text-slate-800 text-xs font-black border border-slate-200/80 group"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold border border-slate-200 group"
                       >
                         <span>شعبة {sec.name}</span>
                         {c.sections.length > 1 && (
@@ -451,14 +451,14 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
                           placeholder="اسم الشعبة (ب)"
                           value={newSectionName}
                           onChange={(e) => setNewSectionName(e.target.value)}
-                          className="w-20 px-2 py-1 text-xs rounded-xl bg-white border border-indigo-400 text-slate-900 focus:outline-none font-bold"
+                          className="w-20 px-2 py-1 text-xs rounded-lg bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 font-bold transition-colors"
                           autoFocus
                         />
                         <button
                           type="button"
                           disabled={submittingSection}
                           onClick={() => handleAddSection(c.id)}
-                          className="p-1 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500"
+                          className="p-1 rounded-lg bg-indigo-700 text-white hover:bg-indigo-800"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -468,7 +468,7 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
                             setActiveClassForSection(null);
                             setNewSectionName("");
                           }}
-                          className="p-1 text-xs text-slate-400 hover:text-slate-600"
+                          className="p-1 text-xs text-slate-500 hover:text-slate-700"
                         >
                           ✕
                         </button>
@@ -480,7 +480,7 @@ export const ClassroomsManager: React.FC<ClassroomsManagerProps> = ({
                           setActiveClassForSection(c.id);
                           setNewSectionName("");
                         }}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold border border-indigo-200 transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold border border-indigo-200 transition-colors"
                       >
                         <Plus className="w-3 h-3" />
                         <span>شعبة جديدة</span>

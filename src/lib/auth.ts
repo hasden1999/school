@@ -1,9 +1,19 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
+import { SignJWT, jwtVerify } from "jose";
 import { SessionUser } from "@/types";
-import { cache } from "react";
+import * as React from "react";
 
-const SESSION_COOKIE_NAME = "school_session";
+const safeCache = typeof React.cache === "function" ? React.cache : <T extends (...args: any[]) => any>(fn: T): T => fn;
+
+export const SESSION_COOKIE_NAME = "school_session";
+export const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7; // 7 Days Secure Session
+
+function getJwtSecretKey(): Uint8Array {
+  const secret = process.env.JWT_SECRET || "school_saas_iraq_jwt_default_secret_key_2025_secure";
+  return new TextEncoder().encode(secret);
+}
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
@@ -14,10 +24,63 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 /**
- * Ultra-fast cached getSession() using React cache & verified cookie decoding
- * Responds in 0ms without redundant remote DB round-trips on every page navigation
+ * Sign a secure JWT session token
  */
-export const getSession = cache(async (): Promise<SessionUser | null> => {
+export async function signSessionToken(user: SessionUser): Promise<string> {
+  return new SignJWT({
+    id: user.id,
+    tenantId: user.tenantId,
+    username: user.username,
+    fullName: user.fullName,
+    role: user.role,
+    jobTitle: user.jobTitle || null,
+    permissionsJson: user.permissionsJson || null,
+    isCustomPermissions: !!user.isCustomPermissions,
+    phone: user.phone || null,
+    mustChangePassword: !!user.mustChangePassword,
+    schoolName: user.schoolName || "",
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${SESSION_DURATION_SECONDS}s`)
+    .sign(getJwtSecretKey());
+}
+
+/**
+ * Verify and decode a JWT session token
+ */
+export async function verifySessionToken(token: string): Promise<SessionUser | null> {
+  try {
+    const { payload } = await jwtVerify(token, getJwtSecretKey(), {
+      algorithms: ["HS256"],
+    });
+
+    if (!payload?.id || !payload?.role) {
+      return null;
+    }
+
+    return {
+      id: payload.id as string,
+      tenantId: payload.tenantId as string,
+      username: payload.username as string,
+      fullName: payload.fullName as string,
+      role: payload.role as any,
+      jobTitle: (payload.jobTitle as string) || null,
+      permissionsJson: (payload.permissionsJson as string) || null,
+      isCustomPermissions: !!payload.isCustomPermissions,
+      phone: (payload.phone as string) || null,
+      mustChangePassword: !!payload.mustChangePassword,
+      schoolName: (payload.schoolName as string) || undefined,
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
+ * Cached getSession() using React cache & cryptographically verified JWT
+ */
+export const getSession = safeCache(async (): Promise<SessionUser | null> => {
   const cookieStore = cookies();
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
 
@@ -25,43 +88,20 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
     return null;
   }
 
-  try {
-    const payload = JSON.parse(
-      Buffer.from(sessionCookie.value, "base64").toString("utf-8")
-    );
-
-    if (!payload?.id || !payload?.role) {
-      return null;
-    }
-
-    return {
-      id: payload.id,
-      tenantId: payload.tenantId,
-      username: payload.username,
-      fullName: payload.fullName,
-      role: payload.role as any,
-      phone: payload.phone,
-      mustChangePassword: !!payload.mustChangePassword,
-      schoolName: payload.schoolName,
-    };
-  } catch (err) {
-    return null;
-  }
+  return verifySessionToken(sessionCookie.value);
 });
 
 export async function setSession(user: SessionUser) {
   const cookieStore = cookies();
-  const serialized = Buffer.from(JSON.stringify(user)).toString("base64");
+  const token = await signSessionToken(user);
+  const expiresAt = new Date(Date.now() + SESSION_DURATION_SECONDS * 1000);
 
-  const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365; // 365 Days (1 Year Persistent Login)
-  const expiresAt = new Date(Date.now() + ONE_YEAR_IN_SECONDS * 1000);
-
-  cookieStore.set(SESSION_COOKIE_NAME, serialized, {
+  cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: ONE_YEAR_IN_SECONDS,
+    maxAge: SESSION_DURATION_SECONDS,
     expires: expiresAt,
   });
 }
@@ -74,11 +114,24 @@ export async function clearSession() {
 export async function requireAuth(allowedRoles?: string[]): Promise<SessionUser> {
   const session = await getSession();
   if (!session) {
-    throw new Error("UNAUTHORIZED");
+    redirect("/login");
   }
 
-  if (allowedRoles && !allowedRoles.includes(session.role)) {
-    throw new Error("FORBIDDEN");
+  if (allowedRoles) {
+    // If user is SUPER_ADMIN, always allowed
+    if (session.role === "SUPER_ADMIN") {
+      return session;
+    }
+
+    // For school staff roles, if allowedRoles includes "ADMIN", allow administrative roles
+    const adminRoles = ["ADMIN", "VICE_PRINCIPAL", "ACCOUNTANT", "STAFF", "SUPERVISOR", "CUSTOM"];
+    const isAllowed =
+      allowedRoles.includes(session.role) ||
+      (allowedRoles.includes("ADMIN") && adminRoles.includes(session.role));
+
+    if (!isAllowed) {
+      redirect("/login");
+    }
   }
 
   return session;

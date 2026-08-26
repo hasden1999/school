@@ -3,70 +3,64 @@
 import React, { useEffect, useState } from "react";
 import { fetchAttendanceDataAction } from "@/app/actions/dataFetchActions";
 import { getAllRecords, putRecordsBatch } from "@/lib/offline/offlineDB";
+import { getMemoryData, fastLoad } from "@/lib/dataCache";
 import { AttendanceClient } from "./AttendanceClient";
 
 export default function AttendancePage() {
-  const [loading, setLoading] = useState(true);
-  const [classRooms, setClassRooms] = useState<any[]>([]);
-  const [sections, setSections] = useState<any[]>([]);
+  const cachedInitial = getMemoryData<any>("admin_attendance_init");
+  const [data, setData] = useState<any>(cachedInitial);
+  const [loading, setLoading] = useState(!cachedInitial);
 
   useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      const isOnline = typeof window !== "undefined" ? navigator.onLine : false;
-
-      if (isOnline) {
-        try {
-          const res = await fetchAttendanceDataAction();
-          if (res.success && res.classRooms && res.sections) {
-            setClassRooms(res.classRooms);
-            setSections(res.sections);
-
-            // Cache classRooms to 'classrooms' store and sections to 'sections' store
-            await Promise.all([
-              putRecordsBatch("classrooms", res.classRooms),
-              putRecordsBatch("sections", res.sections),
-            ]);
-            setLoading(false);
-            return;
-          }
-        } catch (err) {
-          console.warn("Failed to fetch online attendance data, falling back to offline:", err);
-        }
-      }
-
-      // Offline / fallback: read from IndexedDB
-      try {
+    fastLoad<any>({
+      cacheKey: "admin_attendance_init",
+      indexedDbLoader: async () => {
         const [cachedClassrooms, cachedSections] = await Promise.all([
           getAllRecords<any>("classrooms"),
           getAllRecords<any>("sections"),
         ]);
-
-        setClassRooms(cachedClassrooms || []);
-        setSections(cachedSections || []);
-      } catch (err) {
-        console.error("Failed to load offline attendance data:", err);
-      } finally {
+        if (cachedClassrooms && cachedClassrooms.length > 0) {
+          return {
+            classRooms: cachedClassrooms,
+            sections: cachedSections || [],
+          };
+        }
+        return null;
+      },
+      serverFetcher: fetchAttendanceDataAction,
+      onCachedData: (cached) => {
+        setData(cached);
+        setLoading(false);
+      },
+      onFreshData: (fresh) => {
+        setData(fresh);
+        setLoading(false);
+      },
+      onIndexedDbPersist: async (fresh) => {
+        if (fresh.classRooms) await putRecordsBatch("classrooms", fresh.classRooms);
+        if (fresh.sections) await putRecordsBatch("sections", fresh.sections);
+      },
+    }).then((res) => {
+      if (res) {
+        setData(res);
         setLoading(false);
       }
-    }
-
-    loadData();
+    });
   }, []);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 font-cairo">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm font-medium text-slate-500">جاري التحميل...</p>
+        <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm font-bold text-slate-500">جاري تحميل سجل الحضور...</p>
       </div>
     );
   }
 
   return (
     <AttendanceClient
-      classRooms={classRooms}
-      sections={sections}
+      classRooms={data?.classRooms || []}
+      sections={data?.sections || []}
       initialStudents={[]}
     />
   );

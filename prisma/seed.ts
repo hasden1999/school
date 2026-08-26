@@ -9,9 +9,11 @@ async function main() {
   // 1. Create School Tenant
   const tenant = await prisma.tenant.upsert({
     where: { code: "al-nukhba" },
-    update: {},
+    update: {
+      name: "مدرسة المعالي الأهلية الابتدائية المختلطة",
+    },
     create: {
-      name: "ثانوية النخبة الأهلية للبنين",
+      name: "مدرسة المعالي الأهلية الابتدائية المختلطة",
       code: "al-nukhba",
       phone: "+9647701234567",
       address: "بغداد - الكرخ - حي الجامعة",

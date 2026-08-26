@@ -205,19 +205,19 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
   };
 
   return (
-    <div className="space-y-8 font-cairo text-slate-100">
+    <div className="space-y-8 font-cairo text-slate-900">
       
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-700 border border-brand-100 text-xs font-bold mb-2">
             <Sparkles className="w-3.5 h-3.5" />
             <span>لوحة القيادة المركزية لمالك المنظومة (SaaS Master Platform)</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             إدارة المنظومة والاشتراكات
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
             إضافة المدارس المعتمدة، توليد حسابات المدراء، متابعة الاشتراكات والطلبات، وتحصيل الرسوم
           </p>
         </div>
@@ -225,10 +225,10 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowAddSchoolModal(true)}
-            className="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm shadow-xl shadow-emerald-600/30 transition-all flex items-center gap-2"
+            className="px-5 py-3 rounded-lg bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs sm:text-sm shadow-pop transition-all flex items-center gap-2"
           >
             <PlusCircle className="w-4 h-4" />
-            <span>➕ إضافة مدرسة جديدة وتوليد حساب المدير</span>
+            <span>إضافة مدرسة جديدة وتوليد حساب المدير</span>
           </button>
         </div>
       </div>
@@ -236,14 +236,14 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
       {/* Global Toast Alert */}
       {notificationMsg && (
         <div
-          className={`p-4 rounded-2xl border text-xs font-bold flex items-center justify-between ${
+          className={`p-4 rounded-lg border text-xs font-bold flex items-center justify-between ${
             notificationMsg.type === "SUCCESS"
-              ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
-              : "bg-rose-500/15 border-rose-500/30 text-rose-300"
+              ? "bg-brand-50 border-brand-100 text-brand-700"
+              : "bg-rose-50 border-rose-100 text-rose-700"
           }`}
         >
           <span>{notificationMsg.text}</span>
-          <button onClick={() => setNotificationMsg(null)} className="text-slate-400 hover:text-white">
+          <button onClick={() => setNotificationMsg(null)} className="text-slate-400 hover:text-slate-600">
             ✕
           </button>
         </div>
@@ -253,96 +253,96 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
         
         {/* Total Schools */}
-        <div className="bg-slate-900/80 p-4 rounded-3xl border border-slate-800/80 shadow-lg space-y-2">
-          <div className="p-2.5 w-fit rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+        <div className="card-surface p-4 space-y-2">
+          <div className="p-2.5 w-fit rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-slate-400">إجمالي المدارس</span>
-            <h3 className="text-2xl font-black text-white">{data.totalTenants}</h3>
+            <span className="text-[11px] font-bold text-slate-500">إجمالي المدارس</span>
+            <h3 className="text-2xl font-bold tabular-nums text-slate-900">{data.totalTenants}</h3>
           </div>
         </div>
 
         {/* Active Schools */}
-        <div className="bg-slate-900/80 p-4 rounded-3xl border border-emerald-500/30 shadow-lg shadow-emerald-500/5 space-y-2">
-          <div className="p-2.5 w-fit rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <div className="card-surface p-4 space-y-2">
+          <div className="p-2.5 w-fit rounded-lg bg-brand-50 text-brand-700 border border-brand-100">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-emerald-400">مدارس مفعلة</span>
-            <h3 className="text-2xl font-black text-emerald-300">{data.activeTenants}</h3>
+            <span className="text-[11px] font-bold text-brand-700">مدارس مفعلة</span>
+            <h3 className="text-2xl font-bold tabular-nums text-brand-700">{data.activeTenants}</h3>
           </div>
         </div>
 
         {/* 14-Day Trial Schools */}
-        <div className="bg-slate-900/80 p-4 rounded-3xl border border-amber-500/30 shadow-lg shadow-amber-500/5 space-y-2">
-          <div className="p-2.5 w-fit rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        <div className="card-surface p-4 space-y-2">
+          <div className="p-2.5 w-fit rounded-lg bg-amber-50 text-amber-700 border border-amber-100">
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-amber-400">تجريبي (14 يوم)</span>
-            <h3 className="text-2xl font-black text-amber-300">{data.trialTenants}</h3>
+            <span className="text-[11px] font-bold text-amber-700">تجريبي (14 يوم)</span>
+            <h3 className="text-2xl font-bold tabular-nums text-amber-700">{data.trialTenants}</h3>
           </div>
         </div>
 
         {/* Suspended Schools */}
-        <div className="bg-slate-900/80 p-4 rounded-3xl border border-rose-500/30 shadow-lg shadow-rose-500/5 space-y-2">
-          <div className="p-2.5 w-fit rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+        <div className="card-surface p-4 space-y-2">
+          <div className="p-2.5 w-fit rounded-lg bg-rose-50 text-rose-700 border border-rose-100">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-rose-400">مدارس معلقة</span>
-            <h3 className="text-2xl font-black text-rose-300">{data.suspendedTenants}</h3>
+            <span className="text-[11px] font-bold text-rose-700">مدارس معلقة</span>
+            <h3 className="text-2xl font-bold tabular-nums text-rose-700">{data.suspendedTenants}</h3>
           </div>
         </div>
 
         {/* Total Students */}
-        <div className="bg-slate-900/80 p-4 rounded-3xl border border-slate-800/80 shadow-lg space-y-2">
-          <div className="p-2.5 w-fit rounded-2xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+        <div className="card-surface p-4 space-y-2">
+          <div className="p-2.5 w-fit rounded-lg bg-purple-50 text-purple-700 border border-purple-100">
             <GraduationCap className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-slate-400">إجمالي الطلاب</span>
-            <h3 className="text-2xl font-black text-white">{data.totalStudents}</h3>
+            <span className="text-[11px] font-bold text-slate-500">إجمالي الطلاب</span>
+            <h3 className="text-2xl font-bold tabular-nums text-slate-900">{data.totalStudents}</h3>
           </div>
         </div>
 
         {/* Total Teachers */}
-        <div className="bg-slate-900/80 p-4 rounded-3xl border border-slate-800/80 shadow-lg space-y-2">
-          <div className="p-2.5 w-fit rounded-2xl bg-teal-500/10 text-teal-400 border border-teal-500/20">
+        <div className="card-surface p-4 space-y-2">
+          <div className="p-2.5 w-fit rounded-lg bg-teal-50 text-teal-700 border border-teal-100">
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-slate-400">إجمالي الكادر</span>
-            <h3 className="text-2xl font-black text-white">{data.totalTeachers}</h3>
+            <span className="text-[11px] font-bold text-slate-500">إجمالي الكادر</span>
+            <h3 className="text-2xl font-bold tabular-nums text-slate-900">{data.totalTeachers}</h3>
           </div>
         </div>
 
         {/* Total Revenue */}
-        <div className="bg-slate-900/80 p-4 rounded-3xl border border-emerald-500/40 bg-gradient-to-br from-slate-900 to-emerald-950/40 shadow-lg space-y-2 col-span-2 sm:col-span-3 lg:col-span-1">
-          <div className="p-2.5 w-fit rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+        <div className="card-surface p-4 space-y-2 col-span-2 sm:col-span-3 lg:col-span-1">
+          <div className="p-2.5 w-fit rounded-lg bg-brand-50 text-brand-700 border border-brand-100">
             <CreditCard className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-emerald-300">الإيرادات</span>
-            <h3 className="text-2xl font-black text-emerald-400">${data.totalRevenue}</h3>
+            <span className="text-[11px] font-bold text-brand-700">الإيرادات</span>
+            <h3 className="text-2xl font-bold tabular-nums text-brand-700">${data.totalRevenue}</h3>
           </div>
         </div>
       </div>
 
       {/* PENDING JOIN REQUESTS SECTION */}
       {joinRequests && joinRequests.length > 0 && (
-        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/30 rounded-3xl border border-emerald-500/30 shadow-2xl p-5 sm:p-6 space-y-4">
+        <div className="card-surface p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              <div className="p-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-100">
                 <MessageSquare className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm sm:text-base font-black text-white">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">
                   طلبات المدارس الجديدة للانضمام والتجربة ({joinRequests.filter((r) => r.status === "PENDING").length} بانتظار الاعتماد)
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   مدراء تواصلوا عبر الموقع لتفعيل مدارسهم وتجربة المنظومة
                 </p>
               </div>
@@ -353,34 +353,34 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
             {joinRequests.map((req) => (
               <div
                 key={req.id}
-                className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3"
+                className="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-3"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="font-black text-white text-xs sm:text-sm">{req.schoolName}</h4>
-                    <span className="text-[11px] text-slate-400">
-                      👤 {req.directorName} • 📍 {req.province}
+                    <h4 className="font-bold text-slate-900 text-xs sm:text-sm">{req.schoolName}</h4>
+                    <span className="text-[11px] text-slate-500">
+                      {req.directorName} • {req.province}
                     </span>
                   </div>
                   <span
                     className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                       req.status === "PROVISIONED"
-                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                        : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                        ? "bg-brand-50 text-brand-700 border border-brand-100"
+                        : "bg-amber-50 text-amber-700 border border-amber-100"
                     }`}
                   >
                     {req.status === "PROVISIONED" ? "تم التفعيل" : "بانتظار الاعتماد"}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-800/80">
-                  <span className="font-mono text-slate-300">📱 {req.phone}</span>
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+                  <span className="font-mono text-slate-600">{req.phone}</span>
                   <div className="flex items-center gap-2">
                     <a
-                      href={`https://wa.me/${req.phone.replace(/[^0-9]/g, "")}?text=مرحباً أستاذ ${req.directorName}، بخصوص طلب انضمام مدرسة ${req.schoolName} لمنظومة النخبة لإدارة المدارس الأهلية...`}
+                      href={`https://wa.me/${req.phone.replace(/[^0-9]/g, "")}?text=مرحباً أستاذ ${req.directorName}، بخصوص طلب انضمام مدرسة ${req.schoolName} للمنظومة الشاملة لإدارة المدارس الأهلية...`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white font-bold text-[11px] transition-colors border border-emerald-500/30"
+                      className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[11px] transition-colors border border-emerald-200 cursor-pointer"
                     >
                       واتساب
                     </a>
@@ -389,9 +389,9 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                         type="button"
                         disabled={loadingAction === req.id}
                         onClick={() => handleApproveJoinRequest(req)}
-                        className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] transition-all shadow-md"
+                        className="px-3 py-1 rounded-lg bg-brand-700 hover:bg-brand-800 text-white font-bold text-[11px] transition-all shadow-xs"
                       >
-                        {loadingAction === req.id ? "جاري التفعيل..." : "اعتماد وتوليد الحساب 🚀"}
+                        {loadingAction === req.id ? "جاري التفعيل..." : "اعتماد وتوليد الحساب"}
                       </button>
                     )}
                   </div>
@@ -403,16 +403,16 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
       )}
 
       {/* Schools Directory & Subscription Control Table */}
-      <div className="bg-slate-900/80 rounded-3xl border border-slate-800/90 shadow-2xl overflow-hidden space-y-4">
+      <div className="card-surface overflow-hidden space-y-4">
         
         {/* Table Controls */}
-        <div className="p-5 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h2 className="text-lg font-black text-white flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-emerald-400" />
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-brand-700" />
               <span>دليل المدارس والتحكم بالصلاحيات والاشتراكات</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               تفعيل، تجميد، تمديد الاشتراكات، والدخول السريع كمدير لتقديم الدعم الفني
             </p>
           </div>
@@ -425,7 +425,7 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="بحث باسم المدرسة، الكود، المدير..."
-                className="w-full pl-4 pr-9 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-xs font-medium text-white outline-none"
+                className="w-full pl-4 pr-9 py-2.5 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none transition-colors"
               />
               <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
             </div>
@@ -434,12 +434,12 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-bold text-slate-200 outline-none"
+              className="px-3 py-2.5 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-xs font-bold text-slate-900 outline-none transition-colors"
             >
               <option value="ALL">جميع الحالات</option>
-              <option value="TRIAL">⏳ فترة تجريبية (14 يوم)</option>
-              <option value="ACTIVE">🟢 اشتراك مفعل</option>
-              <option value="SUSPENDED">🔴 اشتراك معلق / موقوف</option>
+              <option value="TRIAL">فترة تجريبية (14 يوم)</option>
+              <option value="ACTIVE">اشتراك مفعل</option>
+              <option value="SUSPENDED">اشتراك معلق / موقوف</option>
             </select>
           </div>
         </div>
@@ -447,7 +447,7 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
         {/* Table View */}
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-slate-950/70 text-slate-400 font-bold border-b border-slate-800">
+            <thead className="bg-slate-50 text-xs font-semibold text-slate-500">
               <tr>
                 <th className="p-4">المدرسة</th>
                 <th className="p-4">المدير والهاتف</th>
@@ -457,7 +457,7 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                 <th className="p-4 text-center">إجراءات المالك (Super Admin)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-medium">
+            <tbody className="divide-y divide-slate-100 font-medium">
               {filteredSchools.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-slate-500 font-bold">
@@ -478,22 +478,22 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                     : 0;
 
                   return (
-                    <tr key={school.id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={school.id} className="hover:bg-slate-50 transition-colors">
                       {/* School Name & Code */}
                       <td className="p-4">
-                        <div className="font-black text-white text-sm">{school.name}</div>
+                        <div className="font-bold text-slate-900 text-sm">{school.name}</div>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                          <span className="text-[11px] font-mono text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-100">
                             {school.code}
                           </span>
-                          <span className="text-[10px] text-slate-400">{school.address || "بغداد"}</span>
+                          <span className="text-[10px] text-slate-500">{school.address || "بغداد"}</span>
                         </div>
                       </td>
 
                       {/* Director & Phone */}
                       <td className="p-4">
-                        <div className="font-bold text-slate-200">{school.directorName || "غير محدد"}</div>
-                        <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                        <div className="font-bold text-slate-900">{school.directorName || "غير محدد"}</div>
+                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">
                           {school.phone || "—"}
                         </div>
                       </td>
@@ -501,11 +501,11 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                       {/* Stats */}
                       <td className="p-4">
                         <div className="flex items-center gap-2 text-[11px]">
-                          <span className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                            🎓 {school._count?.studentProfiles || 0} طالب
+                          <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-100">
+                            {school._count?.studentProfiles || 0} طالب
                           </span>
-                          <span className="px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/20">
-                            👨‍🏫 {school._count?.users || 0} كادر
+                          <span className="px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 border border-teal-100">
+                            {school._count?.users || 0} كادر
                           </span>
                         </div>
                       </td>
@@ -513,19 +513,19 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                       {/* Status */}
                       <td className="p-4">
                         {school.subscriptionStatus === "TRIAL" && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold text-[11px]">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-100 font-bold text-[11px]">
                             <Clock className="w-3.5 h-3.5" />
                             <span>تجريبي 14 يوم</span>
                           </span>
                         )}
                         {school.subscriptionStatus === "ACTIVE" && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold text-[11px]">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-50 text-brand-700 border border-brand-100 font-bold text-[11px]">
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             <span>اشتراك مفعل</span>
                           </span>
                         )}
                         {school.subscriptionStatus === "SUSPENDED" && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-rose-500/15 text-rose-300 border border-rose-500/30 font-bold text-[11px]">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-100 font-bold text-[11px]">
                             <AlertTriangle className="w-3.5 h-3.5" />
                             <span>معلق / موقوف</span>
                           </span>
@@ -536,23 +536,23 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                       <td className="p-4">
                         {expiry ? (
                           <div>
-                            <div className="font-mono text-slate-200 text-[11px]">
+                            <div className="font-mono text-slate-700 text-[11px]">
                               {expiry.toISOString().split("T")[0]}
                             </div>
                             <span
                               className={`text-[10px] font-bold ${
                                 diffDays <= 3
-                                  ? "text-rose-400"
+                                  ? "text-rose-600"
                                   : diffDays <= 7
-                                  ? "text-amber-400"
-                                  : "text-emerald-400"
+                                  ? "text-amber-600"
+                                  : "text-brand-700"
                               }`}
                             >
                               {diffDays > 0 ? `(متبقي ${diffDays} يوم)` : "(منتهي الصلاحية)"}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-slate-500">—</span>
+                          <span className="text-slate-400">—</span>
                         )}
                       </td>
 
@@ -563,7 +563,7 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                           <button
                             type="button"
                             onClick={() => setSelectedSchoolForRenew(school)}
-                            className="px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white font-bold transition-all border border-emerald-500/30 flex items-center gap-1"
+                            className="px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold transition-all border border-brand-100 flex items-center gap-1"
                             title="تجديد أو تمديد الاشتراك"
                           >
                             <CreditCard className="w-3.5 h-3.5" />
@@ -575,10 +575,10 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                             type="button"
                             disabled={loadingAction === school.id}
                             onClick={() => handleToggleSuspend(school)}
-                            className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1 ${
+                            className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1 ${
                               school.subscriptionStatus === "SUSPENDED"
-                                ? "bg-teal-600/20 hover:bg-teal-600 text-teal-300 hover:text-white border border-teal-500/30"
-                                : "bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30"
+                                ? "bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-100"
+                                : "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100"
                             }`}
                             title={school.subscriptionStatus === "SUSPENDED" ? "تفعيل المدرسة" : "تجميد المدرسة"}
                           >
@@ -590,7 +590,7 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                             type="button"
                             disabled={loadingAction === school.id}
                             onClick={() => handleImpersonate(school.id)}
-                            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold transition-all border border-slate-700 flex items-center gap-1"
+                            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-600 font-bold transition-all border border-slate-300 flex items-center gap-1"
                             title="دخول فوري كمدير لهذه المدرسة لتقديم الدعم الفني"
                           >
                             <LogIn className="w-3.5 h-3.5" />
@@ -609,22 +609,22 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
 
       {/* ADD SCHOOL MODAL (SUPER ADMIN MANUAL PROVISIONING) */}
       {showAddSchoolModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl space-y-6 animate-scaleUp text-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
+          <div className="card-surface shadow-pop p-6 sm:p-8 w-full max-w-lg space-y-6 animate-scaleUp text-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <div className="p-3 rounded-lg bg-brand-50 text-brand-700 border border-brand-100">
                   <PlusCircle className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-white">إضافة مدرسة جديدة وتوليد حساب المدير</h3>
-                  <p className="text-xs text-slate-400">سيقوم النظام بإنشاء البيئة وحساب المدير وتجهيز المناهج فوراً</p>
+                  <h3 className="text-base font-bold text-slate-900">إضافة مدرسة جديدة وتوليد حساب المدير</h3>
+                  <p className="text-xs text-slate-500">سيقوم النظام بإنشاء البيئة وحساب المدير وتجهيز المناهج فوراً</p>
                 </div>
               </div>
 
               <button
                 onClick={() => setShowAddSchoolModal(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800"
+                className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
                 ✕
               </button>
@@ -633,58 +633,58 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
             <form onSubmit={handleAddSchoolSubmit} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">اسم المدرسة الأهلية *</label>
+                  <label className="block font-bold text-slate-600 mb-1.5">اسم المدرسة الأهلية *</label>
                   <input
                     type="text"
                     name="schoolName"
                     required
                     placeholder="مثال: ثانوية المعارف الأهلية"
-                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white outline-none font-bold"
+                    className="w-full px-3.5 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-slate-900 placeholder-slate-400 outline-none transition-colors font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">كود المدرسة بالإنجليزية (اختياري)</label>
+                  <label className="block font-bold text-slate-600 mb-1.5">كود المدرسة بالإنجليزية (اختياري)</label>
                   <input
                     type="text"
                     name="schoolCode"
                     placeholder="مثال: almaaref (تلقائي إن تُرِك فارغاً)"
-                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-emerald-400 font-mono outline-none"
+                    className="w-full px-3.5 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-brand-700 placeholder-slate-400 outline-none transition-colors font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">اسم المدير الكامل *</label>
+                  <label className="block font-bold text-slate-600 mb-1.5">اسم المدير الكامل *</label>
                   <input
                     type="text"
                     name="directorName"
                     required
                     placeholder="أستاذ ..."
-                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white outline-none"
+                    className="w-full px-3.5 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-slate-900 placeholder-slate-400 outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">رقم هاتف المدير / الواتساب *</label>
+                  <label className="block font-bold text-slate-600 mb-1.5">رقم هاتف المدير / الواتساب *</label>
                   <input
                     type="text"
                     name="directorPhone"
                     required
                     placeholder="078XXXXXXXX"
-                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white font-mono outline-none"
+                    className="w-full px-3.5 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-slate-900 placeholder-slate-400 outline-none transition-colors font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">المحافظة</label>
+                  <label className="block font-bold text-slate-600 mb-1.5">المحافظة</label>
                   <select
                     name="province"
                     defaultValue="بغداد"
-                    className="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold outline-none"
+                    className="w-full px-3 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-slate-900 font-bold outline-none transition-colors"
                   >
                     <option value="بغداد">بغداد</option>
                     <option value="البصرة">البصرة</option>
@@ -697,14 +697,14 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">نوع التفعيل المبدئي</label>
+                  <label className="block font-bold text-slate-600 mb-1.5">نوع التفعيل المبدئي</label>
                   <select
                     name="isTrial"
                     defaultValue="true"
-                    className="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold outline-none"
+                    className="w-full px-3 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-slate-900 font-bold outline-none transition-colors"
                   >
-                    <option value="true">⏳ تجربة مجانية (14 يوماً)</option>
-                    <option value="false">🟢 اشتراك مفعل سنوي (سنة كاملة)</option>
+                    <option value="true">تجربة مجانية (14 يوماً)</option>
+                    <option value="false">اشتراك مفعل سنوي (سنة كاملة)</option>
                   </select>
                 </div>
               </div>
@@ -713,14 +713,14 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                 <button
                   type="submit"
                   disabled={loadingAction === "ADD_SCHOOL"}
-                  className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs shadow-pop transition-all flex items-center justify-center gap-2"
                 >
-                  {loadingAction === "ADD_SCHOOL" ? "جاري إنشاء المدرسة وتوليد الحساب..." : "إنشاء المدرسة وتوليد بيانات المدير 🚀"}
+                  {loadingAction === "ADD_SCHOOL" ? "جاري إنشاء المدرسة وتوليد الحساب..." : "إنشاء المدرسة وتوليد بيانات المدير"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAddSchoolModal(false)}
-                  className="px-5 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold"
+                  className="px-5 py-3.5 rounded-lg bg-white hover:bg-slate-50 text-slate-600 font-bold border border-slate-300"
                 >
                   إلغاء
                 </button>
@@ -732,29 +732,29 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
 
       {/* PROVISIONED SUCCESS & WHATSAPP SHARE MODAL */}
       {provisionedResult && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl space-y-6 animate-scaleUp text-slate-100">
-            <div className="text-center space-y-2 border-b border-slate-800 pb-4">
-              <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
+          <div className="card-surface shadow-pop p-6 sm:p-8 w-full max-w-lg space-y-6 animate-scaleUp text-slate-900">
+            <div className="text-center space-y-2 border-b border-slate-100 pb-4">
+              <div className="w-14 h-14 rounded-full bg-brand-50 text-brand-700 flex items-center justify-center mx-auto border border-brand-100">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-black text-white">تم إنشاء المدرسة وتوليد حساب المدير بنجاح!</h3>
-              <p className="text-xs text-slate-300">{provisionedResult.tenant?.name}</p>
+              <h3 className="text-lg font-bold text-slate-900">تم إنشاء المدرسة وتوليد حساب المدير بنجاح!</h3>
+              <p className="text-xs text-slate-600">{provisionedResult.tenant?.name}</p>
             </div>
 
             {/* Generated Credentials Box */}
-            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2.5 font-mono text-xs">
-              <div className="flex items-center justify-between text-slate-300">
-                <span>🏫 كود المدرسة:</span>
-                <span className="font-bold text-emerald-400">{provisionedResult.schoolCode}</span>
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2.5 font-mono text-xs">
+              <div className="flex items-center justify-between text-slate-600">
+                <span>كود المدرسة:</span>
+                <span className="font-bold text-brand-700">{provisionedResult.schoolCode}</span>
               </div>
-              <div className="flex items-center justify-between text-slate-300">
-                <span>👤 اسم مستخدم المدير:</span>
-                <span className="font-bold text-white">{provisionedResult.directorUsername}</span>
+              <div className="flex items-center justify-between text-slate-600">
+                <span>اسم مستخدم المدير:</span>
+                <span className="font-bold text-slate-900">{provisionedResult.directorUsername}</span>
               </div>
-              <div className="flex items-center justify-between text-slate-300">
-                <span>🔑 رمز الدخول السري (5 أحرف):</span>
-                <span className="font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+              <div className="flex items-center justify-between text-slate-600">
+                <span>رمز الدخول السري (5 أحرف):</span>
+                <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">
                   {provisionedResult.directorPassword}
                 </span>
               </div>
@@ -766,25 +766,25 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                 href={provisionedResult.whatsappUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs sm:text-sm transition-all shadow-pop flex items-center justify-center gap-2"
               >
                 <Share2 className="w-4 h-4" />
-                <span>📱 إرسال بيانات الدخول للمدير عبر الواتساب فوراً</span>
+                <span>إرسال بيانات الدخول للمدير عبر الواتساب فوراً</span>
               </a>
 
               <button
                 type="button"
                 onClick={() => handleCopy(provisionedResult.welcomeMessage, "MSG")}
-                className="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all border border-slate-700 flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-lg bg-white hover:bg-slate-50 text-slate-600 font-bold text-xs transition-all border border-slate-300 flex items-center justify-center gap-2"
               >
-                {copiedKey === "MSG" ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                {copiedKey === "MSG" ? <Check className="w-4 h-4 text-brand-700" /> : <Copy className="w-4 h-4" />}
                 <span>{copiedKey === "MSG" ? "تم نسخ الرسالة بنجاح!" : "نسخ رسالة الترحيب وبيانات الدخول"}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setProvisionedResult(null)}
-                className="w-full py-2.5 rounded-xl text-slate-400 hover:text-white font-bold text-xs"
+                className="w-full py-2.5 rounded-lg text-slate-500 hover:text-slate-700 font-bold text-xs"
               >
                 إغلاق
               </button>
@@ -795,22 +795,22 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
 
       {/* RENEW SUBSCRIPTION MODAL */}
       {selectedSchoolForRenew && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl space-y-6 animate-scaleUp text-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
+          <div className="card-surface shadow-pop p-6 sm:p-8 w-full max-w-lg space-y-6 animate-scaleUp text-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <div className="p-3 rounded-lg bg-brand-50 text-brand-700 border border-brand-100">
                   <CreditCard className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-white">تجديد وتمديد اشتراك المدرسة</h3>
-                  <p className="text-xs text-slate-400">{selectedSchoolForRenew.name}</p>
+                  <h3 className="text-base font-bold text-slate-900">تجديد وتمديد اشتراك المدرسة</h3>
+                  <p className="text-xs text-slate-500">{selectedSchoolForRenew.name}</p>
                 </div>
               </div>
 
               <button
                 onClick={() => setSelectedSchoolForRenew(null)}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800"
+                className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
                 ✕
               </button>
@@ -818,11 +818,11 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
 
             <form onSubmit={handleRenewSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-slate-300 mb-1.5">باقة الاشتراك</label>
+                <label className="block font-bold text-slate-600 mb-1.5">باقة الاشتراك</label>
                 <select
                   name="plan"
                   defaultValue="PRO"
-                  className="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold outline-none"
+                  className="w-full px-3 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-slate-900 font-bold outline-none transition-colors"
                 >
                   <option value="PRO">الباقة الاحترافية (Pro - شاملة كافة الميزات والواتساب)</option>
                   <option value="BASIC">الباقة الأساسية (Standard - حتى 300 طالب)</option>
@@ -832,11 +832,11 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">مدة التمديد</label>
+                  <label className="block font-bold text-slate-600 mb-1.5">مدة التمديد</label>
                   <select
                     name="durationMonths"
                     defaultValue="12"
-                    className="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold outline-none"
+                    className="w-full px-3 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-slate-900 font-bold outline-none transition-colors"
                   >
                     <option value="1">شهر واحد (+1 Month)</option>
                     <option value="3">3 أشهر (+3 Months)</option>
@@ -846,24 +846,24 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">المبلغ المحصل ($ USD)</label>
+                  <label className="block font-bold text-slate-600 mb-1.5">المبلغ المحصل ($ USD)</label>
                   <input
                     type="number"
                     name="amount"
                     defaultValue="150"
                     step="10"
-                    className="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold outline-none"
+                    className="w-full px-3 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-slate-900 font-bold outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">طريقة الاستلام</label>
+                  <label className="block font-bold text-slate-600 mb-1.5">طريقة الاستلام</label>
                   <select
                     name="paymentMethod"
                     defaultValue="ZAIN_CASH"
-                    className="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold outline-none"
+                    className="w-full px-3 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-slate-900 font-bold outline-none transition-colors"
                   >
                     <option value="ZAIN_CASH">زين كاش (ZainCash)</option>
                     <option value="ASIA_HAWALA">آسيا حوالة (AsiaHawala)</option>
@@ -873,24 +873,24 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-300 mb-1.5">رقم الإشعار / الحوالة</label>
+                  <label className="block font-bold text-slate-600 mb-1.5">رقم الإشعار / الحوالة</label>
                   <input
                     type="text"
                     name="referenceNumber"
                     placeholder="مثال: TXN-98421"
-                    className="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold outline-none font-mono"
+                    className="w-full px-3 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-slate-900 placeholder-slate-400 outline-none transition-colors font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-300 mb-1.5">ملاحظات الفاتورة</label>
+                <label className="block font-bold text-slate-600 mb-1.5">ملاحظات الفاتورة</label>
                 <input
                   type="text"
                   name="notes"
                   placeholder="ملاحظات إضافية على التجديد..."
                   defaultValue="تجديد سنوي معتمد من لوحة مالك المنظومة"
-                  className="w-full px-3 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white outline-none"
+                  className="w-full px-3 py-3 rounded-lg bg-white border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-slate-900 placeholder-slate-400 outline-none transition-colors"
                 />
               </div>
 
@@ -898,14 +898,14 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                 <button
                   type="submit"
                   disabled={loadingAction === "RENEW"}
-                  className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs shadow-pop transition-all flex items-center justify-center gap-2"
                 >
-                  {loadingAction === "RENEW" ? "جاري التجديد والتسجيل..." : "تأكيد تجديد الاشتراك وتحديث الصلاحية 🚀"}
+                  {loadingAction === "RENEW" ? "جاري التجديد والتسجيل..." : "تأكيد تجديد الاشتراك وتحديث الصلاحية"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedSchoolForRenew(null)}
-                  className="px-5 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+                  className="px-5 py-3.5 rounded-lg bg-white hover:bg-slate-50 text-slate-600 font-bold text-xs border border-slate-300"
                 >
                   إلغاء
                 </button>
