@@ -341,11 +341,11 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                 <button
                   type="button"
                   onClick={() => {
-                    const text = `بيانات الدخول لمنظومة المدرسة:\nالطالب: ${student.user.fullName}\nاسم المستخدم: ${student.user.username}\nرمز المرور: ${student.user.plainPasscode || "(تم تغييره)"}\nرابط المنظومة: ${window.location.origin}/login`;
+                    const text = `بيانات الدخول لمنظومة المدرسة:\nالطالب: ${student.user?.fullName || student.guardianName}\nاسم المستخدم: ${student.user?.username || "—"}\nرمز المرور: ${student.user?.plainPasscode || "(تم تغييره)"}\nرابط المنظومة: ${typeof window !== "undefined" ? window.location.origin : ""}/login`;
                     navigator.clipboard.writeText(text);
                     alert("✓ تم نسخ بيانات الدخول بنجاح!");
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" />
                   <span>نسخ البيانات</span>
@@ -356,14 +356,14 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                 <div className="p-3 rounded-lg bg-white border border-slate-200">
                   <span className="text-[10px] text-slate-500 block mb-0.5">اسم المستخدم (Username):</span>
                   <span className="font-mono text-sm font-bold text-brand-700 tracking-wider">
-                    {student.user.username}
+                    {student.user?.username || "—"}
                   </span>
                 </div>
 
                 <div className="p-3 rounded-lg bg-white border border-slate-200">
                   <span className="text-[10px] text-slate-500 block mb-0.5">رمز المرور (Passcode):</span>
                   <span className="font-mono text-sm font-bold text-amber-700 tracking-wider">
-                    {student.user.plainPasscode || "••••••"}
+                    {student.user?.plainPasscode || "••••••"}
                   </span>
                 </div>
               </div>

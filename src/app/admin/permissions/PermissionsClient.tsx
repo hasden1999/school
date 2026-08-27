@@ -80,12 +80,14 @@ export const PermissionsClient: React.FC<PermissionsClientProps> = ({
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
   const isOwnerAdmin = currentUser?.role === "ADMIN";
 
-  // Filtered list
-  const filteredUsers = users.filter((u) => {
-    const matchesSearch =
-      u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (u.phone && u.phone.includes(searchTerm));
+  // Filtered list with defensive null-safety
+  const safeUsers = Array.isArray(users) ? users : [];
+  const filteredUsers = safeUsers.filter((u) => {
+    if (!u) return false;
+    const nameMatch = (u.fullName || "").toLowerCase().includes((searchTerm || "").toLowerCase());
+    const userMatch = (u.username || "").toLowerCase().includes((searchTerm || "").toLowerCase());
+    const phoneMatch = u.phone ? u.phone.includes(searchTerm) : false;
+    const matchesSearch = nameMatch || userMatch || phoneMatch;
     const matchesRole = roleFilter === "ALL" || u.role === roleFilter;
     return matchesSearch && matchesRole;
   });
@@ -235,24 +237,24 @@ export const PermissionsClient: React.FC<PermissionsClientProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="card-surface p-5 space-y-1">
           <span className="text-xs font-bold text-slate-500 block">إجمالي المستخدمين المسجلين</span>
-          <p className="text-2xl font-bold text-slate-900 tabular-nums">{users.length}</p>
+          <p className="text-2xl font-bold text-slate-900 tabular-nums">{safeUsers.length}</p>
         </div>
         <div className="card-surface p-5 space-y-1">
           <span className="text-xs font-bold text-slate-500 block">صلاحيات مالية وتخفيض الأقساط</span>
           <p className="text-2xl font-bold text-emerald-700 tabular-nums">
-            {users.filter((u) => u.role === "ADMIN" || u.role === "SUPER_ADMIN" || getUserEffectivePermissions(u).includes("MANAGE_DISCOUNTS")).length}
+            {safeUsers.filter((u) => u && (u.role === "ADMIN" || u.role === "SUPER_ADMIN" || getUserEffectivePermissions(u).includes("MANAGE_DISCOUNTS"))).length}
           </p>
         </div>
         <div className="card-surface p-5 space-y-1">
           <span className="text-xs font-bold text-slate-500 block">الهيئة التدريسية والأكاديمية</span>
           <p className="text-2xl font-bold text-purple-700 tabular-nums">
-            {users.filter((u) => u.role === "TEACHER").length}
+            {safeUsers.filter((u) => u && u.role === "TEACHER").length}
           </p>
         </div>
         <div className="card-surface p-5 space-y-1">
           <span className="text-xs font-bold text-slate-500 block">الكادر الإداري والمحاسبي</span>
           <p className="text-2xl font-bold text-blue-700 tabular-nums">
-            {users.filter((u) => ["ADMIN", "VICE_PRINCIPAL", "ACCOUNTANT", "STAFF", "CUSTOM"].includes(u.role)).length}
+            {safeUsers.filter((u) => u && ["ADMIN", "VICE_PRINCIPAL", "ACCOUNTANT", "STAFF", "CUSTOM"].includes(u.role)).length}
           </p>
         </div>
       </div>
@@ -319,14 +321,14 @@ export const PermissionsClient: React.FC<PermissionsClientProps> = ({
                     <td>
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
-                          {u.fullName.charAt(0)}
+                          {(u?.fullName || "م").charAt(0)}
                         </div>
                         <div>
                           <span className="font-bold text-slate-900 block text-xs sm:text-sm">
-                            {u.fullName}
+                            {u?.fullName || "—"}
                           </span>
                           <span className="text-[11px] text-slate-500 block">
-                            {u.jobTitle || getRoleLabel(u.role)}
+                            {u?.jobTitle || getRoleLabel(u?.role)}
                           </span>
                         </div>
                       </div>
