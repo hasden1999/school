@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
+import { MobileBottomNav } from "./MobileBottomNav";
 import { SubscriptionBanner } from "../billing/SubscriptionBanner";
 
 interface AdminLayoutClientProps {
@@ -22,7 +23,7 @@ export const AdminLayoutClient: React.FC<AdminLayoutClientProps> = ({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-row font-cairo text-slate-800 overflow-x-hidden">
-      {/* Sidebar with responsive Desktop + Mobile Drawer support */}
+      {/* 4-Pillars Sidebar (Desktop & Mobile Drawer) */}
       <AdminSidebar
         schoolName={schoolName}
         user={user}
@@ -37,8 +38,12 @@ export const AdminLayoutClient: React.FC<AdminLayoutClientProps> = ({
           user={user}
           onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
         />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 max-w-[1600px] w-full mx-auto">{children}</main>
+        
+        {/* Mobile 4-Tab Bottom Navigation Bar */}
+        <MobileBottomNav />
       </div>
     </div>
   );
 };
+
