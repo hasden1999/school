@@ -174,7 +174,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
             {masterPillars.map((pillar) => {
               const Icon = pillar.icon;
-              const isActive = pillar.activeRoutes.some((route) => pathname === route || pathname.startsWith(route + "/"));
+              const currentPath = pathname || "";
+              const isActive = pillar.activeRoutes.some(
+                (route) => currentPath === route || (currentPath && currentPath.startsWith(route + "/"))
+              );
 
               return (
                 <div key={pillar.id} className="space-y-1">

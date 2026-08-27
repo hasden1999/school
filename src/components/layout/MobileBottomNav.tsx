@@ -11,10 +11,10 @@ import {
 } from "lucide-react";
 
 export const MobileBottomNav: React.FC = () => {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
 
   // Only show on admin routes
-  if (!pathname.startsWith("/admin")) {
+  if (!pathname || !pathname.startsWith("/admin")) {
     return null;
   }
 
@@ -63,7 +63,7 @@ export const MobileBottomNav: React.FC = () => {
         {navTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = tab.activeRoutes.some(
-            (route) => pathname === route || pathname.startsWith(route + "/")
+            (route) => pathname === route || (pathname && pathname.startsWith(route + "/"))
           );
 
           return (
