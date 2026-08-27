@@ -10,17 +10,26 @@ export const InstallPwaPrompt: React.FC = () => {
   const [isStandalone, setIsStandalone] = useState<boolean>(false);
 
   useEffect(() => {
-    // 1. Register service worker with auto-update
+    // 1. Register service worker with immediate check & auto-update
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
         .then((reg) => {
-          // Check for SW updates every 30 minutes
-          setInterval(() => reg.update(), 30 * 60 * 1000);
+          reg.update();
+          // Check for SW updates every 5 minutes
+          setInterval(() => reg.update(), 5 * 60 * 1000);
         })
         .catch((err) => {
           console.log("Service Worker registration failed:", err);
         });
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
     }
 
     // 2. Request persistent storage (critical for multi-day offline)
