@@ -294,6 +294,46 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
         </div>
       )}
 
+      {/* 1-Click Fast Bulk Attendance Bar */}
+      <div className="card-surface p-4 flex flex-col sm:flex-row items-center justify-between gap-3 bg-emerald-50/60 border border-emerald-200">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-bold">
+            <UserCheck className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="text-xs font-bold text-slate-900 block">إجراء سريع بنقرة واحدة:</span>
+            <span className="text-[11px] text-slate-500">اجعل جميع الطلاب حاضرين ثم حدد الغائبين فقط</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => {
+              const allPresentMap: Record<string, "PRESENT"> = {};
+              students.forEach((s) => {
+                allPresentMap[s.id] = "PRESENT";
+              });
+              setAttendanceState(allPresentMap);
+            }}
+            className="px-4 py-2 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-initial justify-center"
+          >
+            <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+            <span>الكل حاضرون اليوم ✅</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSaveAttendance}
+            disabled={saving || !permissionInfo?.canTakeAttendance}
+            className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 flex-1 sm:flex-initial justify-center"
+          >
+            <Save className="w-4 h-4 text-amber-400" />
+            <span>{saving ? "جاري الحفظ..." : "حفظ الكشف 💾"}</span>
+          </button>
+        </div>
+      </div>
+
       {/* Attendance Roster Table */}
       <div className="card-surface overflow-hidden">
         <div className="overflow-x-auto">

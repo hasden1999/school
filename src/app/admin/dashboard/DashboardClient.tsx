@@ -71,6 +71,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   recentLeaves,
 }) => {
   const [activeFeedTab, setActiveFeedTab] = useState<"ATTENDANCE" | "LEAVES" | "REPORTS" | "PAYMENTS">("ATTENDANCE");
+  const [guidedMode, setGuidedMode] = useState(false);
 
   const todayStr = new Date().toLocaleDateString("ar-IQ", {
     weekday: "long",
@@ -84,15 +85,32 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn max-w-7xl mx-auto font-cairo text-slate-900">
 
-      {/* 1. Hero Executive Command Banner */}
+      {/* 1. Hero Executive Command Banner with Guided Mode Toggle */}
       <div className="card-surface p-5 sm:p-7 border border-slate-200 shadow-xs bg-white">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200/80">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              <span>لوحة القيادة والمتابعة المركزية</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200/80">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                <span>لوحة القيادة والمتابعة المركزية</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+              </div>
+
+              {/* Guided Mode Switch for Beginners & Elderly Users */}
+              <button
+                type="button"
+                onClick={() => setGuidedMode(!guidedMode)}
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 border cursor-pointer ${
+                  guidedMode
+                    ? "bg-amber-100 text-amber-900 border-amber-300 shadow-xs"
+                    : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+                }`}
+              >
+                <span>💡 وضع التبسيط والإرشاد الذكي:</span>
+                <span className="underline">{guidedMode ? "مفعل (شروحات خطوة بخطوة) ✅" : "مغلق"}</span>
+              </button>
             </div>
+
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <h1 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">
                 {school?.name || "مدرسة المعالي الأهلية الابتدائية المختلطة"}
@@ -116,11 +134,11 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
             </Link>
 
             <Link
-              href="/admin/grades"
+              href="/admin/permissions"
               className="px-3.5 py-2.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all border border-slate-200 flex items-center gap-2 shadow-xs"
             >
-              <Award className="w-4 h-4 text-amber-600" />
-              <span>سجل الدرجات</span>
+              <ShieldCheck className="w-4 h-4 text-emerald-700" />
+              <span>صلاحيات الموظفين والطلاب</span>
             </Link>
 
             <Link
@@ -133,6 +151,30 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Guided Mode Info Box */}
+      {guidedMode && (
+        <div className="p-5 rounded-2xl bg-amber-50/90 border border-amber-200 shadow-xs space-y-3 animate-fadeIn">
+          <div className="flex items-center gap-2 text-amber-900 font-bold text-sm">
+            <Sparkles className="w-5 h-5 text-amber-600" />
+            <span>دليل اليوم المدرسي في 3 خطوات بسيطة وسريعة:</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1">
+              <span className="font-bold text-amber-900 block">1. أخذ الحضور الصباحي:</span>
+              <p className="text-slate-600">افتح صفحة الحضور واضغط "حاضر للكل" ثم حدد الغائب فقط.</p>
+            </div>
+            <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1">
+              <span className="font-bold text-amber-900 block">2. استلام الأقساط وطباعة السند:</span>
+              <p className="text-slate-600">افتح صفحة الأقساط واضغط على الطالب واكتب المبلغ واطبع السند.</p>
+            </div>
+            <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1">
+              <span className="font-bold text-amber-900 block">3. متابعة إشعارات الواتساب:</span>
+              <p className="text-slate-600">النظام يرسل تلقائياً إشعارات الحضور والوصولات لأولياء الأمور.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2. One-Click Quick Actions Dock (محطة العمليات السريعة) */}
       <div className="card-surface p-5 space-y-3.5 border border-slate-200 bg-white">
