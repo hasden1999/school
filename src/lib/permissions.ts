@@ -2,10 +2,14 @@ export type SystemPermission =
   | "MANAGE_STUDENTS"
   | "MANAGE_ATTENDANCE"
   | "MANAGE_GRADES"
+  | "LOCK_GRADES"
   | "MANAGE_REPORTS"
   | "MANAGE_SCHEDULE"
   | "MANAGE_TEACHERS"
   | "MANAGE_PAYMENTS"
+  | "MANAGE_DISCOUNTS"
+  | "VIEW_FINANCIAL_REPORTS"
+  | "DELETE_PAYMENTS"
   | "MANAGE_EVALUATION"
   | "MANAGE_WHATSAPP"
   | "MANAGE_BACKUP"
@@ -22,6 +26,34 @@ export interface PermissionDefinition {
 
 export const ALL_SYSTEM_PERMISSIONS: PermissionDefinition[] = [
   {
+    id: "MANAGE_PAYMENTS",
+    label: "قبض الأقساط وإصدار السندات المالية",
+    category: "مالي",
+    description: "إصدار وصولات وسندات القبض المالية برقم تسلسلي، وتسجيل الدفعات النقدية.",
+    iconName: "CreditCard",
+  },
+  {
+    id: "MANAGE_DISCOUNTS",
+    label: "تخفيض الأقساط ومنح الخصومات الدراسية",
+    category: "مالي",
+    description: "صلاحية حصرية لمنح تخفيضات بنسبة % أو مبالغ مقطوعة (أبناء الشهداء، الإخوة، التفوق، قرار المالك).",
+    iconName: "Percent",
+  },
+  {
+    id: "VIEW_FINANCIAL_REPORTS",
+    label: "كشوفات الخزينة والإيرادات العامة",
+    category: "مالي",
+    description: "الاطلاع على إجمالي المبالغ المستحصلة، والمتبقيات، وإحصائيات الدخل الكلي للصرح.",
+    iconName: "TrendingUp",
+  },
+  {
+    id: "DELETE_PAYMENTS",
+    label: "إلغاء وتعديل السندات المالية السابقة",
+    category: "مالي",
+    description: "إلغاء سند قبض خاطئ وتصحيح المبالغ المستلمة في سجلات المحاسبة.",
+    iconName: "Trash2",
+  },
+  {
     id: "MANAGE_STUDENTS",
     label: "إدارة الطلاب والقبول والوثائق",
     category: "إداري",
@@ -37,10 +69,17 @@ export const ALL_SYSTEM_PERMISSIONS: PermissionDefinition[] = [
   },
   {
     id: "MANAGE_GRADES",
-    label: "رصد واعتماد وأقفال الدرجات",
+    label: "رصد وتعديل الدرجات المرحلية",
     category: "أكاديمي",
-    description: "إدخال وتعديل وتدقيق وأقفال درجات الامتحانات الشهرية ونصف السنة والسعي السنوي.",
+    description: "إدخال وتعديل درجات الامتحانات الشهرية ونصف السنة والسعي السنوي.",
     iconName: "Award",
+  },
+  {
+    id: "LOCK_GRADES",
+    label: "اعتماد وإقفال النتائج والشهادات النهائية",
+    category: "أكاديمي",
+    description: "المصادقة الوزارية النهائية على الشيت السنوي وقفل الدرجات لمنع أي تعديل لاحق.",
+    iconName: "Lock",
   },
   {
     id: "MANAGE_REPORTS",
@@ -62,13 +101,6 @@ export const ALL_SYSTEM_PERMISSIONS: PermissionDefinition[] = [
     category: "إداري",
     description: "تسجيل المعلمين، ربط المواد، تحديد الرواتب الشهرية، وتكليفات الفصول.",
     iconName: "Users",
-  },
-  {
-    id: "MANAGE_PAYMENTS",
-    label: "الأقساط والوصولات المالية",
-    category: "مالي",
-    description: "إصدار وصولات القبض برقم تسلسلي، تتبع المتبقي، وإدارة الأقساط والخصومات.",
-    iconName: "CreditCard",
   },
   {
     id: "MANAGE_EVALUATION",
@@ -102,7 +134,7 @@ export const ALL_SYSTEM_PERMISSIONS: PermissionDefinition[] = [
     id: "MANAGE_STAFF_PERMISSIONS",
     label: "إدارة وتعديل صلاحيات المستخدمين",
     category: "نظام",
-    description: "تعديل صلاحيات وأدوار الموظفين والكوادر في المدرسة (بإشراف المشرف العام).",
+    description: "تعديل صلاحيات وأدوار الموظفين والكوادر في المدرسة (بإشراف المالك والمشرف العام).",
     iconName: "ShieldCheck",
   },
 ];
@@ -119,17 +151,21 @@ export const SYSTEM_ROLE_PRESETS: Record<
 > = {
   SUPER_ADMIN: {
     label: "المشرف العام (مالك المنصة)",
-    description: "صلاحيات سيادية كاملة 100% على كافة المدارس والمستخدمين والسيرفر وقاعدة البيانات.",
+    description: "صلاحيات سيادية كاملة 100% على كافة المدارس والمستخدمين والسيرفر وقاعدة البيانات والمالية.",
     badge: "Super Admin Master 👑",
     color: "from-amber-600 to-yellow-500",
     defaultPermissions: [
       "MANAGE_STUDENTS",
       "MANAGE_ATTENDANCE",
       "MANAGE_GRADES",
+      "LOCK_GRADES",
       "MANAGE_REPORTS",
       "MANAGE_SCHEDULE",
       "MANAGE_TEACHERS",
       "MANAGE_PAYMENTS",
+      "MANAGE_DISCOUNTS",
+      "VIEW_FINANCIAL_REPORTS",
+      "DELETE_PAYMENTS",
       "MANAGE_EVALUATION",
       "MANAGE_WHATSAPP",
       "MANAGE_BACKUP",
@@ -138,22 +174,27 @@ export const SYSTEM_ROLE_PRESETS: Record<
     ],
   },
   ADMIN: {
-    label: "مدير المدرسة (الإدارة العامة)",
-    description: "إدارة كاملة للمدرسة وشؤونها، قابلة للتعديل والتخصيص من قبل المشرف العام.",
-    badge: "مدير المدرسة 👑",
+    label: "المالك / مدير المدرسة (الإدارة العامة)",
+    description: "إدارة كاملة للمدرسة، صلاحيات مالية شاملة، تخفيض الأقساط، والتحكم في صلاحيات الموظفين.",
+    badge: "المالك / المدير العام 👑",
     color: "from-emerald-600 to-teal-600",
     defaultPermissions: [
       "MANAGE_STUDENTS",
       "MANAGE_ATTENDANCE",
       "MANAGE_GRADES",
+      "LOCK_GRADES",
       "MANAGE_REPORTS",
       "MANAGE_SCHEDULE",
       "MANAGE_TEACHERS",
       "MANAGE_PAYMENTS",
+      "MANAGE_DISCOUNTS",
+      "VIEW_FINANCIAL_REPORTS",
+      "DELETE_PAYMENTS",
       "MANAGE_EVALUATION",
       "MANAGE_WHATSAPP",
       "MANAGE_BACKUP",
       "MANAGE_SETTINGS",
+      "MANAGE_STAFF_PERMISSIONS",
     ],
   },
   VICE_PRINCIPAL: {
@@ -175,7 +216,7 @@ export const SYSTEM_ROLE_PRESETS: Record<
     description: "إصدار الوصولات وسندات القبض، متابعة الأقساط، والتقارير المالية.",
     badge: "محاسب مالي 💳",
     color: "from-indigo-600 to-purple-600",
-    defaultPermissions: ["MANAGE_PAYMENTS", "MANAGE_STUDENTS"],
+    defaultPermissions: ["MANAGE_PAYMENTS", "VIEW_FINANCIAL_REPORTS", "MANAGE_STUDENTS"],
   },
   STAFF: {
     label: "موظف إداري / شؤون الطلبة",

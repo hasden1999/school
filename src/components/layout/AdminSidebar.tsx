@@ -160,6 +160,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           permission: "MANAGE_SETTINGS" as SystemPermission,
         },
         {
+          label: "صلاحيات الموظفين والمالية",
+          subLabel: "تخصيص الأدوار والتحكم",
+          href: "/admin/permissions",
+          icon: ShieldCheck,
+          permission: "MANAGE_STAFF_PERMISSIONS" as SystemPermission,
+        },
+        {
           label: "حزمة الطوارئ والنسخ",
           subLabel: "تصدير وتأمين قاعدة البيانات",
           href: "/admin/backup",

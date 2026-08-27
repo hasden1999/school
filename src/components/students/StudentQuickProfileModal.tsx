@@ -5,6 +5,7 @@ import { Modal } from "../ui/Modal";
 import { Badge } from "../ui/Badge";
 import { recordPaymentAction } from "@/app/actions/paymentActions";
 import { updateStudentDocumentStatusAction } from "@/app/actions/documentActions";
+import { applyTuitionDiscountAction } from "@/app/actions/studentActions";
 import {
   User,
   Phone,
@@ -29,6 +30,7 @@ import {
   ShieldCheck,
   Copy,
   KeyRound,
+  Percent,
 } from "lucide-react";
 
 interface StudentQuickProfileModalProps {
@@ -57,6 +59,15 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
   const [notifyWhatsApp, setNotifyWhatsApp] = useState<boolean>(true);
   const [paying, setPaying] = useState<boolean>(false);
   const [paySuccess, setPaySuccess] = useState<string | null>(null);
+
+  // Discount Form state
+  const [discountType, setDiscountType] = useState<"PERCENT" | "FIXED">("PERCENT");
+  const [discountValue, setDiscountValue] = useState<number>(10);
+  const [discountReason, setDiscountReason] = useState<string>("خصم إخوة (10%)");
+  const [applyingDiscount, setApplyingDiscount] = useState<boolean>(false);
+  const [discountSuccess, setDiscountSuccess] = useState<string | null>(null);
+  const [isDiscountOpen, setIsDiscountOpen] = useState<boolean>(false);
+  const [currentTotalTuition, setCurrentTotalTuition] = useState<number>(student?.totalTuition || 0);
 
   // Docs state
   const [updatingDocId, setUpdatingDocId] = useState<string | null>(null);
@@ -119,6 +130,45 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
       alert(e.message || "خطأ أثناء تحديث حالة المستند");
     } finally {
       setUpdatingDocId(null);
+    }
+  };
+
+  const handleApplyDiscount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setApplyingDiscount(true);
+    setDiscountSuccess(null);
+
+    try {
+      let finalDiscountAmount = 0;
+      if (discountType === "PERCENT") {
+        finalDiscountAmount = Math.round((currentTotalTuition * discountValue) / 100);
+      } else {
+        finalDiscountAmount = discountValue;
+      }
+
+      const newTotal = Math.max(0, currentTotalTuition - finalDiscountAmount);
+
+      const res = await applyTuitionDiscountAction({
+        studentId: student.id,
+        discountAmount: finalDiscountAmount,
+        discountReason,
+        newTotalTuition: newTotal,
+      });
+
+      if (res?.success) {
+        setCurrentTotalTuition(newTotal);
+        student.totalTuition = newTotal;
+        setDiscountSuccess(
+          `✓ تم اعتماد التخفيض بنجاح (${Number(finalDiscountAmount).toLocaleString()} ${currency}) وأصبح القسط الجديد: ${Number(newTotal).toLocaleString()} ${currency}`
+        );
+        setIsDiscountOpen(false);
+      } else if (res?.error) {
+        alert(res.error);
+      }
+    } catch (err: any) {
+      alert(err.message || "حدث خطأ أثناء تطبيق الخصم");
+    } finally {
+      setApplyingDiscount(false);
     }
   };
 
@@ -364,6 +414,168 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
                 <span>{paySuccess}</span>
               </div>
             )}
+
+            {discountSuccess && (
+              <div className="p-4 rounded-lg bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm animate-fadeIn">
+                <CheckCircle2 className="w-5 h-5 shrink-0" />
+                <span>{discountSuccess}</span>
+              </div>
+            )}
+
+            {/* Tuition Discount & Grants Box (Owner / Principal / Authorized) */}
+            <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-amber-100 text-amber-800 border border-amber-200">
+                    <Percent className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900">
+                      تخفيض القسط والمنح الدراسية (للمالك والمشرف والمخولين)
+                    </h4>
+                    <p className="text-[10px] text-slate-500">
+                      منح خصم إخوة، أبناء شهداء، تفوق علمي، أو منحة خاصة من الإدارة
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsDiscountOpen(!isDiscountOpen)}
+                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+                >
+                  <Percent className="w-3.5 h-3.5" />
+                  <span>{isDiscountOpen ? "إغلاق النموذج" : "تطبيق تخفيض على القسط"}</span>
+                </button>
+              </div>
+
+              {isDiscountOpen && (
+                <form
+                  onSubmit={handleApplyDiscount}
+                  className="p-4 rounded-lg bg-white border border-amber-200 space-y-3 animate-fadeIn"
+                >
+                  {/* Preset quick buttons */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[11px] font-bold text-slate-700">
+                      اختيار باقة تخفيض سريعة:
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { label: "خصم إخوة 10%", pct: 10, reason: "خصم إخوة (10%)" },
+                        { label: "خصم إخوة 15%", pct: 15, reason: "خصم إخوة (15%)" },
+                        { label: "خصم تفوق 20%", pct: 20, reason: "خصم تفوق علمي (20%)" },
+                        { label: "أبناء شهداء 50%", pct: 50, reason: "منحة أبناء الشهداء (50%)" },
+                        { label: "إعفاء كامل 100%", pct: 100, reason: "إعفاء كامل بقرار المالك (100%)" },
+                      ].map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => {
+                            setDiscountType("PERCENT");
+                            setDiscountValue(item.pct);
+                            setDiscountReason(item.reason);
+                          }}
+                          className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors"
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">نوع التخفيض:</label>
+                      <select
+                        value={discountType}
+                        onChange={(e) => setDiscountType(e.target.value as any)}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-bold"
+                      >
+                        <option value="PERCENT">نسبة مئوية (%)</option>
+                        <option value="FIXED">مبلغ مقطوع بالدينار</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">
+                        {discountType === "PERCENT" ? "النسبة المئوية (%):" : `المبلغ المخصوم (${currency}):`}
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={discountType === "PERCENT" ? 100 : currentTotalTuition}
+                        value={discountValue}
+                        onChange={(e) => setDiscountValue(Number(e.target.value))}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-bold font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">سبب التخفيض / القرار:</label>
+                      <input
+                        type="text"
+                        value={discountReason}
+                        onChange={(e) => setDiscountReason(e.target.value)}
+                        placeholder="مثال: خصم إخوة، قرار الإدارة..."
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Summary preview */}
+                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-slate-500 block text-[11px]">القسط السنوي الحالي:</span>
+                      <span className="font-bold text-slate-700">{Number(currentTotalTuition).toLocaleString()} {currency}</span>
+                    </div>
+                    <span className="text-slate-300 font-bold text-base">⟵</span>
+                    <div>
+                      <span className="text-slate-500 block text-[11px]">قيمة الخصم:</span>
+                      <span className="font-bold text-rose-600">
+                        - {discountType === "PERCENT"
+                          ? Number(Math.round((currentTotalTuition * discountValue) / 100)).toLocaleString()
+                          : Number(discountValue).toLocaleString()}{" "}
+                        {currency}
+                      </span>
+                    </div>
+                    <span className="text-slate-300 font-bold text-base">⟵</span>
+                    <div>
+                      <span className="text-emerald-700 block text-[11px] font-bold">القسط النهائي الجديد:</span>
+                      <span className="font-bold text-emerald-800 text-sm">
+                        {Number(
+                          Math.max(
+                            0,
+                            currentTotalTuition -
+                              (discountType === "PERCENT"
+                                ? Math.round((currentTotalTuition * discountValue) / 100)
+                                : discountValue)
+                          )
+                        ).toLocaleString()}{" "}
+                        {currency}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsDiscountOpen(false)}
+                      className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 font-bold text-xs"
+                    >
+                      إلغاء
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={applyingDiscount}
+                      className="px-5 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>{applyingDiscount ? "جاري الاعتماد..." : "اعتماد وتطبيق الخصم"}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
 
             {/* Instant Payment Form */}
             {remainingTuition > 0 ? (

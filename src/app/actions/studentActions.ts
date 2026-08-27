@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireAuth, hashPassword } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
 import { generateWhatsAppMessage } from "@/lib/whatsappEngine";
 import { generateUniqueFiveLetterUsername, generateFiveLetterPasscode } from "@/lib/credentialGenerator";
 import { revalidatePath } from "next/cache";
@@ -285,5 +286,45 @@ export async function deleteStudentAction(studentId: string) {
   } catch (e: any) {
     return { success: false, error: e.message || "فشل حذف الطالب" };
   }
+}
+
+export async function applyTuitionDiscountAction(data: {
+  studentId: string;
+  discountAmount: number;
+  discountReason: string;
+  newTotalTuition: number;
+}) {
+  const session = await requireAuth(["ADMIN"]);
+  const tenantId = session.tenantId;
+
+  // Authorization: Super Admin, Admin/Owner, or User with MANAGE_DISCOUNTS
+  const isSuperAdmin = session.role === "SUPER_ADMIN";
+  const isOwnerAdmin = session.role === "ADMIN";
+  const hasDiscountPerm = hasPermission(session, "MANAGE_DISCOUNTS");
+
+  if (!isSuperAdmin && !isOwnerAdmin && !hasDiscountPerm) {
+    return { error: "ليس لديك صلاحية منح تخفيض الأقساط. يرجى مراجعة المالك أو الإدارة العامة." };
+  }
+
+  const student = await prisma.studentProfile.findUnique({
+    where: { id: data.studentId },
+    include: { user: true },
+  });
+
+  if (!student || student.tenantId !== tenantId) {
+    return { error: "سجل الطالب غير موجود في هذه المدرسة" };
+  }
+
+  const updatedProfile = await prisma.studentProfile.update({
+    where: { id: data.studentId },
+    data: {
+      totalTuition: Number(data.newTotalTuition),
+    },
+  });
+
+  revalidatePath("/admin/students");
+  revalidatePath("/admin/payments");
+
+  return { success: true, profile: updatedProfile };
 }
 

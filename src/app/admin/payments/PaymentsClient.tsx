@@ -7,6 +7,7 @@ import { StudentRepository } from "@/lib/repositories/StudentRepository";
 import { runOverdueTuitionReminders } from "@/lib/cronEngine";
 import { Modal } from "@/components/ui/Modal";
 import { PaymentReceiptModal } from "@/components/print/PaymentReceiptModal";
+import { StudentQuickProfileModal } from "@/components/students/StudentQuickProfileModal";
 import {
   CreditCard,
   Plus,
@@ -18,6 +19,7 @@ import {
   AlertTriangle,
   Receipt,
   User,
+  Percent,
 } from "lucide-react";
 
 interface PaymentsClientProps {
@@ -38,6 +40,7 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
   const [selectedClass, setSelectedClass] = useState("ALL");
   const [isRecordOpen, setIsRecordOpen] = useState(false);
   const [selectedStudentForPay, setSelectedStudentForPay] = useState<any>(null);
+  const [selectedQuickStudent, setSelectedQuickStudent] = useState<any>(null);
 
   // Form
   const [amount, setAmount] = useState<number>(250000);
@@ -302,15 +305,24 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
                       )}
                     </td>
 
-                    <td className="p-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedQuickStudent(s)}
+                          className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition-all flex items-center gap-1 border border-amber-200 shadow-xs cursor-pointer"
+                          title="تخفيض القسط، المنح الدراسية، والملف المالي الشامل"
+                        >
+                          <Percent className="w-3.5 h-3.5" />
+                          <span>تخفيض / ملف</span>
+                        </button>
+
                         {remaining > 0 && (
                           <button
                             onClick={() => {
                               setSelectedStudentForPay(s);
                               setIsRecordOpen(true);
                             }}
-                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                            className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
                             <span>استلام دفعة</span>
@@ -325,14 +337,13 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
                                 student: s,
                               });
                             }}
-                            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors border border-slate-200 cursor-pointer"
                             title="طباعة آخر وصل استلام"
                           >
-                            <Printer className="w-4 h-4" />
+                            <Printer className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
-                    </td>
                   </tr>
                 );
               }))}
@@ -482,6 +493,19 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
           student={activeReceiptData.student}
           currency={currency}
           tenant={tenant}
+        />
+      )}
+
+      {/* Full Quick Profile & Tuition Discount Modal */}
+      {selectedQuickStudent && (
+        <StudentQuickProfileModal
+          isOpen={!!selectedQuickStudent}
+          onClose={() => setSelectedQuickStudent(null)}
+          student={selectedQuickStudent}
+          currency={currency}
+          onOpenReceipt={(receipt, student) => {
+            setActiveReceiptData({ receipt, student });
+          }}
         />
       )}
     </div>
