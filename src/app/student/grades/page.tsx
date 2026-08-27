@@ -1,6 +1,9 @@
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { StudentGradesClient } from "./StudentGradesClient";
+import { getFullClassGradesForStudentAction } from "@/app/actions/permissionsPolicyActions";
+
+export const revalidate = 0;
 
 export default async function StudentGradesPage() {
   const session = await requireAuth(["STUDENT", "ADMIN"]);
@@ -20,5 +23,13 @@ export default async function StudentGradesPage() {
     },
   });
 
-  return <StudentGradesClient student={student} />;
+  // Check if student or classroom has permission to view full class roster/grades
+  const classGradesData = await getFullClassGradesForStudentAction(session.id);
+
+  return (
+    <StudentGradesClient
+      student={student}
+      classGradesData={classGradesData}
+    />
+  );
 }
