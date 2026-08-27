@@ -1016,6 +1016,51 @@ export const PermissionsClient: React.FC<PermissionsClientProps> = ({
                 </div>
               </label>
 
+              {/* Duration Presets */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <label className="block text-xs font-bold text-slate-800">
+                  ⏱️ تحديد مدة سريان الصلاحية الاستثنائية:
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { key: "24H", label: "24 ساعة ⚡" },
+                    { key: "3D", label: "3 أيام (امتحانات) 📅" },
+                    { key: "7D", label: "أسبوع كامل 🗓️" },
+                    { key: "PERMANENT", label: "صلاحية دائمة ♾️" },
+                  ].map((d) => (
+                    <button
+                      key={d.key}
+                      type="button"
+                      onClick={() => setStudentNotes((prev) => (prev ? prev : `مدة: ${d.label}`))}
+                      className="py-2 px-2.5 rounded-lg text-xs font-bold bg-white border border-slate-300 hover:border-emerald-600 hover:bg-emerald-50 text-slate-700 transition-all cursor-pointer text-center"
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 1-Click WhatsApp Parent Notification */}
+              {selectedStudent.guardianPhone && (
+                <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-center justify-between gap-3">
+                  <div className="text-xs">
+                    <span className="font-bold text-emerald-950 block">💬 إشعار فوري لولي الأمر عبر الواتساب:</span>
+                    <span className="text-[11px] text-emerald-800 font-mono" dir="ltr">{selectedStudent.guardianPhone}</span>
+                  </div>
+                  <a
+                    href={`https://wa.me/${selectedStudent.guardianPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+                      `تحية طيبة من إدارة مدرسة المعالي الأهلية الابتدائية المختلطة.\nنود إعلامكم بأنه تم تفعيل ميزة الاطلاع على شيت درجات وترتيب الصف كاملاً للطالب/ة (${selectedStudent.fullName}) لتعزيز التنافس والتميز الدراسي.\nرابط المنظومة: http://localhost:3000/login`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>إرسال واتساب</span>
+                  </a>
+                </div>
+              )}
+
               {/* Notes */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">

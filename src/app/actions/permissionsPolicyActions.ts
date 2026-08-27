@@ -10,6 +10,8 @@ export interface ClassPermissionPolicy {
   allowViewHonorRoll: boolean;
   allowSubmitLeaves: boolean;
   allowTeacherEvaluation: boolean;
+  expiresAt?: string | null; // ISO Date String for temporary access
+  durationLabel?: string;    // e.g. "3 أيام", "أسبوع", "دائم"
 }
 
 export interface StudentOverridePolicy {
@@ -18,6 +20,8 @@ export interface StudentOverridePolicy {
   allowViewClassGrades: boolean;
   isClassRepresentative: boolean;
   canViewReports: boolean;
+  expiresAt?: string | null;
+  durationLabel?: string;
   notes?: string;
 }
 
@@ -57,14 +61,31 @@ export async function getClassPermissionsPoliciesAction() {
     }
   }
 
+  const now = new Date();
+
   const enhancedClasses = classRooms.map((cls) => {
     const policy = policiesMap[cls.id] || {};
+    
+    // Check if temporary policy has expired
+    let isExpired = false;
+    if (policy.expiresAt) {
+      const expDate = new Date(policy.expiresAt);
+      if (now > expDate) {
+        isExpired = true;
+      }
+    }
+
+    const activeViewFull = isExpired ? false : (policy.allowViewFullClassGrades ?? false);
+
     return {
       ...cls,
-      allowViewFullClassGrades: policy.allowViewFullClassGrades ?? false,
+      allowViewFullClassGrades: activeViewFull,
       allowViewHonorRoll: policy.allowViewHonorRoll ?? true,
       allowSubmitLeaves: policy.allowSubmitLeaves ?? true,
       allowTeacherEvaluation: policy.allowTeacherEvaluation ?? true,
+      expiresAt: policy.expiresAt || null,
+      durationLabel: policy.durationLabel || (activeViewFull ? "دائم" : null),
+      isExpired,
     };
   });
 
@@ -72,11 +93,11 @@ export async function getClassPermissionsPoliciesAction() {
 }
 
 /**
- * Update permission policy for a specific class or all classes
+ * Update permission policy for a specific class with duration presets (24H, 3D, 7D, PERMANENT)
  */
 export async function updateClassPermissionPolicyAction(
   classRoomId: string,
-  policy: Partial<ClassPermissionPolicy>
+  policy: Partial<ClassPermissionPolicy> & { durationPreset?: "24H" | "3D" | "7D" | "TERM" | "PERMANENT" }
 ) {
   const session = await requireAuth(["ADMIN"]);
   const tenantId = session.tenantId;
@@ -98,9 +119,32 @@ export async function updateClassPermissionPolicyAction(
     currentConfig.classPolicies = {};
   }
 
+  // Calculate expiration date if preset provided
+  let expiresAt: string | null = null;
+  let durationLabel = "دائم";
+
+  if (policy.durationPreset === "24H") {
+    expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    durationLabel = "24 ساعة";
+  } else if (policy.durationPreset === "3D") {
+    expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    durationLabel = "3 أيام";
+  } else if (policy.durationPreset === "7D") {
+    expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    durationLabel = "أسبوع واحد";
+  } else if (policy.durationPreset === "TERM") {
+    expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+    durationLabel = "الفصل الدراسي";
+  } else if (policy.durationPreset === "PERMANENT") {
+    expiresAt = null;
+    durationLabel = "دائم";
+  }
+
   currentConfig.classPolicies[classRoomId] = {
     ...(currentConfig.classPolicies[classRoomId] || {}),
     ...policy,
+    expiresAt: expiresAt !== undefined ? expiresAt : (currentConfig.classPolicies[classRoomId]?.expiresAt ?? null),
+    durationLabel: durationLabel || currentConfig.classPolicies[classRoomId]?.durationLabel,
   };
 
   await prisma.tenant.update({
@@ -113,7 +157,7 @@ export async function updateClassPermissionPolicyAction(
   revalidatePath("/admin/permissions");
   revalidatePath("/student/grades");
 
-  return { success: true };
+  return { success: true, expiresAt, durationLabel };
 }
 
 /**
@@ -133,6 +177,8 @@ export async function getStudentOverridesAction() {
     orderBy: { studentNumber: "asc" },
   });
 
+  const now = new Date();
+
   const parsedStudents = students.map((s) => {
     let overrides: any = {};
     if (s.user?.permissionsJson) {
@@ -144,6 +190,15 @@ export async function getStudentOverridesAction() {
       } catch {}
     }
 
+    let isExpired = false;
+    if (overrides.expiresAt) {
+      if (now > new Date(overrides.expiresAt)) {
+        isExpired = true;
+      }
+    }
+
+    const allowView = isExpired ? false : (overrides.allowViewClassGrades ?? false);
+
     return {
       id: s.id,
       userId: s.userId,
@@ -153,9 +208,12 @@ export async function getStudentOverridesAction() {
       guardianPhone: s.guardianPhone,
       className: `${s.classRoom?.name || ""} (${s.section?.name || ""})`,
       classRoomId: s.classRoomId,
-      allowViewClassGrades: overrides.allowViewClassGrades ?? false,
+      allowViewClassGrades: allowView,
       isClassRepresentative: overrides.isClassRepresentative ?? false,
       canViewReports: overrides.canViewReports ?? true,
+      expiresAt: overrides.expiresAt || null,
+      durationLabel: overrides.durationLabel || (allowView ? "دائم" : null),
+      isExpired,
       notes: overrides.notes || "",
     };
   });
@@ -164,7 +222,7 @@ export async function getStudentOverridesAction() {
 }
 
 /**
- * Update override policy for a specific student
+ * Update override policy for a specific student with duration
  */
 export async function updateStudentOverrideAction(
   userId: string,
@@ -172,6 +230,7 @@ export async function updateStudentOverrideAction(
     allowViewClassGrades: boolean;
     isClassRepresentative: boolean;
     canViewReports: boolean;
+    durationPreset?: "24H" | "3D" | "7D" | "TERM" | "PERMANENT";
     notes?: string;
   }
 ) {
@@ -186,10 +245,33 @@ export async function updateStudentOverrideAction(
     return { error: "سجل الطالب غير موجود" };
   }
 
+  let expiresAt: string | null = null;
+  let durationLabel = "دائم";
+
+  if (overrides.durationPreset === "24H") {
+    expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    durationLabel = "24 ساعة";
+  } else if (overrides.durationPreset === "3D") {
+    expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    durationLabel = "3 أيام";
+  } else if (overrides.durationPreset === "7D") {
+    expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    durationLabel = "أسبوع واحد";
+  } else if (overrides.durationPreset === "TERM") {
+    expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+    durationLabel = "الفصل الدراسي";
+  }
+
+  const payload = {
+    ...overrides,
+    expiresAt,
+    durationLabel,
+  };
+
   await prisma.user.update({
     where: { id: userId },
     data: {
-      permissionsJson: JSON.stringify(overrides),
+      permissionsJson: JSON.stringify(payload),
       isCustomPermissions: true,
     },
   });
@@ -198,7 +280,7 @@ export async function updateStudentOverrideAction(
   revalidatePath("/student/grades");
   revalidatePath("/student/dashboard");
 
-  return { success: true };
+  return { success: true, expiresAt, durationLabel };
 }
 
 /**
@@ -223,14 +305,22 @@ export async function getFullClassGradesForStudentAction(studentUserId: string) 
 
   const profile = studentUser.studentProfile;
   const tenantId = studentUser.tenantId;
+  const now = new Date();
 
   // 1. Check student-specific override
   let studentOverrideAllowed = false;
+  let remainingDays: number | null = null;
+
   if (studentUser.permissionsJson) {
     try {
       const parsed = JSON.parse(studentUser.permissionsJson);
       if (parsed.allowViewClassGrades) {
-        studentOverrideAllowed = true;
+        if (!parsed.expiresAt || now <= new Date(parsed.expiresAt)) {
+          studentOverrideAllowed = true;
+          if (parsed.expiresAt) {
+            remainingDays = Math.max(1, Math.ceil((new Date(parsed.expiresAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+          }
+        }
       }
     } catch {}
   }
@@ -241,8 +331,14 @@ export async function getFullClassGradesForStudentAction(studentUserId: string) 
   if (tenant?.printFooterText && tenant.printFooterText.startsWith("{")) {
     try {
       const parsed = JSON.parse(tenant.printFooterText);
-      if (parsed.classPolicies?.[profile.classRoomId]?.allowViewFullClassGrades) {
-        classPolicyAllowed = true;
+      const classPol = parsed.classPolicies?.[profile.classRoomId];
+      if (classPol?.allowViewFullClassGrades) {
+        if (!classPol.expiresAt || now <= new Date(classPol.expiresAt)) {
+          classPolicyAllowed = true;
+          if (classPol.expiresAt && !remainingDays) {
+            remainingDays = Math.max(1, Math.ceil((new Date(classPol.expiresAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+          }
+        }
       }
     } catch {}
   }
@@ -282,6 +378,7 @@ export async function getFullClassGradesForStudentAction(studentUserId: string) 
   return {
     allowed: true,
     className: `${profile.classRoom.name} - الشعبة (${profile.section.name})`,
+    remainingDays,
     classmates,
     subjects,
   };
