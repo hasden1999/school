@@ -102,6 +102,10 @@ export const TeachersClient: React.FC<TeachersClientProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!fullName.trim()) {
+      alert("يرجى كتابة الاسم الثلاثي الكامل للمعلم");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await createTeacherAction({
@@ -113,6 +117,10 @@ export const TeachersClient: React.FC<TeachersClientProps> = ({
       if (res.success) {
         setCreatedResult(res);
         setIsCreateOpen(false);
+        setFullName("");
+        setPhone("+96477");
+      } else {
+        alert(res.error || "حدث خطأ أثناء إضافة المعلم");
       }
     } catch (e: any) {
       alert(e.message || "حدث خطأ أثناء إضافة المعلم");
@@ -569,7 +577,7 @@ export const TeachersClient: React.FC<TeachersClientProps> = ({
 
       {/* Created Teacher Notification */}
       {createdResult && (
-        <Modal isOpen={!!createdResult} onClose={() => setCreatedResult(null)} title="تم إنشاء حساب المعلم بنجاح!" maxWidth="md">
+        <Modal isOpen={!!createdResult} onClose={() => { setCreatedResult(null); window.location.reload(); }} title="تم إنشاء حساب المعلم بنجاح!" maxWidth="md">
           <div className="space-y-4 text-center">
             <div className="w-12 h-12 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-7 h-7" />
