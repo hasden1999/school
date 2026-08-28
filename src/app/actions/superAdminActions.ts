@@ -359,10 +359,10 @@ export async function getAllSchoolsAction(filters?: { search?: string; status?: 
       ...(filters?.status && filters.status !== "ALL" && { subscriptionStatus: filters.status }),
       ...(filters?.search && {
         OR: [
-          { name: { contains: filters.search, mode: "insensitive" } },
-          { code: { contains: filters.search, mode: "insensitive" } },
-          { directorName: { contains: filters.search, mode: "insensitive" } },
-          { phone: { contains: filters.search, mode: "insensitive" } },
+          { name: { contains: filters.search } },
+          { code: { contains: filters.search } },
+          { directorName: { contains: filters.search } },
+          { phone: { contains: filters.search } },
         ],
       }),
     },
