@@ -256,59 +256,6 @@ export const GradesClient: React.FC<GradesClientProps> = ({
           </div>
         </div>
 
-        {/* Quick Phase Tabs Bar for Fast 1-Click Jumping */}
-        <div className="space-y-2 pt-2 border-t border-slate-100">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-            <span className="text-[11px] font-bold text-slate-500 shrink-0 ml-1">المرحلة:</span>
-            {phases.map((p) => {
-              const isSel = activePhase === p.key;
-              return (
-                <button
-                  key={p.key}
-                  type="button"
-                  onClick={() => setActivePhase(p.key as any)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 border ${
-                    isSel
-                      ? "bg-brand-700 text-white border-brand-700"
-                      : !p.isEditable
-                      ? "bg-brand-50 text-brand-700 border-brand-100 hover:bg-brand-100"
-                      : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
-                  }`}
-                >
-                  <span>{p.label}</span>
-                  {!p.isEditable && (
-                    <span className="text-[9px] bg-brand-100 text-brand-700 px-1 rounded font-bold">
-                      آلي
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Quick Subject Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-            <span className="text-[11px] font-bold text-slate-500 shrink-0 ml-1">المادة:</span>
-            {subjects.map((s) => {
-              const isSel = selectedSubjectId === s.id;
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setSelectedSubjectId(s.id)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 border ${
-                    isSel
-                      ? "bg-brand-700 text-white border-brand-700"
-                      : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
-                  }`}
-                >
-                  {s.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Quick Meta Bar & Phase Lock */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
           <div className="flex items-center gap-2">
