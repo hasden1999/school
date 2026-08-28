@@ -761,9 +761,9 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
       </div>
 
       {/* Student Registration Modal */}
-      <Modal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} title="تسجيل طالب جديد + تثبيت العربون" maxWidth="xl">
-        <form onSubmit={handleRegisterSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <Modal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} title="تسجيل طالب جديد + تثبيت العربون" subtitle="تسجيل التلميذ وتوليد بيانات الدخول وإصدار وصل العربون المالي" maxWidth="2xl">
+        <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">اسم الطالب الرباعي *</label>
               <input
@@ -772,7 +772,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 placeholder="كرار حيدر جاسم الموسوي"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
+                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
               />
             </div>
 
@@ -784,20 +784,20 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                 value={formData.guardianName}
                 onChange={(e) => setFormData({ ...formData, guardianName: e.target.value })}
                 placeholder="حيدر جاسم الموسوي"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
+                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">رقم واتساب ولي الأمر *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">رقم واتساب ولي الأمر (عراقي) *</label>
               <input
                 type="text"
                 required
                 dir="ltr"
                 value={formData.guardianPhone}
                 onChange={(e) => setFormData({ ...formData, guardianPhone: e.target.value })}
-                placeholder="+9647701234567"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors text-left font-mono"
+                placeholder="+9647701234567 أو 07701234567"
+                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors text-left font-mono"
               />
             </div>
 
@@ -806,7 +806,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
               <select
                 value={formData.classRoomId}
                 onChange={(e) => handleClassChange(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-bold bg-white text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
               >
                 {classRooms.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -821,7 +821,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
               <select
                 value={formData.sectionId}
                 onChange={(e) => setFormData({ ...formData, sectionId: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-bold bg-white text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
               >
                 {availableSections.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -837,7 +837,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                 type="number"
                 value={formData.totalTuition}
                 onChange={(e) => setFormData({ ...formData, totalTuition: Number(e.target.value) })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-medium text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors font-mono"
+                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-medium text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors font-mono"
               />
             </div>
 
@@ -847,7 +847,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                 type="number"
                 value={formData.depositAmount}
                 onChange={(e) => setFormData({ ...formData, depositAmount: Number(e.target.value) })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-medium text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors font-mono"
+                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-medium text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors font-mono"
               />
             </div>
 
@@ -856,7 +856,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
               <select
                 value={formData.paymentMethod}
                 onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-bold bg-white text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
               >
                 <option value="CASH">نقداً (صندوق المدرسة)</option>
                 <option value="BANK_TRANSFER">تحويل مصرفي / إيداع</option>
@@ -865,22 +865,22 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
             </div>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-[11px] text-slate-600 leading-relaxed">
-            بمجرد الحفظ، سيقوم النظام تلقائياً بـ: توليد اسم مستخدم وكلمة مرور للطالب + إنشاء كشف الدرجات والمستمسكات + إصدار وصل مالي للعربون + جدولة رسالة واتساب لولي الأمر ببيانات الدخول.
+          <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-[11px] text-slate-600 leading-relaxed">
+            💡 بمجرد الحفظ، سيقوم النظام تلقائياً بـ: توليد اسم مستخدم وكلمة مرور للطالب + إنشاء كشف الدرجات والمستمسكات + إصدار وصل مالي للعربون + جدولة رسالة واتساب لولي الأمر ببيانات الدخول.
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setIsRegisterOpen(false)}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100"
+              className="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100"
             >
               إلغاء
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition-all shadow-sm"
+              className="px-6 py-2 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition-all shadow-sm"
             >
               {submitting ? "جاري التسجيل..." : "تأكيد التسجيل وتوليد الحساب"}
             </button>

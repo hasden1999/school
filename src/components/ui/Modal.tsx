@@ -44,17 +44,18 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex min-h-full items-center justify-center p-3 sm:p-6 text-center animate-fadeIn">
       {/* Backdrop click */}
-      <div className="fixed inset-0" onClick={onClose} />
+      <div className="fixed inset-0 transition-opacity" onClick={onClose} />
 
+      {/* Modal Card */}
       <div
-        className={`relative z-10 w-full ${maxWidths[maxWidth]} card-elevated overflow-hidden flex flex-col max-h-[90vh] bg-white border border-slate-200 shadow-xl`}
+        className={`relative z-10 inline-block w-full ${maxWidths[maxWidth]} text-right align-middle bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto sm:my-6 transform transition-all max-h-[85vh] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50/80 shrink-0">
-          <div className="min-w-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200 bg-slate-50/90 shrink-0">
+          <div className="min-w-0 text-right">
             <h3 className="text-sm sm:text-base font-bold text-slate-900 line-clamp-1">{title}</h3>
             {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
           </div>
@@ -69,7 +70,7 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto flex-1">{children}</div>
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 text-right">{children}</div>
       </div>
     </div>
   );
