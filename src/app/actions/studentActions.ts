@@ -8,6 +8,8 @@ import { generateUniqueFiveLetterUsername, generateFiveLetterPasscode } from "@/
 import { generateAtomicStudentNumber, generateAtomicReceiptNumber } from "@/lib/atomicSequence";
 import { revalidatePath } from "next/cache";
 
+import { validateAndNormalizeIraqiPhone } from "@/lib/iraqiPhoneUtils";
+
 export async function registerStudentAction(data: {
   fullName: string;
   guardianName: string;
@@ -21,12 +23,20 @@ export async function registerStudentAction(data: {
   paymentMethod: string;
   depositNotes?: string;
 }) {
-  const session = await requireAuth(["ADMIN"]);
+  const session = await requireAuth(["ADMIN", "SUPER_ADMIN", "VICE_PRINCIPAL", "ACCOUNTANT", "STAFF"]);
   const tenantId = session.tenantId;
 
   if (!hasPermission(session, "MANAGE_STUDENTS")) {
     return { error: "ليس لديك صلاحية تسجيل وإضافة الطلاب في المنظومة." };
   }
+
+  // Validate Iraqi Guardian Phone
+  const phoneValidation = validateAndNormalizeIraqiPhone(data.guardianPhone);
+  if (!phoneValidation.isValid) {
+    return { error: phoneValidation.error || "رقم هاتف ولي الأمر غير صالح." };
+  }
+
+  const normalizedPhone = phoneValidation.normalized;
 
   // 1. Generate unique 5 distinct English letters username (no dots, no commas, no numbers)
   const username = await generateUniqueFiveLetterUsername(tenantId);
@@ -48,7 +58,7 @@ export async function registerStudentAction(data: {
         passwordHash,
         plainPasscode: rawPassword,
         role: "STUDENT",
-        phone: data.guardianPhone.trim(),
+        phone: normalizedPhone,
         mustChangePassword: true,
       },
     });
@@ -59,7 +69,7 @@ export async function registerStudentAction(data: {
         userId: user.id,
         studentNumber,
         guardianName: data.guardianName.trim(),
-        guardianPhone: data.guardianPhone.trim(),
+        guardianPhone: normalizedPhone,
         classRoomId: data.classRoomId,
         sectionId: data.sectionId,
         dateOfBirth: data.dateOfBirth,
@@ -81,15 +91,15 @@ export async function registerStudentAction(data: {
           studentId: profile.id,
           receiptNumber,
           amount: Number(data.depositAmount),
-        paymentDate: new Date().toISOString().split("T")[0],
-        paymentMethod: data.paymentMethod || "CASH",
-        notes: data.depositNotes || "عربون التسجيل وتثبيت المقعد",
-        receivedByUserId: session.id,
-      },
-    });
-  }
+          paymentDate: new Date().toISOString().split("T")[0],
+          paymentMethod: data.paymentMethod || "CASH",
+          notes: data.depositNotes || "عربون التسجيل وتثبيت المقعد",
+          receivedByUserId: session.id,
+        },
+      });
+    }
 
-  // Attach required documents in batch
+    // Attach required documents in batch
     const docReqs = await tx.documentRequirement.findMany({ where: { tenantId } });
     if (docReqs.length > 0) {
       await tx.studentDocument.createMany({
@@ -122,7 +132,7 @@ export async function registerStudentAction(data: {
       schoolName: school?.name || "المدرسة الأهلية",
       studentName: data.fullName,
       guardianName: data.guardianName,
-      guardianPhone: data.guardianPhone,
+      guardianPhone: normalizedPhone,
       eventType: "ACCOUNT_ACTIVATED",
       details: {
         username,
@@ -133,7 +143,7 @@ export async function registerStudentAction(data: {
     await tx.whatsAppMessageQueue.create({
       data: {
         tenantId,
-        recipientPhone: data.guardianPhone,
+        recipientPhone: normalizedPhone,
         recipientName: data.guardianName,
         eventType: "ACCOUNT_ACTIVATED",
         messageText: msgText,

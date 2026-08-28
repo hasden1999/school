@@ -36,6 +36,7 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
   const [selectedPhase, setSelectedPhase] = useState<string>(
     initialPhase === "FULL" ? "month1" : initialPhase
   );
+  const [applyDecisionMarks, setApplyDecisionMarks] = useState(true);
 
   if (!isOpen || !student) return null;
 
@@ -69,15 +70,15 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
 
   const currentPhaseObj = phasesList.find((p) => p.key === selectedPhase) || phasesList[0];
 
-  // Helper for grade appraisal
+  // Helper for grade appraisal & Iraqi Ministry Descriptors
   const getAppraisal = (score: number | null | undefined) => {
-    if (score === null || score === undefined) return { label: "—", color: "text-slate-500" };
-    if (score >= 90) return { label: "امتياز", color: "text-brand-700 font-bold" };
-    if (score >= 80) return { label: "جيد جداً", color: "text-blue-700 font-bold" };
-    if (score >= 70) return { label: "جيد", color: "text-teal-700 font-bold" };
-    if (score >= 60) return { label: "متوسط", color: "text-amber-700 font-bold" };
-    if (score >= 50) return { label: "مقبول", color: "text-indigo-700 font-bold" };
-    return { label: "راسب", color: "text-rose-700 font-bold" };
+    if (score === null || score === undefined) return { label: "—", color: "text-slate-500", desc: "—" };
+    if (score >= 90) return { label: "امتياز", color: "text-emerald-700 font-bold", desc: "ممتاز 🌟" };
+    if (score >= 80) return { label: "جيد جداً", color: "text-blue-700 font-bold", desc: "جيد جداً ⭐" };
+    if (score >= 70) return { label: "جيد", color: "text-teal-700 font-bold", desc: "جيد 👍" };
+    if (score >= 60) return { label: "متوسط", color: "text-amber-700 font-bold", desc: "متوسط 📘" };
+    if (score >= 50) return { label: "مقبول", color: "text-indigo-700 font-bold", desc: "مقبول ✔️" };
+    return { label: "راسب", color: "text-rose-700 font-bold", desc: "دون المستوى ⚠️" };
   };
 
   // Monthly stats
@@ -455,6 +456,9 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
                     <th rowSpan={2} className="border border-slate-300 p-2 bg-brand-100 text-brand-800 text-sm">
                       الدرجة النهائية
                     </th>
+                    <th rowSpan={2} className="border border-slate-300 p-2 bg-slate-100 text-slate-800 text-xs">
+                      التقدير والملاحظات
+                    </th>
                   </tr>
                   <tr className="bg-slate-50 text-slate-600 font-semibold">
                     <th className="border border-slate-300 p-1.5">شهر 1</th>
@@ -466,33 +470,45 @@ export const StudentReportCardModal: React.FC<StudentReportCardModalProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {grades.map((g: any) => (
-                    <tr key={g.id} className="border-b border-slate-200 hover:bg-slate-50/80 transition-colors">
-                      <td className="border border-slate-300 p-2.5 font-bold text-slate-800 text-right">
-                        {g.subject?.name}
-                      </td>
-                      <td className="border border-slate-300 p-2">{g.month1 ?? "-"}</td>
-                      <td className="border border-slate-300 p-2">{g.month2 ?? "-"}</td>
-                      <td className="border border-slate-300 p-2 bg-slate-50 font-bold text-slate-900">
-                        {g.term1Average ?? "-"}
-                      </td>
-                      <td className="border border-slate-300 p-2 bg-blue-50/50 font-bold text-blue-900">
-                        {g.midYear ?? "-"}
-                      </td>
-                      <td className="border border-slate-300 p-2">{g.month3 ?? "-"}</td>
-                      <td className="border border-slate-300 p-2">{g.month4 ?? "-"}</td>
-                      <td className="border border-slate-300 p-2 bg-slate-50 font-bold text-slate-900">
-                        {g.term2Average ?? "-"}
-                      </td>
-                      <td className="border border-slate-300 p-2 bg-indigo-50 font-bold text-indigo-900">
-                        {g.annualAverage ?? "-"}
-                      </td>
-                      <td className="border border-slate-300 p-2">{g.finalExam ?? "-"}</td>
-                      <td className="border border-slate-300 p-2 bg-brand-50 font-bold text-brand-800 text-sm">
-                        {g.finalGrade ?? "-"}
-                      </td>
-                    </tr>
-                  ))}
+                  {grades.map((g: any) => {
+                    const finalScore = g.finalGrade ?? g.annualAverage ?? g.midYear;
+                    const appraisal = getAppraisal(finalScore);
+                    const isDecision = applyDecisionMarks && finalScore >= 45 && finalScore < 50;
+                    return (
+                      <tr key={g.id} className="border-b border-slate-200 hover:bg-slate-50/80 transition-colors">
+                        <td className="border border-slate-300 p-2.5 font-bold text-slate-800 text-right">
+                          {g.subject?.name}
+                        </td>
+                        <td className="border border-slate-300 p-2">{g.month1 ?? "-"}</td>
+                        <td className="border border-slate-300 p-2">{g.month2 ?? "-"}</td>
+                        <td className="border border-slate-300 p-2 bg-slate-50 font-bold text-slate-900">
+                          {g.term1Average ?? "-"}
+                        </td>
+                        <td className="border border-slate-300 p-2 bg-blue-50/50 font-bold text-blue-900">
+                          {g.midYear ?? "-"}
+                        </td>
+                        <td className="border border-slate-300 p-2">{g.month3 ?? "-"}</td>
+                        <td className="border border-slate-300 p-2">{g.month4 ?? "-"}</td>
+                        <td className="border border-slate-300 p-2 bg-slate-50 font-bold text-slate-900">
+                          {g.term2Average ?? "-"}
+                        </td>
+                        <td className="border border-slate-300 p-2 bg-indigo-50 font-bold text-indigo-900">
+                          {g.annualAverage ?? "-"}
+                        </td>
+                        <td className="border border-slate-300 p-2">{g.finalExam ?? "-"}</td>
+                        <td className="border border-slate-300 p-2 bg-brand-50 font-bold text-brand-800 text-sm">
+                          {isDecision ? "50" : (g.finalGrade ?? "-")}
+                        </td>
+                        <td className="border border-slate-300 p-2 font-bold text-xs">
+                          {isDecision ? (
+                            <span className="text-amber-700">ناجح بالقرار ⚖️ (+{50 - finalScore})</span>
+                          ) : (
+                            <span className={appraisal.color}>{appraisal.desc}</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
