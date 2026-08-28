@@ -2,8 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
 import { generateWhatsAppMessage } from "@/lib/whatsappEngine";
 import { createInAppNotification } from "@/lib/notificationEngine";
+import { generateAtomicReceiptNumber } from "@/lib/atomicSequence";
 import { revalidatePath } from "next/cache";
 
 export async function recordPaymentAction(data: {
@@ -15,6 +17,10 @@ export async function recordPaymentAction(data: {
 }) {
   const session = await requireAuth(["ADMIN"]);
   const tenantId = session.tenantId;
+
+  if (!hasPermission(session, "MANAGE_PAYMENTS")) {
+    return { error: "ليس لديك صلاحية تسجيل وقبض الدفعات المالية في المنظومة." };
+  }
 
   const student = await prisma.studentProfile.findUnique({
     where: { id: data.studentId, tenantId },
@@ -44,8 +50,7 @@ export async function recordPaymentAction(data: {
     };
   }
 
-  const receiptCount = await prisma.paymentReceipt.count({ where: { tenantId } });
-  const receiptNumber = `REC-2025-${String(receiptCount + 1).padStart(4, "0")}`;
+  const receiptNumber = await generateAtomicReceiptNumber(tenantId, "2025");
   const today = new Date().toISOString().split("T")[0];
 
   const receipt = await prisma.paymentReceipt.create({

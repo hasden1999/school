@@ -454,11 +454,11 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
         </div>
       </div>
 
-      {/* Students Table */}
-      <div className="card-surface overflow-hidden">
+      {/* Students Table for Desktop & Tablet */}
+      <div className="card-surface overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-xs">
-            <thead className="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500">
+            <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700">
               <tr>
                 <th className="p-4">#</th>
                 <th className="p-4">الطالب</th>
@@ -472,7 +472,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
             <tbody className="divide-y divide-slate-100">
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-slate-500">
+                  <td colSpan={7} className="text-center py-12 text-slate-500 font-medium">
                     لا توجد سجلات مطابقة للبحث أو التبويب المحدد.
                   </td>
                 </tr>
@@ -509,16 +509,16 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                                 <span>{s.user.fullName}</span>
                                 <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-brand-600 transition-opacity" />
                               </div>
-                              <div className="text-[11px] text-slate-500 font-mono flex items-center gap-2">
+                              <div className="text-xs text-slate-600 font-mono flex items-center gap-2">
                                 <span>{s.studentNumber}</span>
                                 <span>•</span>
                                 <span>{s.guardianPhone}</span>
                               </div>
                               <div className="flex items-center gap-1.5 mt-1.5">
-                                <span className="px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 text-[10px] font-mono font-bold border border-brand-100" title="اسم المستخدم الخماسي">
+                                <span className="px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 text-xs font-mono font-bold border border-brand-100" title="اسم المستخدم الخماسي">
                                   {s.user.username}
                                 </span>
-                                <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-mono font-bold border border-amber-100" title="رمز الدخول الخماسي">
+                                <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-xs font-mono font-bold border border-amber-100" title="رمز الدخول الخماسي">
                                   {s.user.plainPasscode || "••••••"}
                                 </span>
                                 <button
@@ -549,7 +549,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                         <td className="p-4" onClick={() => setSelectedQuickStudent(s)}>
                           {isGraduated ? (
                             <div className="space-y-0.5">
-                              <span className="inline-block px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-bold text-[11px] border border-blue-200">
+                              <span className="inline-block px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200">
                                 خريج ({s.graduationYear || "الأرشيف"})
                               </span>
                             </div>
@@ -568,11 +568,11 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
 
                         <td className="p-4" onClick={() => setSelectedQuickStudent(s)}>
                           <div className="space-y-1">
-                            <div className="flex justify-between text-[11px]">
+                            <div className="flex justify-between text-xs">
                               <span className="font-bold text-slate-900">
                                 {Number(paid).toLocaleString()} {currency}
                               </span>
-                              <span className="text-slate-400">
+                              <span className="text-slate-500">
                                 من {Number(s.totalTuition).toLocaleString()}
                               </span>
                             </div>
@@ -590,11 +590,11 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                               ></div>
                             </div>
                             {remaining > 0 ? (
-                              <span className="text-[10px] text-rose-600 font-bold block">
+                              <span className="text-xs text-rose-600 font-bold block">
                                 المتبقي: {Number(remaining).toLocaleString()} {currency}
                               </span>
                             ) : (
-                              <span className="text-[10px] text-brand-700 font-bold block">
+                              <span className="text-xs text-brand-700 font-bold block">
                                 مسدد بالكامل
                               </span>
                             )}
@@ -666,6 +666,98 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile-Friendly Responsive Cards Layout (للشاشات الصغيرة والهواتف) */}
+      <div className="md:hidden space-y-3">
+        {filteredStudents.length === 0 ? (
+          <div className="card-surface p-8 text-center text-slate-500 font-medium">
+            لا توجد سجلات مطابقة للبحث أو التبويب المحدد.
+          </div>
+        ) : (
+          filteredStudents.map((s) => {
+            const missingDocs = s.documents.filter(
+              (d: any) => d.status === "MISSING" && d.requirement.isRequired
+            );
+            const paid =
+              s.paymentReceipts.reduce((sum: number, r: any) => sum + r.amount, 0) +
+              s.depositAmount;
+            const remaining = s.totalTuition - paid;
+
+            return (
+              <div
+                key={s.id}
+                className="card-surface p-4 space-y-3 border border-slate-200 bg-white shadow-2xs"
+              >
+                {/* Header: Student Name + Class */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-800 text-white font-bold flex items-center justify-center text-sm shrink-0">
+                      {s.user.fullName.slice(0, 1)}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">{s.user.fullName}</h4>
+                      <p className="text-xs text-slate-600 font-medium">
+                        {s.classRoom.name} — شعبة ({s.section.name})
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-mono text-xs font-bold">
+                    {s.studentNumber}
+                  </span>
+                </div>
+
+                {/* Financial & Documents Badges */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-slate-500 text-[11px] block">المتبقي من القسط:</span>
+                    <strong className={`font-bold ${remaining > 0 ? "text-rose-600" : "text-emerald-700"}`}>
+                      {remaining > 0 ? `${Number(remaining).toLocaleString()} ${currency}` : "مسدد بالكامل ✅"}
+                    </strong>
+                  </div>
+
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-slate-500 text-[11px] block">المستمسكات:</span>
+                    <strong className={`font-bold ${missingDocs.length === 0 ? "text-emerald-700" : "text-amber-700"}`}>
+                      {missingDocs.length === 0 ? "مكتملة (5/5) ✅" : `ناقصة (${missingDocs.length}) ⚠️`}
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Quick Action Buttons */}
+                <div className="flex items-center gap-2 pt-1 border-t border-slate-100 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedQuickStudent(s)}
+                    className="flex-1 py-2 px-3 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>تسديد / الملف</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedReportStudent(s)}
+                    className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>الشهادة</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(s)}
+                    className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold border border-amber-200"
+                    title="تعديل البيانات"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Student Registration Modal */}

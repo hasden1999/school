@@ -5,6 +5,7 @@ import { requireAuth, hashPassword } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
 import { generateWhatsAppMessage } from "@/lib/whatsappEngine";
 import { generateUniqueFiveLetterUsername, generateFiveLetterPasscode } from "@/lib/credentialGenerator";
+import { generateAtomicStudentNumber, generateAtomicReceiptNumber } from "@/lib/atomicSequence";
 import { revalidatePath } from "next/cache";
 
 export async function registerStudentAction(data: {
@@ -23,6 +24,10 @@ export async function registerStudentAction(data: {
   const session = await requireAuth(["ADMIN"]);
   const tenantId = session.tenantId;
 
+  if (!hasPermission(session, "MANAGE_STUDENTS")) {
+    return { error: "ليس لديك صلاحية تسجيل وإضافة الطلاب في المنظومة." };
+  }
+
   // 1. Generate unique 5 distinct English letters username (no dots, no commas, no numbers)
   const username = await generateUniqueFiveLetterUsername(tenantId);
 
@@ -30,9 +35,8 @@ export async function registerStudentAction(data: {
   const rawPassword = generateFiveLetterPasscode();
   const passwordHash = await hashPassword(rawPassword);
 
-  // 3. Generate sequential student number
-  const studentCount = await prisma.studentProfile.count({ where: { tenantId } });
-  const studentNumber = `STU-2025-${String(studentCount + 1).padStart(3, "0")}`;
+  // 3. Generate sequential collision-proof student number
+  const studentNumber = await generateAtomicStudentNumber(tenantId, "2025");
 
   // 4. Create User & Profile in a transaction
   const result = await prisma.$transaction(async (tx) => {
@@ -69,8 +73,7 @@ export async function registerStudentAction(data: {
     // If deposit > 0, create serialized PaymentReceipt
     let receiptNumber = "";
     if (data.depositAmount > 0) {
-      const receiptCount = await tx.paymentReceipt.count({ where: { tenantId } });
-      receiptNumber = `REC-2025-${String(receiptCount + 1).padStart(4, "0")}`;
+      receiptNumber = await generateAtomicReceiptNumber(tenantId, "2025");
 
       await tx.paymentReceipt.create({
         data: {
@@ -78,15 +81,15 @@ export async function registerStudentAction(data: {
           studentId: profile.id,
           receiptNumber,
           amount: Number(data.depositAmount),
-          paymentDate: new Date().toISOString().split("T")[0],
-          paymentMethod: data.paymentMethod || "CASH",
-          notes: data.depositNotes || "عربون التسجيل وتثبيت المقعد",
-          receivedByUserId: session.id,
-        },
-      });
-    }
+        paymentDate: new Date().toISOString().split("T")[0],
+        paymentMethod: data.paymentMethod || "CASH",
+        notes: data.depositNotes || "عربون التسجيل وتثبيت المقعد",
+        receivedByUserId: session.id,
+      },
+    });
+  }
 
-    // Attach required documents in batch
+  // Attach required documents in batch
     const docReqs = await tx.documentRequirement.findMany({ where: { tenantId } });
     if (docReqs.length > 0) {
       await tx.studentDocument.createMany({
