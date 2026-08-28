@@ -420,3 +420,15 @@ export async function saveLocalPayment(
 
   await enqueueSync("PAYMENT", "CREATE", record, tenantId, userId);
 }
+
+// Aliases for sync engine
+export const getPendingSyncQueue = getPendingSyncItems;
+export const updateSyncQueueItemStatus = updateSyncItemStatus;
+export const removeSyncQueueItem = removeSyncItem;
+export const saveCachedSchool = saveSchoolCache;
+export const saveStudentsBatch = (list: any[]) => putRecordsBatch("students", list);
+export const saveClassRoomsBatch = (list: any[]) => putRecordsBatch("classrooms", list);
+export const saveSectionsBatch = (list: any[]) => putRecordsBatch("sections", list);
+export const saveSubjectsBatch = (list: any[]) => putRecordsBatch("subjects", list);
+export const saveTeachersBatch = (list: any[]) => putRecordsBatch("teachers", list);
+
