@@ -77,6 +77,8 @@ export async function verifySessionToken(token: string): Promise<SessionUser | n
   }
 }
 
+import { prisma } from "./prisma";
+
 /**
  * Cached getSession() using React cache & cryptographically verified JWT
  */
@@ -88,7 +90,28 @@ export const getSession = safeCache(async (): Promise<SessionUser | null> => {
     return null;
   }
 
-  return verifySessionToken(sessionCookie.value);
+  const session = await verifySessionToken(sessionCookie.value);
+  if (!session) return null;
+
+  // Auto-heal tenantId if running on local SQLite database with fresh IDs
+  try {
+    const userInDb = await prisma.user.findFirst({
+      where: { username: session.username },
+      select: { id: true, tenantId: true, role: true, fullName: true, permissionsJson: true },
+    });
+
+    if (userInDb) {
+      session.tenantId = userInDb.tenantId;
+      session.id = userInDb.id;
+      session.role = userInDb.role as any;
+      session.fullName = userInDb.fullName;
+      if (userInDb.permissionsJson) {
+        session.permissionsJson = userInDb.permissionsJson;
+      }
+    }
+  } catch {}
+
+  return session;
 });
 
 export async function setSession(user: SessionUser) {
