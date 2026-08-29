@@ -344,113 +344,49 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
         </div>
       )}
 
-      {/* Primary Section Tabs: Active Students vs Alumni & Graduates Archive */}
-      <div className="flex items-center gap-2 bg-white p-1.5 rounded-lg border border-slate-200 shadow-xs w-fit">
-        <button
-          onClick={() => setActiveTab("ACTIVE")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-            activeTab === "ACTIVE"
-              ? "bg-brand-700 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-50"
-          }`}
-        >
-          <GraduationCap className="w-4 h-4" />
-          <span>الطلاب المنتظمون ({activeCount})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("GRADUATED")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-            activeTab === "GRADUATED"
-              ? "bg-brand-700 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-50"
-          }`}
-        >
-          <Archive className="w-4 h-4" />
-          <span>قسم الخريجين والأرشيف الدائم ({graduatedCount})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("ALL")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-            activeTab === "ALL"
-              ? "bg-brand-700 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-50"
-          }`}
-        >
-          <span>السجل الشامل ({students.length})</span>
-        </button>
-      </div>
-
-      {/* Filter and Search Bar with Quick Classroom Pills */}
-      <div className="card-surface p-4 space-y-3">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="relative flex-1 w-full">
+      {/* Unified Minimalist Filter & Search Bar */}
+      <div className="card-surface p-4 space-y-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+          {/* Search Box */}
+          <div className="relative lg:col-span-2">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={
-                activeTab === "GRADUATED"
-                  ? "بحث في أرشيف الخريجين (الاسم، الرقم المدرسي، سنة التخرج، الهاتف)..."
-                  : "بحث سريع باسم الطالب، ولي الأمر، الرقم المدرسي، أو الهاتف..."
-              }
+              placeholder="بحث سريع بالاسم، ولي الأمر، الرقم المدرسي، أو الهاتف..."
               className="w-full pl-4 pr-10 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
             />
             <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <span className="text-xs font-bold text-slate-500 whitespace-nowrap hidden sm:inline">الصفوف:</span>
+          {/* Class Filter Dropdown */}
+          <div>
             <select
               value={selectedClass}
               onChange={(e) => setSelectedClass(e.target.value)}
-              className="w-full md:w-auto px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
             >
-              <option value="ALL">جميع الصفوف ({students.length})</option>
+              <option value="ALL">جميع الصفوف الدراسية ({students.length})</option>
               {classRooms.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name}
+                  {c.name} ({students.filter((s) => s.classRoomId === c.id).length})
                 </option>
               ))}
             </select>
           </div>
-        </div>
 
-        {/* Quick Clickable Class Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 scrollbar-thin">
-          <button
-            type="button"
-            onClick={() => setSelectedClass("ALL")}
-            className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 ${
-              selectedClass === "ALL"
-                ? "bg-brand-700 text-white shadow-sm"
-                : "bg-white text-slate-600 border border-slate-300 hover:bg-slate-50"
-            }`}
-          >
-            الكل ({students.length})
-          </button>
-          {classRooms.map((c) => {
-            const count = students.filter((s) => s.classRoomId === c.id).length;
-            const isSel = selectedClass === c.id;
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setSelectedClass(c.id)}
-                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  isSel
-                    ? "bg-brand-700 text-white shadow-sm"
-                    : "bg-white text-slate-600 border border-slate-300 hover:bg-slate-50"
-                }`}
-              >
-                <span>{c.name}</span>
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSel ? "bg-white/20 text-white" : "bg-slate-200 text-slate-600"}`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+          {/* Registration Status Dropdown */}
+          <div>
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value as any)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
+            >
+              <option value="ACTIVE">الطلاب المنتظمون ({activeCount})</option>
+              <option value="GRADUATED">قسم الخريجين والأرشيف ({graduatedCount})</option>
+              <option value="ALL">السجل الشامل للطلاب ({students.length})</option>
+            </select>
+          </div>
         </div>
       </div>
 

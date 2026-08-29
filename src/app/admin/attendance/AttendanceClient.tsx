@@ -316,6 +316,26 @@ export const AttendanceClient: React.FC<AttendanceClientProps> = ({
                 ))}
               </select>
             </div>
+
+            {/* Quick Mark All Present Button */}
+            {dateStr === new Date().toISOString().split("T")[0] && (
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextState: Record<string, "PRESENT" | "ABSENT" | "ON_LEAVE" | "LATE"> = {};
+                    students.forEach((s) => {
+                      nextState[s.id] = "PRESENT";
+                    });
+                    setAttendanceState(nextState);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition-colors flex items-center gap-1.5 border border-brand-200 cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-brand-700" />
+                  <span>تحديد الكل كحاضر ✅</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Responsibility Indicator */}
@@ -350,54 +370,6 @@ export const AttendanceClient: React.FC<AttendanceClientProps> = ({
                     : permissionInfo.message}
                 </span>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Quick Clickable Class & Section Pills for Instant 1-Touch Switching */}
-        <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100 flex-wrap">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin flex-1">
-            <span className="text-[11px] font-bold text-slate-400 shrink-0 ml-1">الصفوف:</span>
-            {classRooms.map((c) => {
-              const isSel = selectedClassId === c.id;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedClassId(c.id);
-                    const s = sections.find((sec) => sec.classRoomId === c.id);
-                    setSelectedSectionId(s?.id || "");
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
-                    isSel
-                      ? "bg-brand-700 text-white shadow-sm"
-                      : "bg-white text-slate-600 border border-slate-300 hover:bg-slate-50"
-                  }`}
-                >
-                  {c.name}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Quick Mark All Present Button */}
-          {dateStr === new Date().toISOString().split("T")[0] && (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  const nextState: Record<string, "PRESENT" | "ABSENT" | "ON_LEAVE" | "LATE"> = {};
-                  students.forEach((s) => {
-                    nextState[s.id] = "PRESENT";
-                  });
-                  setAttendanceState(nextState);
-                }}
-                className="px-3.5 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs border border-brand-100"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 text-brand-700" />
-                <span>تحديد الكل كحاضر</span>
-              </button>
             </div>
           )}
         </div>
