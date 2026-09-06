@@ -39,4 +39,10 @@ dev.db-journal
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
+# sqlite wal & locks
+*.db-shm
+*.db-wal
+
+# backups & temporary artifacts
+backups/
+.agents/
