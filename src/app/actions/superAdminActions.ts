@@ -451,10 +451,44 @@ export async function toggleSchoolSuspensionAction(tenantId: string, suspend: bo
     },
   });
 
-  revalidatePath("/super-admin/dashboard");
-  revalidatePath("/super-admin/schools");
+  try {
+    revalidatePath("/super-admin/dashboard");
+    revalidatePath("/super-admin/schools");
+  } catch {}
 
   return { success: true, status: suspend ? "SUSPENDED" : "ACTIVE" };
+}
+
+export async function extendSchoolTrialAction(tenantId: string, days: number = 14) {
+  await checkSuperAdmin();
+
+  const school = await prisma.tenant.findUnique({ where: { id: tenantId } });
+  if (!school) {
+    return { error: "المدرسة غير موجودة" };
+  }
+
+  const baseDate = school.trialEndsAt && new Date(school.trialEndsAt) > new Date()
+    ? new Date(school.trialEndsAt)
+    : new Date();
+
+  baseDate.setDate(baseDate.getDate() + days);
+
+  await prisma.tenant.update({
+    where: { id: tenantId },
+    data: {
+      subscriptionStatus: "TRIAL",
+      subscriptionPlan: "TRIAL",
+      trialEndsAt: baseDate,
+      subscriptionExpiresAt: baseDate,
+    },
+  });
+
+  try {
+    revalidatePath("/super-admin/dashboard");
+    revalidatePath("/super-admin/schools");
+  } catch {}
+
+  return { success: true, newTrialEnd: baseDate.toISOString() };
 }
 
 export async function impersonateSchoolAdminAction(tenantId: string) {

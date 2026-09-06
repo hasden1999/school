@@ -28,6 +28,7 @@ import {
 import {
   updateSchoolSubscriptionAction,
   toggleSchoolSuspensionAction,
+  extendSchoolTrialAction,
   impersonateSchoolAdminAction,
   createSchoolDirectlyAction,
   approveAndProvisionSchoolAction,
@@ -104,6 +105,37 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
       }
     } catch (err: any) {
       setNotificationMsg({ type: "ERROR", text: err.message || "حدث خطأ أثناء العملية" });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleExtendTrial = async (school: any, days: number = 14) => {
+    setLoadingAction(school.id);
+    try {
+      const res = await extendSchoolTrialAction(school.id, days);
+      if (res?.success) {
+        setSchools((prev) =>
+          prev.map((item) =>
+            item.id === school.id
+              ? {
+                  ...item,
+                  subscriptionStatus: "TRIAL",
+                  trialEndsAt: res.newTrialEnd,
+                  subscriptionExpiresAt: res.newTrialEnd,
+                }
+              : item
+          )
+        );
+        setNotificationMsg({
+          type: "SUCCESS",
+          text: `تم تمديد فترة التجربة لمدرسة "${school.name}" بمقدار ${days} يوماً بنجاح`,
+        });
+      } else {
+        setNotificationMsg({ type: "ERROR", text: res?.error || "فشل تمديد التجربة" });
+      }
+    } catch (err: any) {
+      setNotificationMsg({ type: "ERROR", text: err.message || "حدث خطأ أثناء تمديد التجربة" });
     } finally {
       setLoadingAction(null);
     }
@@ -568,6 +600,18 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                           >
                             <CreditCard className="w-3.5 h-3.5" />
                             <span>تجديد الاشتراك</span>
+                          </button>
+
+                          {/* Quick Extend Trial Button */}
+                          <button
+                            type="button"
+                            disabled={loadingAction === school.id}
+                            onClick={() => handleExtendTrial(school, 14)}
+                            className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold transition-all border border-amber-200 flex items-center gap-1 cursor-pointer"
+                            title="تمديد فترة التجربة بمقدار 14 يوماً إضافية"
+                          >
+                            <Clock className="w-3.5 h-3.5 text-amber-600" />
+                            <span>+14 يوم</span>
                           </button>
 
                           {/* Toggle Suspend */}

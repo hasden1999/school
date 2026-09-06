@@ -30,6 +30,23 @@ export async function registerStudentAction(data: {
     return { error: "ليس لديك صلاحية تسجيل وإضافة الطلاب في المنظومة." };
   }
 
+  // Check SaaS Plan Quota (maxStudentsLimit)
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: { maxStudentsLimit: true, subscriptionPlan: true },
+  });
+
+  if (tenant?.maxStudentsLimit) {
+    const currentStudentCount = await prisma.studentProfile.count({
+      where: { tenantId, registrationStatus: "ACTIVE" },
+    });
+    if (currentStudentCount >= tenant.maxStudentsLimit) {
+      return {
+        error: `تم الوصول إلى الحد الأقصى لسعة الطلاب المسموح بها في باقتكم الحالية (${tenant.maxStudentsLimit} طالب). يرجى ترقية باقة المدرسة لإضافة المزيد من الطلبة.`,
+      };
+    }
+  }
+
   // Validate Iraqi Guardian Phone
   const phoneValidation = validateAndNormalizeIraqiPhone(data.guardianPhone);
   if (!phoneValidation.isValid) {

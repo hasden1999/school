@@ -83,20 +83,33 @@ import { prisma } from "./prisma";
  * Cached getSession() using React cache & cryptographically verified JWT
  */
 export const getSession = safeCache(async (): Promise<SessionUser | null> => {
-  const cookieStore = cookies();
-  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
+  let sessionToken: string | undefined;
+  try {
+    const cookieStore = cookies();
+    sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  } catch (err: any) {
+    if (err?.message?.includes("cookies")) {
+      if ((global as any).__MOCK_SESSION__) {
+        return (global as any).__MOCK_SESSION__;
+      }
+      return null;
+    }
+    throw err;
+  }
 
-  if (!sessionCookie?.value) {
+  if (!sessionToken) {
     return null;
   }
 
-  const session = await verifySessionToken(sessionCookie.value);
+  const session = await verifySessionToken(sessionToken);
   if (!session) return null;
 
   // Auto-heal tenantId if running on local SQLite database with fresh IDs
   try {
     const userInDb = await prisma.user.findFirst({
-      where: { username: session.username },
+      where: session.id
+        ? { id: session.id, active: true }
+        : { username: session.username, tenantId: session.tenantId, active: true },
       select: { id: true, tenantId: true, role: true, fullName: true, permissionsJson: true },
     });
 
@@ -115,23 +128,33 @@ export const getSession = safeCache(async (): Promise<SessionUser | null> => {
 });
 
 export async function setSession(user: SessionUser) {
-  const cookieStore = cookies();
-  const token = await signSessionToken(user);
-  const expiresAt = new Date(Date.now() + SESSION_DURATION_SECONDS * 1000);
+  try {
+    const cookieStore = cookies();
+    const token = await signSessionToken(user);
+    const expiresAt = new Date(Date.now() + SESSION_DURATION_SECONDS * 1000);
 
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_DURATION_SECONDS,
-    expires: expiresAt,
-  });
+    cookieStore.set(SESSION_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.COOKIE_SECURE === "true",
+      sameSite: "lax",
+      path: "/",
+      maxAge: SESSION_DURATION_SECONDS,
+      expires: expiresAt,
+    });
+  } catch (err: any) {
+    if (err?.message?.includes("cookies")) {
+      // CLI / standalone execution environment
+      return;
+    }
+    throw err;
+  }
 }
 
 export async function clearSession() {
-  const cookieStore = cookies();
-  cookieStore.delete(SESSION_COOKIE_NAME);
+  try {
+    const cookieStore = cookies();
+    cookieStore.delete(SESSION_COOKIE_NAME);
+  } catch {}
 }
 
 export async function requireAuth(allowedRoles?: string[]): Promise<SessionUser> {

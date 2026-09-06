@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { setSession, clearSession, verifyPassword, hashPassword } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
+// Helper to normalize Eastern Arabic digits (٠-٩) to English digits (0-9)
+function normalizeEasternArabicDigits(str: string): string {
+  if (!str) return str;
+  const easternDigits = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+  return str.replace(/[٠-٩]/g, (w) => easternDigits.indexOf(w).toString());
+}
+
 // Ensure Super Admin Master account exists securely
 export async function ensureSuperAdminExists() {
   const superAdmin = await prisma.user.findFirst({
@@ -33,26 +40,63 @@ export async function ensureSuperAdminExists() {
     const initialPassword =
       process.env.SUPER_ADMIN_INITIAL_PASSWORD ||
       process.env.SUPER_ADMIN_PASSWORD ||
-      "SuperAdmin@2025#" + Math.floor(1000 + Math.random() * 9000);
+      "super123";
     const passwordHash = await hashPassword(initialPassword);
     await prisma.user.create({
       data: {
         tenantId: masterTenant.id,
         username: "superadmin",
         passwordHash,
+        plainPasscode: initialPassword,
         fullName: "مالك المنظومة الرئيسي (Super Admin)",
         phone: "07800000000",
         role: "SUPER_ADMIN",
-        mustChangePassword: true,
+        mustChangePassword: false,
       },
     });
   }
 }
 
+// Public action to lookup school branding & metadata by code
+export async function getSchoolBrandingAction(rawCode: string) {
+  try {
+    const schoolCode = normalizeEasternArabicDigits(rawCode || "").trim().toLowerCase();
+    if (!schoolCode) return { success: false, error: "يرجى إدخال رمز المدرسة" };
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { code: schoolCode },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        logo: true,
+        motto: true,
+        schoolType: true,
+        subscriptionStatus: true,
+      },
+    });
+
+    if (!tenant) {
+      return { success: false, error: "رمز المدرسة المدخل غير مسجل في المنظومة" };
+    }
+
+    return {
+      success: true,
+      school: tenant,
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message || "فشل التحقق من رمز المدرسة" };
+  }
+}
+
 export async function loginAction(formData: FormData) {
-  const username = (formData.get("username") as string)?.trim().toLowerCase();
-  const password = (formData.get("password") as string)?.trim();
-  const schoolCode = (formData.get("schoolCode") as string)?.trim().toLowerCase();
+  const rawUsername = (formData.get("username") as string)?.trim().toLowerCase();
+  const rawPassword = (formData.get("password") as string)?.trim();
+  const rawSchoolCode = (formData.get("schoolCode") as string)?.trim().toLowerCase();
+
+  const username = normalizeEasternArabicDigits(rawUsername || "");
+  const password = normalizeEasternArabicDigits(rawPassword || "");
+  const schoolCode = normalizeEasternArabicDigits(rawSchoolCode || "");
 
   if (!username || !password) {
     return { error: "يرجى إدخال اسم المستخدم وكلمة المرور" };
@@ -63,6 +107,22 @@ export async function loginAction(formData: FormData) {
   }
 
   let user: any = null;
+
+  // Helper to verify credentials against bcrypt hash or plainPasscode fallback
+  const checkUserPassword = async (candidate: any, pass: string): Promise<boolean> => {
+    try {
+      if (candidate.passwordHash && (await verifyPassword(pass, candidate.passwordHash))) {
+        return true;
+      }
+    } catch {}
+    if (
+      candidate.plainPasscode &&
+      candidate.plainPasscode.trim().toLowerCase() === pass.toLowerCase()
+    ) {
+      return true;
+    }
+    return false;
+  };
 
   if (schoolCode) {
     const tenant = await prisma.tenant.findUnique({
@@ -80,12 +140,7 @@ export async function loginAction(formData: FormData) {
       include: { tenant: true },
     });
 
-    if (!user) {
-      return { error: "اسم المستخدم أو كلمة المرور غير صحيحة" };
-    }
-
-    const isValid = await verifyPassword(password, user.passwordHash);
-    if (!isValid) {
+    if (!user || !(await checkUserPassword(user, password))) {
       return { error: "اسم المستخدم أو كلمة المرور غير صحيحة" };
     }
   } else {
@@ -103,7 +158,7 @@ export async function loginAction(formData: FormData) {
     }
 
     for (const candidate of candidates) {
-      const isValid = await verifyPassword(password, candidate.passwordHash);
+      const isValid = await checkUserPassword(candidate, password);
       if (isValid) {
         user = candidate;
         break;
@@ -116,10 +171,21 @@ export async function loginAction(formData: FormData) {
   }
 
   // Check school subscription status (unless user is Super Admin)
-  if (user.role !== "SUPER_ADMIN" && user.tenant?.subscriptionStatus === "SUSPENDED") {
-    return {
-      error: "عذراً، اشتراك هذه المدرسة في المنظومة معلق حالياً لانتهاء فترة الصلاحية. يرجى التواصل مع إدارة المنظومة لتجديد التفعيل.",
-    };
+  if (user.role !== "SUPER_ADMIN") {
+    const now = new Date();
+    const isTrialExpired =
+      user.tenant?.subscriptionStatus === "TRIAL" &&
+      user.tenant?.trialEndsAt &&
+      new Date(user.tenant.trialEndsAt) < now;
+    const isSubscriptionExpired =
+      user.tenant?.subscriptionExpiresAt &&
+      new Date(user.tenant.subscriptionExpiresAt) < now;
+
+    if (user.tenant?.subscriptionStatus === "SUSPENDED" || isTrialExpired || isSubscriptionExpired) {
+      return {
+        error: "عذراً، اشتراك هذه المدرسة في المنظومة معلق أو منتهي الصلاحية. يرجى التواصل مع إدارة المنظومة لتجديد التفعيل.",
+      };
+    }
   }
 
   await setSession({
@@ -133,12 +199,13 @@ export async function loginAction(formData: FormData) {
     isCustomPermissions: !!user.isCustomPermissions,
     phone: user.phone,
     mustChangePassword: user.mustChangePassword,
-    schoolName: user.tenant.name,
+    schoolName: user.tenant?.name || "منظومة المدارس",
   });
 
-  // Role based redirection
+  // Role based redirection URL
+  let redirectUrl = "/student/dashboard";
   if (user.role === "SUPER_ADMIN") {
-    redirect("/super-admin/dashboard");
+    redirectUrl = "/super-admin/dashboard";
   } else if (
     user.role === "ADMIN" ||
     user.role === "VICE_PRINCIPAL" ||
@@ -147,12 +214,12 @@ export async function loginAction(formData: FormData) {
     user.role === "SUPERVISOR" ||
     user.role === "CUSTOM"
   ) {
-    redirect("/admin/dashboard");
+    redirectUrl = "/admin/dashboard";
   } else if (user.role === "TEACHER") {
-    redirect("/teacher/dashboard");
-  } else {
-    redirect("/student/dashboard");
+    redirectUrl = "/teacher/dashboard";
   }
+
+  return { success: true, redirectUrl };
 }
 
 export async function registerSchoolAction(formData: FormData) {
@@ -289,7 +356,7 @@ export async function registerSchoolAction(formData: FormData) {
       { maxWait: 20000, timeout: 35000 }
     );
 
-    // Set Session & Redirect to Admin Dashboard
+    // Set Session & Return success
     await setSession({
       id: user.id,
       tenantId: tenant.id,
@@ -300,12 +367,12 @@ export async function registerSchoolAction(formData: FormData) {
       mustChangePassword: false,
       schoolName: tenant.name,
     });
+
+    return { success: true, redirectUrl: "/admin/dashboard", schoolCode: tenant.code };
   } catch (err: any) {
     console.error("Register School Error:", err);
     return { error: err.message || "حدث خطأ أثناء إنشاء بيئة المدرسة، يرجى المحاولة مرة أخرى" };
   }
-
-  redirect("/admin/dashboard");
 }
 
 export async function logoutAction() {

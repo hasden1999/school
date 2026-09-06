@@ -11,12 +11,12 @@ export default async function LoginPage() {
   if (session) {
     if (session.role === "SUPER_ADMIN") {
       redirect("/super-admin/dashboard");
-    } else if (session.role === "ADMIN") {
-      redirect("/admin/dashboard");
     } else if (session.role === "TEACHER") {
       redirect("/teacher/dashboard");
     } else if (session.role === "STUDENT") {
       redirect("/student/dashboard");
+    } else {
+      redirect("/admin/dashboard");
     }
   }
 

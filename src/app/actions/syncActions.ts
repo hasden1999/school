@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getSession, hashPassword } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 export interface SyncResult {
@@ -149,12 +149,15 @@ export async function syncOfflineBatchAction(items: any[]): Promise<SyncResult> 
           const count = await prisma.studentProfile.count({ where: { tenantId: session.tenantId } });
           const studentNumber = `STU-${new Date().getFullYear()}-${String(count + 1).padStart(4, "0")}`;
 
+          const defaultPass = "stu123";
+          const passwordHash = await hashPassword(defaultPass);
           const user = await prisma.user.create({
             data: {
               tenantId: session.tenantId,
               username: rawUsername,
               fullName,
-              passwordHash: "OFFLINE_TEMP_PASS",
+              passwordHash,
+              plainPasscode: defaultPass,
               role: "STUDENT",
               phone: guardianPhone,
             },
