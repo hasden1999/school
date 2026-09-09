@@ -2,6 +2,7 @@ import { requireAuth } from "@/lib/auth";
 import { AdminLayoutClient } from "@/components/layout/AdminLayoutClient";
 import { prisma } from "@/lib/prisma";
 import { SchoolSuspendedView } from "@/components/billing/SchoolSuspendedView";
+import { getPlatformContactInfoAction } from "@/app/actions/authActions";
 
 export default async function AdminLayout({
   children,
@@ -25,7 +26,8 @@ export default async function AdminLayout({
       new Date(school.subscriptionExpiresAt) < now;
 
     if (school.subscriptionStatus === "SUSPENDED" || isTrialExpired || isSubscriptionExpired) {
-      return <SchoolSuspendedView school={school} />;
+      const contactInfo = await getPlatformContactInfoAction();
+      return <SchoolSuspendedView school={school} contactInfo={contactInfo} />;
     }
   }
 

@@ -24,6 +24,7 @@ import {
   Check,
   School,
   Share2,
+  Lock,
 } from "lucide-react";
 import {
   updateSchoolSubscriptionAction,
@@ -545,10 +546,17 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                       {/* Status */}
                       <td className="p-4">
                         {school.subscriptionStatus === "TRIAL" && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-100 font-bold text-[11px]">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>تجريبي 14 يوم</span>
-                          </span>
+                          diffDays <= 0 ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-bold text-[11px]">
+                              <Lock className="w-3.5 h-3.5" />
+                              <span>تجربة منتهية (مقفل)</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[11px]">
+                              <Clock className="w-3.5 h-3.5 text-amber-600" />
+                              <span>تجريبي ({diffDays} يوم متبقي)</span>
+                            </span>
+                          )
                         )}
                         {school.subscriptionStatus === "ACTIVE" && (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-50 text-brand-700 border border-brand-100 font-bold text-[11px]">
@@ -573,14 +581,14 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                             </div>
                             <span
                               className={`text-[10px] font-bold ${
-                                diffDays <= 3
+                                diffDays <= 0
                                   ? "text-rose-600"
-                                  : diffDays <= 7
+                                  : diffDays <= 3
                                   ? "text-amber-600"
                                   : "text-brand-700"
                               }`}
                             >
-                              {diffDays > 0 ? `(متبقي ${diffDays} يوم)` : "(منتهي الصلاحية)"}
+                              {diffDays > 0 ? `(متبقي ${diffDays} يوم)` : "(انتهت المدة)"}
                             </span>
                           </div>
                         ) : (
@@ -591,15 +599,19 @@ export const SuperAdminDashboardClient: React.FC<SuperAdminDashboardClientProps>
                       {/* Actions */}
                       <td className="p-4">
                         <div className="flex items-center justify-center gap-2">
-                          {/* Renew / Extend Subscription */}
+                          {/* Renew / Activate Official Subscription */}
                           <button
                             type="button"
                             onClick={() => setSelectedSchoolForRenew(school)}
-                            className="px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold transition-all border border-brand-100 flex items-center gap-1"
-                            title="تجديد أو تمديد الاشتراك"
+                            className={`px-3 py-1.5 rounded-lg font-bold transition-all border flex items-center gap-1 cursor-pointer ${
+                              school.subscriptionStatus === "TRIAL" && diffDays <= 0
+                                ? "bg-emerald-700 hover:bg-emerald-800 text-white border-emerald-800 shadow-xs"
+                                : "bg-brand-50 hover:bg-brand-100 text-brand-700 border-brand-100"
+                            }`}
+                            title="تفعيل النسخة الرسمية أو تجديد الاشتراك"
                           >
                             <CreditCard className="w-3.5 h-3.5" />
-                            <span>تجديد الاشتراك</span>
+                            <span>{school.subscriptionStatus === "TRIAL" ? "تفعيل النسخة الرسمية" : "تجديد الاشتراك"}</span>
                           </button>
 
                           {/* Quick Extend Trial Button */}

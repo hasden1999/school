@@ -183,7 +183,12 @@ export async function loginAction(formData: FormData) {
 
     if (user.tenant?.subscriptionStatus === "SUSPENDED" || isTrialExpired || isSubscriptionExpired) {
       return {
-        error: "عذراً، اشتراك هذه المدرسة في المنظومة معلق أو منتهي الصلاحية. يرجى التواصل مع إدارة المنظومة لتجديد التفعيل.",
+        error: isTrialExpired
+          ? "انتهت فترة التجربة المجانية المحددة بـ 14 يوماً لمدرستكم. يرجى التواصل مع إدارة المنظومة لتفعيل النسخة الرسمية."
+          : "عذراً، اشتراك هذه المدرسة في المنظومة معلق حالياً. يرجى التواصل مع إدارة المنظومة لتجديد التفعيل.",
+        isExpired: true,
+        schoolCode: user.tenant?.code,
+        redirectUrl: `/subscription-expired?code=${encodeURIComponent(user.tenant?.code || "")}`,
       };
     }
   }
@@ -379,3 +384,136 @@ export async function logoutAction() {
   await clearSession();
   redirect("/login");
 }
+
+/**
+ * Get Platform Owner Contact Info (WhatsApp, Phone)
+ */
+export async function getPlatformContactInfoAction() {
+  try {
+    const superAdmin = await prisma.user.findFirst({
+      where: { role: "SUPER_ADMIN" },
+      select: { phone: true, fullName: true },
+    });
+
+    const phone =
+      process.env.NEXT_PUBLIC_PLATFORM_PHONE ||
+      superAdmin?.phone ||
+      "07800000000";
+    const whatsapp =
+      process.env.NEXT_PUBLIC_PLATFORM_WHATSAPP ||
+      phone;
+
+    return {
+      phone,
+      whatsapp,
+      fullName: superAdmin?.fullName || "مالك وإدارة المنظومة المركزية",
+    };
+  } catch {
+    return {
+      phone: "07800000000",
+      whatsapp: "9647800000000",
+      fullName: "إدارة المنظومة المركزية",
+    };
+  }
+}
+
+/**
+ * Get Expired School Details for the public/locked-out screen
+ */
+export async function getSchoolExpiredDetailsAction(code: string) {
+  try {
+    const cleanCode = (code || "").trim().toLowerCase();
+    if (!cleanCode) return null;
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { code: cleanCode },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        directorName: true,
+        phone: true,
+        address: true,
+        subscriptionStatus: true,
+        subscriptionPlan: true,
+        trialEndsAt: true,
+        subscriptionExpiresAt: true,
+        createdAt: true,
+      },
+    });
+
+    if (!tenant) return null;
+
+    const contact = await getPlatformContactInfoAction();
+
+    return {
+      school: tenant,
+      contact,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Submit Activation Request from Locked-out School Director
+ */
+export async function submitActivationInquiryAction(formData: FormData) {
+  try {
+    const schoolCode = (formData.get("schoolCode") as string)?.trim().toLowerCase();
+    const directorName = (formData.get("directorName") as string)?.trim();
+    const phone = (formData.get("phone") as string)?.trim();
+    const paymentMethod = (formData.get("paymentMethod") as string) || "ZAIN_CASH";
+    const referenceNumber = (formData.get("referenceNumber") as string)?.trim() || "";
+    const notes = (formData.get("notes") as string)?.trim() || "طلب تفعيل النسخة بعد انتهاء التجربة";
+
+    if (!schoolCode) {
+      return { error: "رمز المدرسة غير محدد" };
+    }
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { code: schoolCode },
+    });
+
+    if (!tenant) {
+      return { error: "المدرسة غير موجودة" };
+    }
+
+    // Register a pending platform payment record
+    await prisma.platformPayment.create({
+      data: {
+        tenantId: tenant.id,
+        amount: 0,
+        currency: "USD",
+        paymentMethod,
+        referenceNumber,
+        notes: `[طلب تفعيل إلكتروني من شاشة القفل] المدير: ${directorName || tenant.directorName} | الهاتف: ${phone || tenant.phone} | التفاصيل: ${notes}`,
+        status: "PENDING",
+      },
+    });
+
+    // Notify all super admins
+    const superAdmins = await prisma.user.findMany({
+      where: { role: "SUPER_ADMIN" },
+    });
+
+    for (const su of superAdmins) {
+      await prisma.notification.create({
+        data: {
+          tenantId: su.tenantId,
+          userId: su.id,
+          title: `🔔 طلب تفعيل نسخة: ${tenant.name}`,
+          message: `أرسلت مدرسة (${tenant.name}) طلب تفعيل للنسخة بعد انتهاء فترة التجربة. هاتف المدير: ${phone || tenant.phone || "غير محدد"}`,
+          type: "SYSTEM",
+          link: "/super-admin/billing",
+        },
+      });
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error("Submit Activation Inquiry Error:", err);
+    return { error: err.message || "فشل إرسال طلب التفعيل، يرجى التواصل مباشرة عبر الواتساب" };
+  }
+}
+
