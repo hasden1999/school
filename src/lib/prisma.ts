@@ -22,3 +22,4 @@ if (!globalForPrisma.isPrismaInitialized) {
   prisma.$queryRawUnsafe(`PRAGMA busy_timeout = 10000;`)
     .catch(() => {});
 }
+
