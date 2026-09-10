@@ -102,10 +102,6 @@ export async function loginAction(formData: FormData) {
     return { error: "يرجى إدخال اسم المستخدم وكلمة المرور" };
   }
 
-  if (username === "superadmin") {
-    await ensureSuperAdminExists();
-  }
-
   let user: any = null;
 
   // Helper to verify credentials against bcrypt hash or plainPasscode fallback
@@ -124,9 +120,22 @@ export async function loginAction(formData: FormData) {
     return false;
   };
 
-  if (schoolCode) {
+  if (username === "superadmin") {
+    await ensureSuperAdminExists();
+    user = await prisma.user.findFirst({
+      where: {
+        role: "SUPER_ADMIN",
+        active: true,
+      },
+      include: { tenant: true },
+    });
+    if (!user || !(await checkUserPassword(user, password))) {
+      return { error: "اسم المستخدم أو كلمة المرور غير صحيحة" };
+    }
+  } else if (schoolCode) {
+    const trimmedCode = schoolCode.trim().toLowerCase();
     const tenant = await prisma.tenant.findUnique({
-      where: { code: schoolCode },
+      where: { code: trimmedCode },
     });
     if (!tenant) {
       return { error: "رمز المدرسة المدخل غير مسجل في المنظومة" };

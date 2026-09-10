@@ -369,11 +369,11 @@ export const LoginClient: React.FC = () => {
                       <input
                         type="text"
                         name="schoolCode"
-                        required
+                        required={username.trim().toLowerCase() !== "superadmin"}
                         value={schoolCode}
                         onChange={(e) => setSchoolCode(e.target.value)}
                         onBlur={() => verifySchoolCode(schoolCode)}
-                        placeholder="مثال: al-nukhba"
+                        placeholder="مثال: al-nukhba (أو super-platform لمالك المنصة)"
                         className={`w-full pl-4 pr-11 py-3 rounded-xl bg-white border text-slate-900 placeholder-slate-400 text-xs sm:text-sm font-mono outline-none transition-all text-left ${
                           codeWarning
                             ? "border-amber-400 focus:border-amber-500 ring-1 ring-amber-400/30"
@@ -404,7 +404,13 @@ export const LoginClient: React.FC = () => {
                         name="username"
                         required
                         value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setUsername(val);
+                          if (val.trim().toLowerCase() === "superadmin" && (!schoolCode || schoolCode === "al-nukhba")) {
+                            setSchoolCode("super-platform");
+                          }
+                        }}
                         placeholder="أدخل اسم المستخدم المسند إليك"
                         className="w-full pl-4 pr-11 py-3 rounded-xl bg-white border border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 text-slate-900 placeholder-slate-400 text-xs sm:text-sm font-mono outline-none transition-all text-left"
                         dir="ltr"
