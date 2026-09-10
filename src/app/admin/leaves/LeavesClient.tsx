@@ -197,12 +197,12 @@ export const LeavesClient: React.FC<LeavesClientProps> = ({ leaves: initialLeave
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center font-bold">
-                      {l.student.user.fullName.slice(0, 1)}
+                      {l.student?.user?.fullName ? l.student.user.fullName.slice(0, 1) : "ط"}
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-slate-900">{l.student.user.fullName}</h4>
+                      <h4 className="text-xs font-bold text-slate-900">{l.student?.user?.fullName || l.student?.guardianName || "طالب بدون اسم"}</h4>
                       <span className="text-[10px] text-slate-500 font-bold">
-                        {l.student.classRoom.name} ({l.student.section.name})
+                        {l.student?.classRoom?.name || "بدون صف"} ({l.student?.section?.name || "بدون شعبة"})
                       </span>
                     </div>
                   </div>

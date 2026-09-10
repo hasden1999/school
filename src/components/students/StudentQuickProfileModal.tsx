@@ -189,21 +189,21 @@ export const StudentQuickProfileModal: React.FC<StudentQuickProfileModalProps> =
         <div className="bg-slate-50 border border-slate-200 p-5 sm:p-6 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-lg bg-brand-50 text-brand-700 border border-brand-100 flex items-center justify-center font-bold text-xl shrink-0">
-              {student.user.fullName.slice(0, 1)}
+              {student.user?.fullName ? student.user.fullName.slice(0, 1) : (student.guardianName ? student.guardianName.slice(0, 1) : "ط")}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-slate-900">{student.user.fullName}</h3>
+                <h3 className="text-lg font-bold text-slate-900">{student.user?.fullName || student.guardianName || "طالب بدون اسم"}</h3>
                 <Badge variant={student.registrationStatus === "ACTIVE" ? "success" : "neutral"}>
                   {student.registrationStatus === "ACTIVE" ? "مقيد منتظم" : student.registrationStatus}
                 </Badge>
               </div>
               <p className="text-xs text-slate-600 flex items-center gap-2 font-medium">
-                <span>{student.classRoom?.name}</span>
+                <span>{student.classRoom?.name || "بدون صف"}</span>
                 <span>•</span>
-                <span>شعبة ({student.section?.name})</span>
+                <span>شعبة ({student.section?.name || "بدون شعبة"})</span>
                 <span>•</span>
-                <span className="font-mono text-brand-700">{student.studentNumber}</span>
+                <span className="font-mono text-brand-700">{student.studentNumber || "—"}</span>
               </p>
             </div>
           </div>

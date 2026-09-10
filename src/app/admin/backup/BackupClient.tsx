@@ -752,11 +752,11 @@ export const BackupClient: React.FC<BackupClientProps> = ({ records: initialReco
                           const rem = (s.totalTuition || 0) - paid;
                           return (
                             <tr key={s.id} className="border-b border-slate-200">
-                              <td className="border border-slate-300 p-1 font-mono">{s.studentNumber}</td>
-                              <td className="border border-slate-300 p-1 font-bold text-right">{s.user.fullName}</td>
-                              <td className="border border-slate-300 p-1">{s.classRoom?.name} ({s.section?.name})</td>
-                              <td className="border border-slate-300 p-1 text-right">{s.guardianName}</td>
-                              <td className="border border-slate-300 p-1 font-mono" dir="ltr">{s.guardianPhone}</td>
+                              <td className="border border-slate-300 p-1 font-mono">{s.studentNumber || "—"}</td>
+                              <td className="border border-slate-300 p-1 font-bold text-right">{s.user?.fullName || s.guardianName || "طالب بدون اسم"}</td>
+                              <td className="border border-slate-300 p-1">{s.classRoom?.name || "بدون صف"} ({s.section?.name || "بدون شعبة"})</td>
+                              <td className="border border-slate-300 p-1 text-right">{s.guardianName || "—"}</td>
+                              <td className="border border-slate-300 p-1 font-mono" dir="ltr">{s.guardianPhone || "—"}</td>
                               <td className="border border-slate-300 p-1">{Number(s.totalTuition || 0).toLocaleString()}</td>
                               <td className="border border-slate-300 p-1 font-bold text-emerald-800">{Number(paid).toLocaleString()}</td>
                               <td className="border border-slate-300 p-1 font-bold text-rose-800">{Number(rem).toLocaleString()}</td>

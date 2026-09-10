@@ -369,8 +369,8 @@ export const TeacherAttendanceClient: React.FC<TeacherAttendanceClientProps> = (
                   return (
                     <tr key={s.id} className="hover:bg-slate-50 transition-colors">
                       <td className="p-4 font-bold text-slate-500">{idx + 1}</td>
-                      <td className="p-4 font-bold text-slate-900">{s.user.fullName}</td>
-                      <td className="p-4 font-mono text-slate-500">{s.studentNumber}</td>
+                      <td className="p-4 font-bold text-slate-900">{s.user?.fullName || s.guardianName || s.studentNumber || "طالب بدون اسم"}</td>
+                      <td className="p-4 font-mono text-slate-500">{s.studentNumber || "—"}</td>
 
                       <td className="p-4 text-center">
                         <div className="inline-flex p-1 bg-slate-100 rounded-xl gap-1 border border-slate-200">

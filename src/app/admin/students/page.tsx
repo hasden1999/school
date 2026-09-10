@@ -49,8 +49,10 @@ export default function StudentsPage() {
     }).then((res) => {
       if (res) {
         setData(res);
-        setLoading(false);
       }
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
     });
   }, []);
 

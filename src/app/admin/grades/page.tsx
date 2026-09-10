@@ -51,8 +51,10 @@ export default function GradesPage() {
     }).then((res) => {
       if (res) {
         setData(res);
-        setLoading(false);
       }
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
     });
   }, []);
 

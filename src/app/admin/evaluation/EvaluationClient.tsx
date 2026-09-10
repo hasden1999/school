@@ -390,7 +390,7 @@ export const EvaluationClient: React.FC<EvaluationClientProps> = ({
                       <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                         <span className="font-bold text-slate-900 flex items-center gap-1.5">
                           <User className="w-3.5 h-3.5 text-brand-700" />
-                          الطالب: {sub.student.user.fullName} ({sub.student.studentNumber})
+                          الطالب: {sub.student?.user?.fullName || sub.student?.guardianName || "طالب بدون اسم"} ({sub.student?.studentNumber || "—"})
                         </span>
                         <span className="font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
                           التقييم: {sub.overallScore} / 5

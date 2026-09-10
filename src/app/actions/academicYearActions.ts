@@ -58,11 +58,11 @@ export async function getAcademicYearAuditData() {
       totalSchoolDebt += remaining;
       studentsWithDebt.push({
         id: s.id,
-        fullName: s.user.fullName,
-        studentNumber: s.studentNumber,
-        guardianPhone: s.guardianPhone,
-        className: `${s.classRoom.name} (${s.section.name})`,
-        totalTuition: s.totalTuition,
+        fullName: s.user?.fullName || s.guardianName || "طالب بدون اسم",
+        studentNumber: s.studentNumber || "—",
+        guardianPhone: s.guardianPhone || "—",
+        className: `${s.classRoom?.name || "-"} (${s.section?.name || "-"})`,
+        totalTuition: s.totalTuition || 0,
         totalPaid,
         remaining,
         isCleared: s.isCleared,
@@ -70,26 +70,26 @@ export async function getAcademicYearAuditData() {
     }
 
     // Missing required documents
-    const missingDocs = s.documents.filter(
-      (d) => d.status === "MISSING" && d.requirement.isRequired
+    const missingDocs = (s.documents || []).filter(
+      (d) => d.status === "MISSING" && d.requirement?.isRequired
     );
     if (missingDocs.length > 0) {
       studentsWithMissingDocs.push({
         id: s.id,
-        fullName: s.user.fullName,
-        className: `${s.classRoom.name} (${s.section.name})`,
+        fullName: s.user?.fullName || s.guardianName || "طالب بدون اسم",
+        className: `${s.classRoom?.name || "-"} (${s.section?.name || "-"})`,
         missingCount: missingDocs.length,
-        missingTitles: missingDocs.map((d) => d.requirement.title),
+        missingTitles: missingDocs.map((d) => d.requirement?.title || "وثيقة"),
       });
     }
 
     // Incomplete Final Grades Check
-    const unLockedGrades = s.gradeRecords.filter((g) => !g.isFinalExamLocked && g.finalGrade === null);
+    const unLockedGrades = (s.gradeRecords || []).filter((g) => !g.isFinalExamLocked && g.finalGrade === null);
     if (unLockedGrades.length > 0) {
       studentsWithIncompleteGrades.push({
         id: s.id,
-        fullName: s.user.fullName,
-        className: `${s.classRoom.name} (${s.section.name})`,
+        fullName: s.user?.fullName || s.guardianName || "طالب بدون اسم",
+        className: `${s.classRoom?.name || "-"} (${s.section?.name || "-"})`,
         uncompletedCount: unLockedGrades.length,
       });
     }

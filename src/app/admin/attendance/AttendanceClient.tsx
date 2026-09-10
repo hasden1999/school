@@ -480,9 +480,9 @@ export const AttendanceClient: React.FC<AttendanceClientProps> = ({
                     <tr key={s.id} className="hover:bg-slate-50 transition-colors">
                       <td className="p-4 font-bold text-slate-500">{idx + 1}</td>
                       <td className="p-4 font-bold text-slate-900">
-                        <span>{s.user.fullName}</span>
+                        <span>{s.user?.fullName || s.guardianName || s.studentNumber || "طالب بدون اسم"}</span>
                       </td>
-                      <td className="p-4 font-mono text-slate-500">{s.studentNumber}</td>
+                      <td className="p-4 font-mono text-slate-500">{s.studentNumber || "—"}</td>
 
                       <td className="p-4 text-center">
                         <div className="inline-flex p-1 bg-slate-100 rounded-xl gap-1 border border-slate-200">

@@ -72,7 +72,7 @@ export const GradesClient: React.FC<GradesClientProps> = ({
   ] as const;
 
   // Filter students in current class
-  const classStudents = students.filter((s) => s.classRoomId === selectedClassId);
+  const classStudents = (students || []).filter((s) => s && s.classRoomId === selectedClassId);
 
   // Sync scores state when phase/subject/class changes
   React.useEffect(() => {
@@ -327,12 +327,13 @@ export const GradesClient: React.FC<GradesClientProps> = ({
               <tbody>
                 {classStudents.map((s) => {
                   const g = s.gradeRecords?.find((gr: any) => gr.subjectId === selectedSubjectId);
+                  const studentName = s.user?.fullName || s.guardianName || s.studentNumber || "طالب بدون اسم";
                   return (
                     <tr key={s.id} className="border-b border-slate-200">
                       <td className="border border-slate-300 p-2 font-bold text-slate-800 text-right">
-                        {s.user.fullName}
+                        {studentName}
                       </td>
-                      <td className="border border-slate-300 p-2">{subjects.find((sub) => sub.id === selectedSubjectId)?.name}</td>
+                      <td className="border border-slate-300 p-2">{subjects?.find((sub) => sub.id === selectedSubjectId)?.name || "-"}</td>
                       <td className="border border-slate-300 p-2">{g?.month1 ?? "-"}</td>
                       <td className="border border-slate-300 p-2">{g?.month2 ?? "-"}</td>
                       <td className="border border-slate-300 p-2 font-bold bg-slate-50">{g?.term1Average ?? "-"}</td>
@@ -359,7 +360,7 @@ export const GradesClient: React.FC<GradesClientProps> = ({
             <div className="space-y-0.5">
               <span className="text-xs font-bold text-slate-800">
                 رصد درجات: <span className="text-brand-700 font-bold">{currentPhaseConfig?.label}</span> — مادة (
-                {subjects.find((s) => s.id === selectedSubjectId)?.name})
+                {subjects?.find((s) => s.id === selectedSubjectId)?.name || "-"})
               </span>
               <p className="text-[11px] text-slate-500">
                 يمكنك الضغط على <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono text-[10px] text-slate-700 font-bold">Shift</kbd> أو <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono text-[10px] text-slate-700 font-bold">Enter ↵</kbd> للانتقال التلقائي للطالب التالي.
@@ -402,12 +403,14 @@ export const GradesClient: React.FC<GradesClientProps> = ({
                     </td>
                   </tr>
                 ) : (
-                  classStudents.map((s, idx) => (
+                  classStudents.map((s, idx) => {
+                    const studentName = s.user?.fullName || s.guardianName || s.studentNumber || "طالب بدون اسم";
+                    return (
                     <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="p-4 font-bold text-slate-500 text-center">{idx + 1}</td>
-                      <td className="p-4 font-bold text-slate-900">{s.user.fullName}</td>
-                      <td className="p-4 font-mono text-slate-500">{s.studentNumber}</td>
-                      <td className="p-4 font-semibold text-slate-700">شعبة ({s.section.name})</td>
+                      <td className="p-4 font-bold text-slate-900">{studentName}</td>
+                      <td className="p-4 font-mono text-slate-500">{s.studentNumber || "—"}</td>
+                      <td className="p-4 font-semibold text-slate-700">شعبة ({s.section?.name || "-"})</td>
 
                       <td className="p-4 text-center">
                         {currentPhaseConfig?.isEditable ? (
@@ -459,8 +462,9 @@ export const GradesClient: React.FC<GradesClientProps> = ({
                         </div>
                       </td>
                     </tr>
-                  ))
-                )}
+                  );
+                })
+              )}
               </tbody>
             </table>
           </div>

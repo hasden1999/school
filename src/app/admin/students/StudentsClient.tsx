@@ -277,19 +277,28 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
   };
 
   // Filter students based on activeTab, searchTerm, and selectedClass
-  const filteredStudents = students.filter((s) => {
+  const filteredStudents = (students || []).filter((s) => {
+    if (!s) return false;
     // Tab filter
     if (activeTab === "ACTIVE" && s.registrationStatus !== "ACTIVE") return false;
     if (activeTab === "GRADUATED" && s.registrationStatus !== "GRADUATED" && s.registrationStatus !== "ARCHIVED")
       return false;
 
     // Search filter across all fields
+    const term = (searchTerm || "").trim().toLowerCase();
+    const studentName = s.user?.fullName?.toLowerCase() || "";
+    const studentNum = s.studentNumber?.toLowerCase() || "";
+    const guardName = s.guardianName?.toLowerCase() || "";
+    const guardPhone = s.guardianPhone || "";
+    const gradYear = s.graduationYear || "";
+
     const matchesSearch =
-      s.user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.studentNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.guardianName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.guardianPhone.includes(searchTerm) ||
-      (s.graduationYear && s.graduationYear.includes(searchTerm));
+      !term ||
+      studentName.includes(term) ||
+      studentNum.includes(term) ||
+      guardName.includes(term) ||
+      guardPhone.includes(term) ||
+      gradYear.includes(term);
 
     // Class filter
     const matchesClass = selectedClass === "ALL" || s.classRoomId === selectedClass;
@@ -297,9 +306,9 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
     return matchesSearch && matchesClass;
   });
 
-  const activeCount = students.filter((s) => s.registrationStatus === "ACTIVE").length;
-  const graduatedCount = students.filter(
-    (s) => s.registrationStatus === "GRADUATED" || s.registrationStatus === "ARCHIVED"
+  const activeCount = (students || []).filter((s) => s?.registrationStatus === "ACTIVE").length;
+  const graduatedCount = (students || []).filter(
+    (s) => s?.registrationStatus === "GRADUATED" || s?.registrationStatus === "ARCHIVED"
   ).length;
 
   return (
@@ -414,15 +423,18 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                 </tr>
               ) : (
                 filteredStudents.map((s, idx) => {
-                  const missingDocs = s.documents.filter(
-                    (d: any) => d.status === "MISSING" && d.requirement.isRequired
+                  const missingDocs = (s.documents || []).filter(
+                    (d: any) => d.status === "MISSING" && d.requirement?.isRequired
                   );
                   const paid =
-                    s.paymentReceipts.reduce((sum: number, r: any) => sum + r.amount, 0) +
-                    s.depositAmount;
-                  const remaining = s.totalTuition - paid;
+                    (s.paymentReceipts || []).reduce((sum: number, r: any) => sum + (r.amount || 0), 0) +
+                    (s.depositAmount || 0);
+                  const totalTuition = s.totalTuition || 0;
+                  const remaining = totalTuition - paid;
                   const isGraduated =
                     s.registrationStatus === "GRADUATED" || s.registrationStatus === "ARCHIVED";
+                  const studentDisplayName = s.user?.fullName || s.guardianName || s.studentNumber || "طالب بدون اسم";
+                  const initialLetter = studentDisplayName.slice(0, 1) || "ط";
 
                   return (
                       <tr
@@ -438,33 +450,33 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                         <td className="p-4" onClick={() => setSelectedQuickStudent(s)}>
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg bg-slate-100 group-hover:bg-brand-100 group-hover:text-brand-700 text-slate-700 flex items-center justify-center font-bold text-sm transition-colors shrink-0 border border-slate-200">
-                              {s.user.fullName.slice(0, 1)}
+                              {initialLetter}
                             </div>
                             <div>
                               <div className="font-bold text-slate-900 group-hover:text-brand-700 transition-colors flex items-center gap-1.5">
-                                <span>{s.user.fullName}</span>
+                                <span>{studentDisplayName}</span>
                                 <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-brand-600 transition-opacity" />
                               </div>
                               <div className="text-xs text-slate-600 font-mono flex items-center gap-2">
-                                <span>{s.studentNumber}</span>
+                                <span>{s.studentNumber || "—"}</span>
                                 <span>•</span>
-                                <span>{s.guardianPhone}</span>
+                                <span>{s.guardianPhone || "—"}</span>
                               </div>
                               <div className="flex items-center gap-1.5 mt-1.5">
                                 <span className="px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 text-xs font-mono font-bold border border-brand-100" title="اسم المستخدم الخماسي">
-                                  {s.user.username}
+                                  {s.user?.username || "—"}
                                 </span>
                                 <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-xs font-mono font-bold border border-amber-100" title="رمز الدخول الخماسي">
-                                  {s.user.plainPasscode || "••••••"}
+                                  {s.user?.plainPasscode || "••••••"}
                                 </span>
                                 <button
                                   type="button"
                                   title="نسخ بيانات الدخول"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    const text = `اسم المستخدم: ${s.user.username}\nرمز المرور: ${s.user.plainPasscode || "(تم تغييره)"}`;
+                                    const text = `اسم المستخدم: ${s.user?.username || "—"}\nرمز المرور: ${s.user?.plainPasscode || "(تم تغييره)"}`;
                                     navigator.clipboard.writeText(text);
-                                    alert(`✓ تم نسخ بيانات الدخول للطالب (${s.user.fullName})!`);
+                                    alert(`✓ تم نسخ بيانات الدخول للطالب (${studentDisplayName})!`);
                                   }}
                                   className="p-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
                                 >
@@ -479,7 +491,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                           className="p-4 font-semibold text-slate-700"
                           onClick={() => setSelectedQuickStudent(s)}
                         >
-                          {s.classRoom.name} ({s.section.name})
+                          {s.classRoom?.name || "بدون صف"} ({s.section?.name || "بدون شعبة"})
                         </td>
 
                         <td className="p-4" onClick={() => setSelectedQuickStudent(s)}>
@@ -509,19 +521,19 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                                 {Number(paid).toLocaleString()} {currency}
                               </span>
                               <span className="text-slate-500">
-                                من {Number(s.totalTuition).toLocaleString()}
+                                من {Number(totalTuition).toLocaleString()}
                               </span>
                             </div>
                             <div className="w-32 bg-slate-100 h-2 rounded-full overflow-hidden">
                               <div
                                 className={`h-full ${
-                                  remaining === 0 ? "bg-brand-600" : "bg-blue-500"
+                                  remaining <= 0 ? "bg-brand-600" : "bg-blue-500"
                                 }`}
                                 style={{
-                                  width: `${Math.min(
+                                  width: `${totalTuition > 0 ? Math.min(
                                     100,
-                                    Math.round((paid / s.totalTuition) * 100)
-                                  )}%`,
+                                    Math.round((paid / totalTuition) * 100)
+                                  ) : 0}%`,
                                 }}
                               ></div>
                             </div>
@@ -612,13 +624,16 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
           </div>
         ) : (
           filteredStudents.map((s) => {
-            const missingDocs = s.documents.filter(
-              (d: any) => d.status === "MISSING" && d.requirement.isRequired
+            const missingDocs = (s.documents || []).filter(
+              (d: any) => d.status === "MISSING" && d.requirement?.isRequired
             );
             const paid =
-              s.paymentReceipts.reduce((sum: number, r: any) => sum + r.amount, 0) +
-              s.depositAmount;
-            const remaining = s.totalTuition - paid;
+              (s.paymentReceipts || []).reduce((sum: number, r: any) => sum + (r.amount || 0), 0) +
+              (s.depositAmount || 0);
+            const totalTuition = s.totalTuition || 0;
+            const remaining = totalTuition - paid;
+            const studentDisplayName = s.user?.fullName || s.guardianName || s.studentNumber || "طالب بدون اسم";
+            const initialLetter = studentDisplayName.slice(0, 1) || "ط";
 
             return (
               <div
@@ -629,18 +644,18 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5">
                     <div className="w-10 h-10 rounded-xl bg-emerald-800 text-white font-bold flex items-center justify-center text-sm shrink-0">
-                      {s.user.fullName.slice(0, 1)}
+                      {initialLetter}
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-900 text-sm">{s.user.fullName}</h4>
+                      <h4 className="font-bold text-slate-900 text-sm">{studentDisplayName}</h4>
                       <p className="text-xs text-slate-600 font-medium">
-                        {s.classRoom.name} — شعبة ({s.section.name})
+                        {s.classRoom?.name || "بدون صف"} — شعبة ({s.section?.name || "بدون شعبة"})
                       </p>
                     </div>
                   </div>
 
                   <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-mono text-xs font-bold">
-                    {s.studentNumber}
+                    {s.studentNumber || "—"}
                   </span>
                 </div>
 
@@ -833,7 +848,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
             </div>
 
             <div>
-              <h4 className="text-base font-bold text-slate-900">{registeredData.user.fullName}</h4>
+              <h4 className="text-base font-bold text-slate-900">{registeredData.user?.fullName || registeredData.username}</h4>
               <p className="text-xs text-slate-500 mt-0.5">تم تفعيل الحساب وإصدار وصل العربون برقم: {registeredData.receiptNumber}</p>
             </div>
 
@@ -850,7 +865,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  const text = `بيانات الدخول لمنظومة المدرسة:\nالطالب: ${registeredData.user.fullName}\nاسم المستخدم: ${registeredData.username}\nرمز المرور: ${registeredData.rawPassword}\nرابط المنظومة: ${window.location.origin}/login`;
+                  const text = `بيانات الدخول لمنظومة المدرسة:\nالطالب: ${registeredData.user?.fullName || registeredData.username}\nاسم المستخدم: ${registeredData.username}\nرمز المرور: ${registeredData.rawPassword}\nرابط المنظومة: ${typeof window !== "undefined" ? window.location.origin : ""}/login`;
                   navigator.clipboard.writeText(text);
                   alert("✓ تم نسخ بيانات الدخول للطالب بنجاح!");
                 }}

@@ -54,11 +54,20 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
   const [sendingOverdue, setSendingOverdue] = useState(false);
   const [overdueResult, setOverdueResult] = useState<any>(null);
 
-  const filteredStudents = students.filter((s) => {
+  const filteredStudents = (students || []).filter((s) => {
+    if (!s) return false;
+    const term = (searchTerm || "").trim().toLowerCase();
+    const studentName = s.user?.fullName?.toLowerCase() || "";
+    const studentNum = s.studentNumber?.toLowerCase() || "";
+    const guardPhone = s.guardianPhone || "";
+    const guardName = s.guardianName?.toLowerCase() || "";
+
     const matchesSearch =
-      s.user.fullName.includes(searchTerm) ||
-      s.studentNumber.includes(searchTerm) ||
-      s.guardianPhone.includes(searchTerm);
+      !term ||
+      studentName.includes(term) ||
+      studentNum.includes(term) ||
+      guardPhone.includes(term) ||
+      guardName.includes(term);
     const matchesClass = selectedClass === "ALL" || s.classRoomId === selectedClass;
     return matchesSearch && matchesClass;
   });
@@ -228,23 +237,25 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
                 </tr>
               ) : (
                 filteredStudents.map((s) => {
-                const totalPaid = s.paymentReceipts.reduce((sum: number, r: any) => sum + r.amount, 0) + s.depositAmount;
-                const remaining = s.totalTuition - totalPaid;
-                const lastReceipt = s.paymentReceipts[0];
+                const totalPaid = (s.paymentReceipts || []).reduce((sum: number, r: any) => sum + (r.amount || 0), 0) + (s.depositAmount || 0);
+                const totalTuition = s.totalTuition || 0;
+                const remaining = totalTuition - totalPaid;
+                const lastReceipt = s.paymentReceipts?.[0];
+                const studentDisplayName = s.user?.fullName || s.guardianName || s.studentNumber || "طالب بدون اسم";
 
                 return (
                   <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-4 font-bold text-slate-900">
-                      <span>{s.user.fullName}</span>
-                      <span className="block font-mono text-[10px] text-slate-400">{s.studentNumber}</span>
+                      <span>{studentDisplayName}</span>
+                      <span className="block font-mono text-[10px] text-slate-400">{s.studentNumber || "—"}</span>
                     </td>
 
                     <td className="p-4 font-semibold text-slate-700">
-                      {s.classRoom.name} ({s.section.name})
+                      {s.classRoom?.name || "بدون صف"} ({s.section?.name || "بدون شعبة"})
                     </td>
 
                     <td className="p-4 font-bold text-slate-900">
-                      {Number(s.totalTuition).toLocaleString()} {currency}
+                      {Number(totalTuition).toLocaleString()} {currency}
                     </td>
 
                     <td className="p-4">
@@ -252,7 +263,7 @@ export const PaymentsClient: React.FC<PaymentsClientProps> = ({
                         {Number(totalPaid).toLocaleString()} {currency}
                       </span>
                       <span className="block text-[10px] text-slate-400">
-                        {s.paymentReceipts.length} دفعات مسجلة
+                        {(s.paymentReceipts || []).length} دفعات مسجلة
                       </span>
                     </td>
 
